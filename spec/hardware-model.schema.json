@@ -1,0 +1,423 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.org/spec/hardware-model.schema.json",
+  "title": "Canonical Automation Hardware Model",
+  "description": "Vendor-independent intermediate representation for agentic industrial discovery and commissioning.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "system",
+    "io_channels"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string"
+    },
+    "system": {
+      "type": "object",
+      "required": [
+        "id"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "environment": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "controllers": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/controller"
+      },
+      "default": []
+    },
+    "io_modules": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/ioModule"
+      },
+      "default": []
+    },
+    "io_channels": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/ioChannel"
+      }
+    },
+    "devices": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/device"
+      },
+      "default": []
+    },
+    "mappings": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/mapping"
+      },
+      "default": []
+    }
+  },
+  "$defs": {
+    "evidence": {
+      "type": "object",
+      "properties": {
+        "source_type": {
+          "type": "string",
+          "enum": [
+            "scan",
+            "datasheet",
+            "engineering_project",
+            "runtime",
+            "user",
+            "inference",
+            "other"
+          ]
+        },
+        "source": {
+          "type": "string"
+        },
+        "detail": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "source_type"
+      ],
+      "additionalProperties": false
+    },
+    "inferenceMeta": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "observed",
+            "declared",
+            "inferred",
+            "candidate",
+            "validated",
+            "rejected",
+            "unknown"
+          ]
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/evidence"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "signal": {
+      "type": "object",
+      "properties": {
+        "domain": {
+          "type": "string",
+          "enum": [
+            "digital",
+            "analog",
+            "fieldbus",
+            "network",
+            "other",
+            "unknown"
+          ]
+        },
+        "quantity": {
+          "type": "string",
+          "enum": [
+            "current",
+            "voltage",
+            "boolean",
+            "frequency",
+            "pulse",
+            "data",
+            "other",
+            "unknown"
+          ]
+        },
+        "range_min": {
+          "type": "number"
+        },
+        "range_max": {
+          "type": "number"
+        },
+        "unit": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "domain"
+      ],
+      "additionalProperties": false
+    },
+    "engineeringRange": {
+      "type": "object",
+      "properties": {
+        "quantity": {
+          "type": "string"
+        },
+        "unit": {
+          "type": "string"
+        },
+        "min": {
+          "type": "number"
+        },
+        "max": {
+          "type": "number"
+        }
+      },
+      "additionalProperties": false
+    },
+    "controller": {
+      "type": "object",
+      "required": [
+        "id"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "manufacturer": {
+          "type": "string"
+        },
+        "product": {
+          "type": "string"
+        },
+        "platform": {
+          "type": "string"
+        },
+        "metadata": {
+          "$ref": "#/$defs/inferenceMeta"
+        }
+      },
+      "additionalProperties": false
+    },
+    "ioModule": {
+      "type": "object",
+      "required": [
+        "id"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "manufacturer": {
+          "type": "string"
+        },
+        "product": {
+          "type": "string"
+        },
+        "parent_id": {
+          "type": "string"
+        },
+        "position": {
+          "type": [
+            "integer",
+            "string"
+          ]
+        },
+        "channel_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "metadata": {
+          "$ref": "#/$defs/inferenceMeta"
+        }
+      },
+      "additionalProperties": false
+    },
+    "ioChannel": {
+      "type": "object",
+      "required": [
+        "id",
+        "direction"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "module_id": {
+          "type": "string"
+        },
+        "channel_index": {
+          "type": [
+            "integer",
+            "string"
+          ]
+        },
+        "direction": {
+          "type": "string",
+          "enum": [
+            "input",
+            "output",
+            "bidirectional",
+            "unknown"
+          ]
+        },
+        "signal": {
+          "$ref": "#/$defs/signal"
+        },
+        "readable": {
+          "type": "boolean"
+        },
+        "writable": {
+          "type": "boolean"
+        },
+        "runtime_value": {},
+        "metadata": {
+          "$ref": "#/$defs/inferenceMeta"
+        }
+      },
+      "additionalProperties": false
+    },
+    "devicePort": {
+      "type": "object",
+      "required": [
+        "id",
+        "direction"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "direction": {
+          "type": "string",
+          "enum": [
+            "input",
+            "output",
+            "bidirectional",
+            "unknown"
+          ]
+        },
+        "signal": {
+          "$ref": "#/$defs/signal"
+        },
+        "engineering_range": {
+          "$ref": "#/$defs/engineeringRange"
+        }
+      },
+      "additionalProperties": false
+    },
+    "device": {
+      "type": "object",
+      "required": [
+        "id",
+        "type"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "manufacturer": {
+          "type": "string"
+        },
+        "product": {
+          "type": "string"
+        },
+        "ports": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/devicePort"
+          },
+          "default": []
+        },
+        "capabilities": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": []
+        },
+        "constraints": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": []
+        },
+        "metadata": {
+          "$ref": "#/$defs/inferenceMeta"
+        }
+      },
+      "additionalProperties": false
+    },
+    "mapping": {
+      "type": "object",
+      "required": [
+        "device_id",
+        "device_port_id",
+        "io_channel_id",
+        "status"
+      ],
+      "properties": {
+        "device_id": {
+          "type": "string"
+        },
+        "device_port_id": {
+          "type": "string"
+        },
+        "io_channel_id": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "candidate",
+            "inferred",
+            "validated",
+            "rejected"
+          ]
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/evidence"
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}
