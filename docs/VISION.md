@@ -35,13 +35,9 @@ Instead of requiring manually written integrations for every vendor, the agent s
 ## Target architecture
 
 ```text
-       Engineering environment
-                +
-       BOM / device documentation
-                +
-       Existing project artifacts
-                +
-       Physical or simulated system
+       Arbitrary available evidence
+       (files, exports, environments,
+        observations, or other sources)
                 │
                 ▼
         Generic engineering agent
@@ -53,7 +49,7 @@ Instead of requiring manually written integrations for every vendor, the agent s
                 └─ validate connector
                 │
                 ▼
-       Raw discovered information
+       Canonical-shaped fragments
                 │
                 ▼
              Normalize

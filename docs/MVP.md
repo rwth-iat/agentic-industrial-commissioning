@@ -10,12 +10,20 @@ Validate the canonical hardware model and the core reasoning pipeline independen
 
 ## Inputs
 
-- a small, manually prepared bill of materials (BOM),
-- structured device descriptions derived from datasheets,
-- a static I/O-topology snapshot manually exported from a simulated or real engineering environment,
+- an arbitrary set of static, offline evidence artifacts available for the case,
+- one or more agent- or connector-derived canonical fragments,
 - the active [canonical hardware-model v0.2 proposal](../spec/hardware-model.schema.v0.2-proposal.json).
 
-The topology snapshot may use a vendor-native source format, but it must be processed offline and limited to hardware, module, interface, and channel information. PLC application code, GVLs, POUs, PLC symbol structures, and logical PLC-variable links are excluded from the MVP input.
+The method does not require particular raw categories such as a BOM, datasheet,
+wiring plan, or engineering export. Those are possible evidence types, not a
+fixed interface. Raw evidence may use any format or local folder organization;
+the core neither scans nor interprets it. An agent or connector selects relevant
+evidence and translates it into neutral fragments containing canonical sources,
+assets, connections, or extensions.
+
+For the offline MVP, evidence must be limited to static information. PLC
+application code, GVLs, POUs, PLC symbol structures, logical PLC-variable links,
+and live system interaction remain excluded.
 
 ## Expected outputs
 
@@ -31,13 +39,14 @@ The MVP is complete when it can:
 
 1. validate representative input and output documents against the canonical schema,
 2. normalize devices and I/O channels without introducing vendor-specific assumptions into the core,
-3. determine electrical compatibility using structured signal information,
-4. eliminate electrically incompatible mappings,
-5. produce all remaining compatible candidate mappings,
-6. identify cases in which multiple mappings remain possible,
-7. preserve status, confidence, evidence, and provenance for inferred results,
-8. request human input only when the available evidence cannot resolve a decision safely or uniquely,
-9. pass automated tests for schema validation, normalization, compatibility matching, and ambiguity handling.
+3. preserve the sourced manufacturer name and manufacturer product code for every normalized asset,
+4. determine electrical compatibility using structured signal information,
+5. eliminate electrically incompatible mappings,
+6. produce all remaining compatible candidate mappings,
+7. identify cases in which multiple mappings remain possible,
+8. preserve status, confidence, evidence, and provenance for inferred results,
+9. request human input only when the available evidence cannot resolve a decision safely or uniquely,
+10. pass automated tests for schema validation, normalization, compatibility matching, and ambiguity handling.
 
 ## Non-goals
 
@@ -58,19 +67,22 @@ All agent processing within the current MVP is offline and must not interact dir
 
 The repository should contain:
 
-- a representative BOM fixture,
-- structured device-description fixtures,
-- at least one static I/O-topology fixture derived from a simulated or manually captured engineering environment,
+- at least one representative set of raw case evidence,
+- the canonical fragments derived from that evidence,
 - valid canonical-model examples,
 - invalid examples for schema-validation tests,
 - unambiguous, ambiguous, and incompatible matching scenarios,
 - automated tests covering the acceptance criteria.
 
-Raw input fixtures and intermediate normalized output should be retained so that results remain reproducible and auditable.
+Raw evidence and derived fragments should be retained so that results remain reproducible and auditable. A specific raw folder structure is not required.
 
 ## Status
 
-The MVP is defined but not yet implemented in this repository.
+An executable core candidate and the HC10 offline case are implemented. The
+case now separates raw evidence, agent-derived structured inputs, deterministic
+results, generic tests, and case-specific validation. The core remains an MVP
+candidate until its limited signal profile and reconciliation behavior have
+been formally accepted.
 
 ## Deferred work
 

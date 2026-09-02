@@ -49,19 +49,52 @@ agentic-industrial-commissioning/
 ├── README.md
 ├── AGENTS.md
 ├── docs/
-│   ├── HARDWARE_MODEL.md
-│   ├── MVP.md
-│   ├── ROADMAP.md
-│   └── VISION.md
 ├── examples/
-│   └── hc10/
-├── scripts/
-│   └── validate-hardware-model.ps1
 ├── spec/
-│   ├── hardware-model.schema.json
-│   └── hardware-model.schema.v0.2-proposal.json
-└── tests/
-    └── test-hardware-model.ps1
+├── src/
+│   └── commissioning_core/       # deterministic core candidate
+├── scripts/
+│   ├── run-case.ps1              # generic model-fragment runner
+│   └── validate-hardware-model.ps1
+├── tests/
+│   ├── core/
+│   └── schema/
+└── cases/
+    └── hc10/
+        ├── raw/                  # opaque, unmodified source evidence
+        ├── derived/              # agent-derived canonical fragments
+        ├── results/              # deterministic pipeline results
+        ├── validation/           # HC10-specific checks
+        └── run.ps1
 ```
 
-The repository will grow only when the authoritative project scope requires it.
+The boundary between method development and an operational case run is
+documented in [docs/DEVELOPMENT_AND_OPERATION.md](docs/DEVELOPMENT_AND_OPERATION.md).
+
+## Offline MVP
+
+The core candidate does not prescribe or read the contents of `raw/`. That
+directory may contain any available offline evidence in any organization or
+format. An agent or connector interprets that evidence and writes one or more
+canonical-shaped fragments to `derived/`. The generic runner merges all supplied
+fragments without assigning them fixed roles such as BOM, topology, or wiring.
+
+For HC10, the current fragment names describe how that particular case was
+organized. They are examples, not a required input taxonomy for another case.
+
+Run the reproducible HC10 pipeline (including canonical-schema validation):
+
+```powershell
+./cases/hc10/run.ps1
+```
+
+It creates `cases/hc10/results/canonical-hardware-model.v0.2.json` and
+`cases/hc10/results/matching-report.json`. Declared or observed connections are
+retained as assertions and checked, but only validated connections suppress
+candidate generation.
+
+Run all automated checks:
+
+```powershell
+./tests/test-mvp.ps1
+```

@@ -33,7 +33,7 @@
         "$ref": "#/$defs/asset"
       },
       "uniqueItems": true,
-      "description": "Physical or logical industrial assets. Controllers, I/O modules, sensors and actuators use the same generic asset representation."
+      "description": "Product-identifiable industrial assets in the MVP. Controllers, I/O modules, sensors and actuators use the same generic asset representation."
     },
     "physical_connections": {
       "type": "array",
@@ -276,15 +276,23 @@
     },
     "identification": {
       "type": "object",
+      "required": [
+        "manufacturer_name",
+        "manufacturer_product_code",
+        "source_refs"
+      ],
       "properties": {
         "manufacturer_name": {
-          "type": "string"
+          "type": "string",
+          "minLength": 1
         },
         "manufacturer_product_designation": {
           "type": "string"
         },
         "manufacturer_product_code": {
-          "type": "string"
+          "type": "string",
+          "minLength": 1,
+          "description": "Manufacturer-assigned order number, model code, or terminal/module designation, e.g. an OEM catalog code. Required for MVP cross-checking."
         },
         "serial_number": {
           "type": "string"
@@ -301,12 +309,13 @@
         },
         "source_refs": {
           "type": "array",
+          "minItems": 1,
           "items": {
             "type": "string",
             "minLength": 1
           },
           "uniqueItems": true,
-          "description": "Sources supporting the identification and nameplate information."
+          "description": "Sources supporting the identification and nameplate information. Required so that product identity remains auditable."
         }
       },
       "additionalProperties": false
@@ -580,7 +589,8 @@
     "asset": {
       "type": "object",
       "required": [
-        "id"
+        "id",
+        "identification"
       ],
       "properties": {
         "id": {

@@ -21,6 +21,7 @@ Version 0.2 uses three central abstractions:
 The first MVP depends only on:
 
 - stable asset and port IDs;
+- a sourced manufacturer name and manufacturer product code for every asset;
 - port direction;
 - a coarse, controlled interface kind;
 - electrical signal ranges and units where applicable;
@@ -40,7 +41,9 @@ The schema already provides optional fields for:
 
 These fields may be populated only from reliable sources. The MVP does not require them and must never invent external identifiers.
 
-The `identification` object is deliberately a small subset rather than an implementation of the complete IDTA Digital Nameplate. Product designation and product code describe product/type information; serial number, global asset ID, and specific asset IDs identify an instance where available.
+The `identification` object is deliberately a small subset rather than an implementation of the complete IDTA Digital Nameplate. `manufacturer_name`, `manufacturer_product_code`, and at least one identification `source_ref` are mandatory in the MVP so that a human can cross-check concrete terminals, modules, sensors, and actuators. Product designation, serial number, global asset ID, and specific asset IDs remain optional.
+
+The main HC10 example uses source-backed product codes from the BOM and TwinCAT capture. Additional synthetic matching scenarios use visibly synthetic `EXAMPLE-*` product codes. Real normalized models must copy actual OEM product or order codes from their cited BOM, datasheet, nameplate, or engineering source and must never invent a plausible code.
 
 ## Static model and uncertainty
 
@@ -63,7 +66,7 @@ JSON Schema validates document structure. Cross-object constraints require the s
 Run all schema and semantic validation tests with:
 
 ```powershell
-./tests/test-hardware-model.ps1
+./tests/schema/test-hardware-model.ps1
 ```
 
 ## Examples

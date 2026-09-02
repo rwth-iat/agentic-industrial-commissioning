@@ -3,9 +3,22 @@
   "system": {
     "id": "invalid-reversed-range"
   },
+  "sources": [
+    {
+      "id": "src-test",
+      "type": "other"
+    }
+  ],
   "assets": [
     {
       "id": "sensor-1",
+      "identification": {
+        "manufacturer_name": "Test Manufacturer",
+        "manufacturer_product_code": "TEST-SENSOR-1",
+        "source_refs": [
+          "src-test"
+        ]
+      },
       "ports": [
         {
           "id": "output",

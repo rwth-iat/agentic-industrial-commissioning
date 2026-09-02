@@ -1,0 +1,36 @@
+{
+  "schema_version": "0.2.0",
+  "system": {
+    "id": "invalid-duplicate-assets"
+  },
+  "sources": [
+    {
+      "id": "src-test",
+      "type": "other"
+    }
+  ],
+  "assets": [
+    {
+      "id": "asset-1",
+      "name": "First asset",
+      "identification": {
+        "manufacturer_name": "Test Manufacturer",
+        "manufacturer_product_code": "TEST-ASSET-A",
+        "source_refs": [
+          "src-test"
+        ]
+      }
+    },
+    {
+      "id": "asset-1",
+      "name": "Second asset",
+      "identification": {
+        "manufacturer_name": "Test Manufacturer",
+        "manufacturer_product_code": "TEST-ASSET-B",
+        "source_refs": [
+          "src-test"
+        ]
+      }
+    }
+  ]
+}

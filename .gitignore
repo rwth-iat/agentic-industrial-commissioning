@@ -1,2 +1,4 @@
-SETUP_CODEX.md
+__pycache__/
+*.pyc
 creds/
+SETUP_CODEX.md

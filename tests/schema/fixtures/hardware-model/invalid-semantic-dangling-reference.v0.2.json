@@ -14,6 +14,13 @@
     {
       "id": "sensor-1",
       "asset_kind": "instance",
+      "identification": {
+        "manufacturer_name": "Test Manufacturer",
+        "manufacturer_product_code": "TEST-SENSOR-1",
+        "source_refs": [
+          "src-test"
+        ]
+      },
       "ports": [
         {
           "id": "output",

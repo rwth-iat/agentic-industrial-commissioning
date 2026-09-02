@@ -4,7 +4,7 @@ param()
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
-$repositoryRoot = Split-Path -Parent $PSScriptRoot
+$repositoryRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $validator = Join-Path $repositoryRoot 'scripts/validate-hardware-model.ps1'
 $powerShell = Join-Path $PSHOME 'pwsh.exe'
 
@@ -22,27 +22,31 @@ $cases = @(
         ExpectedExitCode = 0
     },
     @{
-        Path = 'tests/fixtures/hardware-model/invalid-schema-missing-interface.v0.2.json'
+        Path = 'tests/schema/fixtures/hardware-model/invalid-schema-missing-interface.v0.2.json'
         ExpectedExitCode = 1
     },
     @{
-        Path = 'tests/fixtures/hardware-model/invalid-schema-inferred-without-evidence.v0.2.json'
+        Path = 'tests/schema/fixtures/hardware-model/invalid-schema-missing-product-code.v0.2.json'
         ExpectedExitCode = 1
     },
     @{
-        Path = 'tests/fixtures/hardware-model/invalid-schema-version.v0.2.json'
+        Path = 'tests/schema/fixtures/hardware-model/invalid-schema-inferred-without-evidence.v0.2.json'
         ExpectedExitCode = 1
     },
     @{
-        Path = 'tests/fixtures/hardware-model/invalid-semantic-duplicate-asset-id.v0.2.json'
+        Path = 'tests/schema/fixtures/hardware-model/invalid-schema-version.v0.2.json'
         ExpectedExitCode = 1
     },
     @{
-        Path = 'tests/fixtures/hardware-model/invalid-semantic-dangling-reference.v0.2.json'
+        Path = 'tests/schema/fixtures/hardware-model/invalid-semantic-duplicate-asset-id.v0.2.json'
         ExpectedExitCode = 1
     },
     @{
-        Path = 'tests/fixtures/hardware-model/invalid-semantic-reversed-range.v0.2.json'
+        Path = 'tests/schema/fixtures/hardware-model/invalid-semantic-dangling-reference.v0.2.json'
+        ExpectedExitCode = 1
+    },
+    @{
+        Path = 'tests/schema/fixtures/hardware-model/invalid-semantic-reversed-range.v0.2.json'
         ExpectedExitCode = 1
     }
 )

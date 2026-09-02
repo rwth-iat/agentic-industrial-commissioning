@@ -145,6 +145,30 @@ generated/
 
 Generated artifacts must record enough metadata to reproduce how they were created and how they were validated.
 
+## Development and operational case boundary
+
+Treat changes to `spec/`, `src/`, the generic scripts, and generic tests as
+method-development work. A normal operational case run must not silently adapt
+the canonical schema or generic core to a manufacturer or engineering system.
+
+Store concrete system work under `cases/<case-id>/`:
+
+- source evidence under `raw/`,
+- agent-derived canonical fragments under `derived/`,
+- deterministic outputs under `results/`,
+- case-specific checks under `validation/`.
+
+Environment-specific extraction code belongs under
+`generated/connectors/<environment-id>/`. If a case exposes a genuinely generic
+gap, report it explicitly and handle the core change as development work with a
+general test.
+
+Treat `raw/` as opaque evidence. Do not require a particular set of evidence
+types, filenames, formats, or subdirectories, and do not infer semantics from
+its folder layout. Discover and cite what is actually available. The generic
+core must consume derived canonical fragments rather than reading `raw/`
+directly.
+
 ## Development rules
 
 - Prefer small, testable modules.
