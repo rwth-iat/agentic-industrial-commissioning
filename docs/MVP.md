@@ -12,8 +12,10 @@ Validate the canonical hardware model and the core reasoning pipeline independen
 
 - a small, manually prepared bill of materials (BOM),
 - structured device descriptions derived from datasheets,
-- a simulated, vendor-independent I/O topology,
-- the canonical hardware schema under `spec/`.
+- a static I/O-topology snapshot manually exported from a simulated or real engineering environment,
+- the active [canonical hardware-model v0.2 proposal](../spec/hardware-model.schema.v0.2-proposal.json).
+
+The topology snapshot may use a vendor-native source format, but it must be processed offline and limited to hardware, module, interface, and channel information. PLC application code, GVLs, POUs, PLC symbol structures, and logical PLC-variable links are excluded from the MVP input.
 
 ## Expected outputs
 
@@ -41,7 +43,7 @@ The MVP is complete when it can:
 
 The current MVP does not include:
 
-- discovery from a live automation or engineering system,
+- agent-controlled discovery from a live automation or engineering system,
 - physical I/O access or runtime-value acquisition,
 - generated or production-ready vendor-specific connectors,
 - controller configuration, code download, deployment, or state changes,
@@ -50,7 +52,7 @@ The current MVP does not include:
 
 ## Safety boundary
 
-All work within the current MVP is offline and must not interact with physical automation equipment. Test data and simulated topology are the only permitted system inputs.
+All agent processing within the current MVP is offline and must not interact directly with physical automation equipment. A human may create a static topology snapshot from a real engineering environment under the applicable local safety procedures. Only the resulting files are provided to the MVP; live access, configuration activation, controller state changes, FreeRun, and I/O actuation remain outside its safety boundary.
 
 ## Required test artifacts
 
@@ -58,7 +60,7 @@ The repository should contain:
 
 - a representative BOM fixture,
 - structured device-description fixtures,
-- at least one simulated I/O-topology fixture,
+- at least one static I/O-topology fixture derived from a simulated or manually captured engineering environment,
 - valid canonical-model examples,
 - invalid examples for schema-validation tests,
 - unambiguous, ambiguous, and incompatible matching scenarios,

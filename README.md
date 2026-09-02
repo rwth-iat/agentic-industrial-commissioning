@@ -29,6 +29,8 @@ the system should be able to:
 
 The authoritative definition of the current project scope is maintained in [docs/MVP.md](docs/MVP.md). Potential future development stages are maintained separately in [docs/ROADMAP.md](docs/ROADMAP.md).
 
+The design and active MVP proposal for the vendor-independent intermediate representation are documented in [docs/HARDWARE_MODEL.md](docs/HARDWARE_MODEL.md).
+
 ## Design principles
 
 - **Vendor-independent core**: no Beckhoff-, Phoenix-, Siemens-, WAGO-, Turck-, or other vendor-specific assumptions in the core data model or matching logic.
@@ -47,11 +49,19 @@ agentic-industrial-commissioning/
 ├── README.md
 ├── AGENTS.md
 ├── docs/
+│   ├── HARDWARE_MODEL.md
 │   ├── MVP.md
 │   ├── ROADMAP.md
 │   └── VISION.md
-└── spec/
-    └── hardware-model.schema.json
+├── examples/
+│   └── hc10/
+├── scripts/
+│   └── validate-hardware-model.ps1
+├── spec/
+│   ├── hardware-model.schema.json
+│   └── hardware-model.schema.v0.2-proposal.json
+└── tests/
+    └── test-hardware-model.ps1
 ```
 
 The repository will grow only when the authoritative project scope requires it.

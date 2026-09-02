@@ -1,0 +1,51 @@
+{
+  "schema_version": "0.2.0",
+  "system": {
+    "id": "invalid-dangling-reference"
+  },
+  "sources": [
+    {
+      "id": "src-test",
+      "type": "other",
+      "title": "Negative test fixture"
+    }
+  ],
+  "assets": [
+    {
+      "id": "sensor-1",
+      "asset_kind": "instance",
+      "ports": [
+        {
+          "id": "output",
+          "direction": "output",
+          "interface": {
+            "kind": "digital"
+          }
+        }
+      ]
+    }
+  ],
+  "physical_connections": [
+    {
+      "id": "invalid-connection",
+      "kind": "signal",
+      "endpoints": [
+        {
+          "asset_id": "sensor-1",
+          "port_id": "output"
+        },
+        {
+          "asset_id": "missing-module",
+          "port_id": "missing-input"
+        }
+      ],
+      "status": "candidate",
+      "confidence": 0.1,
+      "evidence": [
+        {
+          "source_ref": "src-test"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "schema_version": "0.2.0",
+  "system": {
+    "id": "invalid-duplicate-assets"
+  },
+  "assets": [
+    {
+      "id": "asset-1",
+      "name": "First asset"
+    },
+    {
+      "id": "asset-1",
+      "name": "Second asset"
+    }
+  ]
+}

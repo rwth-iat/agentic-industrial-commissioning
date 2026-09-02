@@ -73,6 +73,8 @@ Instead of requiring manually written integrations for every vendor, the agent s
    Engineering artifacts / queries
 ```
 
+The purpose, MVP profile, and active schema proposal for this representation are documented in [HARDWARE_MODEL.md](HARDWARE_MODEL.md).
+
 ## What is standardized
 
 The project does **not** standardize the internal API of every automation vendor.

@@ -1,0 +1,27 @@
+{
+  "schema_version": "0.2.0",
+  "system": {
+    "id": "invalid-reversed-range"
+  },
+  "assets": [
+    {
+      "id": "sensor-1",
+      "ports": [
+        {
+          "id": "output",
+          "direction": "output",
+          "interface": {
+            "kind": "analog_current",
+            "signal_range": {
+              "min": 20,
+              "max": 4,
+              "unit": {
+                "symbol": "mA"
+              }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

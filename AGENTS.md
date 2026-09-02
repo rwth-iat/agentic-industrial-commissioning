@@ -65,6 +65,8 @@ The architecture should support three use cases:
 
 The canonical hardware model under `spec/` is the contract between discovery and downstream reasoning.
 
+During MVP development, the active working schema is `spec/hardware-model.schema.v0.2-proposal.json`; its scope and validation rules are documented in `docs/HARDWARE_MODEL.md`.
+
 Do not bypass it by passing raw vendor-specific output directly into matching or generation logic.
 
 The canonical model should represent at least:

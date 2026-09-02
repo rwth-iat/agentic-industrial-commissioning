@@ -1,0 +1,17 @@
+{
+  "schema_version": "0.2.0",
+  "system": {
+    "id": "invalid-missing-interface"
+  },
+  "assets": [
+    {
+      "id": "sensor-1",
+      "ports": [
+        {
+          "id": "output",
+          "direction": "output"
+        }
+      ]
+    }
+  ]
+}

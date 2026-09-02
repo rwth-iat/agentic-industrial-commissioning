@@ -1,0 +1,814 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:agentic-industrial-commissioning:schema:hardware-model:0.2.0",
+  "title": "Canonical Industrial Commissioning Hardware Model",
+  "description": "Vendor-independent intermediate representation for industrial commissioning. The model intentionally stays lean and represents physical assets, their ports/interfaces, candidate or validated physical connections, semantic references, and provenance.",
+  "$comment": "JSON Schema validates document shape. Cross-object invariants such as unique IDs, resolvable references and ordered ranges are validated by scripts/validate-hardware-model.ps1.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "system",
+    "assets"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.2.0",
+      "description": "Exact semantic version of this canonical model schema."
+    },
+    "system": {
+      "$ref": "#/$defs/system"
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/source"
+      },
+      "uniqueItems": true,
+      "description": "Evidence and provenance sources referenced elsewhere in the model."
+    },
+    "assets": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/asset"
+      },
+      "uniqueItems": true,
+      "description": "Physical or logical industrial assets. Controllers, I/O modules, sensors and actuators use the same generic asset representation."
+    },
+    "physical_connections": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/physicalConnection"
+      },
+      "uniqueItems": true,
+      "description": "Known, inferred, candidate, or rejected physical connections between asset ports."
+    },
+    "extensions": {
+      "$ref": "#/$defs/extensions"
+    }
+  },
+  "$defs": {
+    "extensions": {
+      "type": "object",
+      "description": "Namespaced extension point. Vendor-specific data should remain outside the canonical core and use explicit namespace-like keys.",
+      "propertyNames": {
+        "pattern": "^[A-Za-z][A-Za-z0-9_.:-]+$"
+      },
+      "additionalProperties": true
+    },
+    "semanticReference": {
+      "type": "object",
+      "required": [
+        "id"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Globally meaningful semantic identifier, e.g. an ECLASS IRDI, IEC CDD identifier, IDTA semantic IRI, or another externally governed identifier."
+        },
+        "dictionary": {
+          "type": "string",
+          "description": "Optional dictionary or authority, e.g. ECLASS, IEC CDD, IDTA."
+        },
+        "version": {
+          "type": "string",
+          "description": "Optional dictionary/template version."
+        }
+      },
+      "additionalProperties": false
+    },
+    "unit": {
+      "type": "object",
+      "required": [
+        "symbol"
+      ],
+      "properties": {
+        "symbol": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Human-readable unit symbol, e.g. mA, V, l/h, bar."
+        },
+        "semantic_ref": {
+          "$ref": "#/$defs/semanticReference"
+        }
+      },
+      "additionalProperties": false
+    },
+    "valueRange": {
+      "type": "object",
+      "required": [
+        "min",
+        "max",
+        "unit"
+      ],
+      "properties": {
+        "min": {
+          "type": "number"
+        },
+        "max": {
+          "type": "number"
+        },
+        "unit": {
+          "$ref": "#/$defs/unit"
+        }
+      },
+      "additionalProperties": false
+    },
+    "source": {
+      "type": "object",
+      "required": [
+        "id",
+        "type"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "bom",
+            "datasheet",
+            "handover_documentation",
+            "engineering_project",
+            "scan",
+            "runtime_observation",
+            "user_statement",
+            "standard",
+            "inference",
+            "other"
+          ]
+        },
+        "title": {
+          "type": "string"
+        },
+        "uri": {
+          "type": "string",
+          "format": "uri-reference"
+        },
+        "locator": {
+          "type": "string",
+          "description": "Page, section, object path, node id, channel path, or similar locator."
+        },
+        "content_hash": {
+          "type": "string",
+          "description": "Optional hash for reproducible provenance."
+        }
+      },
+      "additionalProperties": false
+    },
+    "evidence": {
+      "type": "object",
+      "required": [
+        "source_ref"
+      ],
+      "properties": {
+        "source_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "detail": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "assertionStatus": {
+      "type": "string",
+      "enum": [
+        "observed",
+        "declared",
+        "inferred",
+        "candidate",
+        "validated",
+        "rejected",
+        "unknown"
+      ],
+      "description": "Epistemic state of an object. Inferences and candidates must carry confidence and evidence."
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "evidenceList": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/evidence"
+      }
+    },
+    "classification": {
+      "type": "object",
+      "required": [
+        "system",
+        "class_id"
+      ],
+      "properties": {
+        "system": {
+          "type": "string",
+          "description": "Classification system, e.g. ECLASS."
+        },
+        "version": {
+          "type": "string"
+        },
+        "class_id": {
+          "type": "string",
+          "description": "Globally unique class identifier where available, e.g. an ECLASS class IRDI."
+        },
+        "class_code": {
+          "type": "string",
+          "description": "Optional human-facing classification code."
+        },
+        "class_name": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "referenceDesignation": {
+      "type": "object",
+      "required": [
+        "value"
+      ],
+      "properties": {
+        "system": {
+          "type": "string",
+          "description": "Reference designation system, typically IEC 81346."
+        },
+        "aspect": {
+          "type": "string",
+          "enum": [
+            "function",
+            "product",
+            "location",
+            "other",
+            "unknown"
+          ]
+        },
+        "value": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "specificAssetId": {
+      "type": "object",
+      "required": [
+        "name",
+        "value"
+      ],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        },
+        "semantic_ref": {
+          "$ref": "#/$defs/semanticReference"
+        }
+      },
+      "additionalProperties": false
+    },
+    "identification": {
+      "type": "object",
+      "properties": {
+        "manufacturer_name": {
+          "type": "string"
+        },
+        "manufacturer_product_designation": {
+          "type": "string"
+        },
+        "manufacturer_product_code": {
+          "type": "string"
+        },
+        "serial_number": {
+          "type": "string"
+        },
+        "global_asset_id": {
+          "type": "string"
+        },
+        "specific_asset_ids": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/specificAssetId"
+          },
+          "uniqueItems": true
+        },
+        "source_refs": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true,
+          "description": "Sources supporting the identification and nameplate information."
+        }
+      },
+      "additionalProperties": false
+    },
+    "semanticProperty": {
+      "type": "object",
+      "required": [
+        "id",
+        "value"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "semantic_ref": {
+          "$ref": "#/$defs/semanticReference"
+        },
+        "value": {
+          "type": [
+            "string",
+            "number",
+            "integer",
+            "boolean"
+          ]
+        },
+        "unit": {
+          "$ref": "#/$defs/unit"
+        },
+        "source_refs": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "status": {
+          "$ref": "#/$defs/assertionStatus"
+        },
+        "confidence": {
+          "$ref": "#/$defs/confidence"
+        },
+        "evidence": {
+          "$ref": "#/$defs/evidenceList"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "enum": [
+                  "candidate",
+                  "inferred"
+                ]
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "required": [
+              "confidence",
+              "evidence"
+            ]
+          }
+        }
+      ],
+      "additionalProperties": false
+    },
+    "interface": {
+      "type": "object",
+      "required": [
+        "kind"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "analog_current",
+            "analog_voltage",
+            "digital",
+            "pulse",
+            "frequency",
+            "resistance",
+            "rtd",
+            "thermocouple",
+            "communication",
+            "power",
+            "process",
+            "other",
+            "unknown"
+          ],
+          "description": "Coarse, implementation-independent interface kind used for deterministic compatibility matching. More precise semantics belong in semantic_ref/properties."
+        },
+        "semantic_ref": {
+          "$ref": "#/$defs/semanticReference"
+        },
+        "signal_range": {
+          "$ref": "#/$defs/valueRange"
+        },
+        "protocol": {
+          "type": "string",
+          "description": "Optional protocol name for communication interfaces."
+        },
+        "properties": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/semanticProperty"
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "enum": [
+                  "analog_current",
+                  "analog_voltage"
+                ]
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "required": [
+              "signal_range"
+            ]
+          }
+        }
+      ],
+      "additionalProperties": false
+    },
+    "engineeringRange": {
+      "type": "object",
+      "required": [
+        "min",
+        "max",
+        "unit"
+      ],
+      "properties": {
+        "quantity_name": {
+          "type": "string"
+        },
+        "quantity_semantic_ref": {
+          "$ref": "#/$defs/semanticReference"
+        },
+        "min": {
+          "type": "number"
+        },
+        "max": {
+          "type": "number"
+        },
+        "unit": {
+          "$ref": "#/$defs/unit"
+        }
+      },
+      "additionalProperties": false
+    },
+    "port": {
+      "type": "object",
+      "required": [
+        "id",
+        "direction",
+        "interface"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "name": {
+          "type": "string"
+        },
+        "role": {
+          "type": "string",
+          "enum": [
+            "signal",
+            "power",
+            "communication",
+            "process",
+            "other",
+            "unknown"
+          ]
+        },
+        "direction": {
+          "type": "string",
+          "enum": [
+            "input",
+            "output",
+            "bidirectional",
+            "none",
+            "unknown"
+          ],
+          "description": "Direction from the perspective of the asset owning this port."
+        },
+        "channel_index": {
+          "type": [
+            "integer",
+            "string"
+          ]
+        },
+        "semantic_ref": {
+          "$ref": "#/$defs/semanticReference"
+        },
+        "interface": {
+          "$ref": "#/$defs/interface"
+        },
+        "engineering_range": {
+          "$ref": "#/$defs/engineeringRange"
+        },
+        "properties": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/semanticProperty"
+          }
+        },
+        "source_refs": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "status": {
+          "$ref": "#/$defs/assertionStatus"
+        },
+        "confidence": {
+          "$ref": "#/$defs/confidence"
+        },
+        "evidence": {
+          "$ref": "#/$defs/evidenceList"
+        },
+        "extensions": {
+          "$ref": "#/$defs/extensions"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "enum": [
+                  "candidate",
+                  "inferred"
+                ]
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "required": [
+              "confidence",
+              "evidence"
+            ]
+          }
+        }
+      ],
+      "additionalProperties": false
+    },
+    "asset": {
+      "type": "object",
+      "required": [
+        "id"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "asset_kind": {
+          "type": "string",
+          "enum": [
+            "type",
+            "instance",
+            "not_applicable",
+            "unknown"
+          ],
+          "description": "Aligned conceptually with AAS AssetKind."
+        },
+        "role": {
+          "type": "string",
+          "description": "Human/algorithmic role such as sensor, actuator, controller, bus coupler, or I/O module. The authoritative semantics should be provided through classifications/semantic references."
+        },
+        "parent_asset_id": {
+          "type": "string",
+          "description": "Simple hierarchy relation for the MVP; may later map to standardized BOM relations."
+        },
+        "semantic_ref": {
+          "$ref": "#/$defs/semanticReference"
+        },
+        "identification": {
+          "$ref": "#/$defs/identification"
+        },
+        "classifications": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/classification"
+          }
+        },
+        "reference_designations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/referenceDesignation"
+          }
+        },
+        "ports": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/port"
+          },
+          "uniqueItems": true
+        },
+        "properties": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/semanticProperty"
+          }
+        },
+        "source_refs": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "status": {
+          "$ref": "#/$defs/assertionStatus"
+        },
+        "confidence": {
+          "$ref": "#/$defs/confidence"
+        },
+        "evidence": {
+          "$ref": "#/$defs/evidenceList"
+        },
+        "extensions": {
+          "$ref": "#/$defs/extensions"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "enum": [
+                  "candidate",
+                  "inferred"
+                ]
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "required": [
+              "confidence",
+              "evidence"
+            ]
+          }
+        }
+      ],
+      "additionalProperties": false
+    },
+    "portReference": {
+      "type": "object",
+      "required": [
+        "asset_id",
+        "port_id"
+      ],
+      "properties": {
+        "asset_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "port_id": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "physicalConnection": {
+      "type": "object",
+      "required": [
+        "id",
+        "endpoints",
+        "status"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "signal",
+            "power",
+            "communication",
+            "process",
+            "other",
+            "unknown"
+          ]
+        },
+        "endpoints": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/portReference"
+          }
+        },
+        "status": {
+          "$ref": "#/$defs/assertionStatus"
+        },
+        "confidence": {
+          "$ref": "#/$defs/confidence"
+        },
+        "evidence": {
+          "$ref": "#/$defs/evidenceList"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "enum": [
+                  "candidate",
+                  "inferred"
+                ]
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "required": [
+              "confidence",
+              "evidence"
+            ]
+          }
+        }
+      ],
+      "additionalProperties": false
+    },
+    "system": {
+      "type": "object",
+      "required": [
+        "id"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "semantic_ref": {
+          "$ref": "#/$defs/semanticReference"
+        },
+        "reference_designations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/referenceDesignation"
+          }
+        },
+        "source_refs": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

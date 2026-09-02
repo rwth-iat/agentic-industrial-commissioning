@@ -1,0 +1,11 @@
+{
+  "schema_version": "9.9.9",
+  "system": {
+    "id": "invalid-version"
+  },
+  "assets": [
+    {
+      "id": "asset-1"
+    }
+  ]
+}
