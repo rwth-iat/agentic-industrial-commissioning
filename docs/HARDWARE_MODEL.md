@@ -21,7 +21,7 @@ Version 0.2 uses three central abstractions:
 The first MVP depends only on:
 
 - stable asset and port IDs;
-- a sourced manufacturer name and manufacturer product code for every asset;
+- source-backed identification where available, while permitting explicitly partial asset identities;
 - port direction;
 - a coarse, controlled interface kind;
 - electrical signal ranges and units where applicable;
@@ -41,9 +41,21 @@ The schema already provides optional fields for:
 
 These fields may be populated only from reliable sources. The MVP does not require them and must never invent external identifiers.
 
-The `identification` object is deliberately a small subset rather than an implementation of the complete IDTA Digital Nameplate. `manufacturer_name`, `manufacturer_product_code`, and at least one identification `source_ref` are mandatory in the MVP so that a human can cross-check concrete terminals, modules, sensors, and actuators. Product designation, serial number, global asset ID, and specific asset IDs remain optional.
+The `identification` object is deliberately a small subset rather than an implementation of the complete IDTA Digital Nameplate. At least one identification `source_ref` is mandatory so that a human can cross-check the identity claim. `manufacturer_name` and `manufacturer_product_code` must be preserved when a cited source provides them, but may be omitted for partially identified brownfield assets. Their absence means unknown, not absent, and must never be filled with invented placeholders. Product designation, serial number, global asset ID, and specific asset IDs remain optional.
 
 The main HC10 example uses source-backed product codes from the BOM and TwinCAT capture. Additional synthetic matching scenarios use visibly synthetic `EXAMPLE-*` product codes. Real normalized models must copy actual OEM product or order codes from their cited BOM, datasheet, nameplate, or engineering source and must never invent a plausible code.
+
+## Evidence reconciliation
+
+Evidence is interpreted with an open-world assumption: if an asset, property, or connection is not mentioned by one source, that omission is not evidence that it does not exist. Only incompatible positive assertions within a comparable scope constitute a conflict.
+
+Different sources may support different parts of the same conclusion. For example, an inventory may identify a field device, an engineering snapshot may observe an I/O module and its position, a wiring document may declare a channel assignment, and product documentation may establish electrical compatibility. Agreeing evidence should be retained together. A bill of materials is useful evidence but is not a prerequisite for retaining an asset found in another source.
+
+A `declared`, `observed`, or `validated` connection must cite its supporting evidence. A single electrically compatible `declared` or `observed` connection resolves that field port for candidate generation when no competing compatible assertion names a different target. This does not promote the connection to `validated`; physical or functional validation remains a separate state. Competing asserted targets remain explicit and require reconciliation. Electrical candidates are generated only where no usable asserted target exists.
+
+## Logical signals and terminals
+
+Ports with role `signal` represent independently matchable logical interfaces. Conductor, pin, and terminal labels such as `+`, `-`, or terminal numbers are connection details, not automatically separate logical signals. Preserve such details in names, properties, evidence, or namespaced extensions. Model them as separate signal ports only when the evidence establishes independently usable signals; otherwise the matching core would create artificial alternatives.
 
 ## Static model and uncertainty
 

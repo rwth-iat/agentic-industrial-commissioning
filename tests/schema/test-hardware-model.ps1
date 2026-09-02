@@ -26,7 +26,11 @@ $cases = @(
         ExpectedExitCode = 1
     },
     @{
-        Path = 'tests/schema/fixtures/hardware-model/invalid-schema-missing-product-code.v0.2.json'
+        Path = 'tests/schema/fixtures/hardware-model/valid-schema-partial-identification.v0.2.json'
+        ExpectedExitCode = 0
+    },
+    @{
+        Path = 'tests/schema/fixtures/hardware-model/invalid-schema-declared-without-evidence.v0.2.json'
         ExpectedExitCode = 1
     },
     @{

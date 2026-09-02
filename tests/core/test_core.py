@@ -74,7 +74,7 @@ class CoreTests(unittest.TestCase):
         self.assertEqual(incompatible["physical_connections"], [])
         self.assertEqual(report["human_questions"][0]["priority"], "blocking")
 
-    def test_declared_connection_remains_unvalidated_and_does_not_hide_candidates(self) -> None:
+    def test_declared_connection_suppresses_candidates_without_becoming_validated(self) -> None:
         device = signal_asset("device", "sensor", "output", "analog_current")
         io = signal_asset("io", "io_module", "input", "analog_current")
         declared = {
@@ -88,11 +88,13 @@ class CoreTests(unittest.TestCase):
         }
         result, report = build_matching_result(model_with([device, io], [declared]))
         self.assertEqual(result["physical_connections"][0]["status"], "declared")
-        self.assertEqual(len(report["candidate_connection_ids"]), 1)
+        self.assertEqual(report["candidate_connection_ids"], [])
+        self.assertEqual(report["supported_connection_ids"], ["declared-connection"])
         self.assertEqual(report["validated_connection_ids"], [])
         self.assertEqual(report["connection_checks"][0]["result"], "compatible_unvalidated")
+        self.assertEqual(report["human_questions"], [])
 
-    def test_only_validated_connection_suppresses_candidate_generation(self) -> None:
+    def test_observed_and_validated_connections_both_suppress_candidates(self) -> None:
         device = signal_asset("device", "sensor", "output", "analog_current")
         io = signal_asset("io", "io_module", "input", "analog_current")
         connection = {
@@ -106,13 +108,89 @@ class CoreTests(unittest.TestCase):
         }
 
         _, observed_report = build_matching_result(model_with([device, io], [connection]))
-        self.assertEqual(len(observed_report["candidate_connection_ids"]), 1)
+        self.assertEqual(observed_report["candidate_connection_ids"], [])
+        self.assertEqual(observed_report["supported_connection_ids"], ["asserted-connection"])
         self.assertEqual(observed_report["connection_checks"][0]["result"], "compatible_unvalidated")
+        self.assertEqual(observed_report["validated_connection_ids"], [])
 
         connection["status"] = "validated"
         _, validated_report = build_matching_result(model_with([device, io], [connection]))
         self.assertEqual(validated_report["candidate_connection_ids"], [])
+        self.assertEqual(validated_report["supported_connection_ids"], ["asserted-connection"])
         self.assertEqual(validated_report["validated_connection_ids"], ["asserted-connection"])
+
+    def test_competing_asserted_targets_are_reported_without_free_candidates(self) -> None:
+        device = signal_asset("device", "sensor", "output", "analog_current")
+        first_io = signal_asset("io-a", "io_module", "input", "analog_current")
+        second_io = signal_asset("io-b", "io_module", "input", "analog_current")
+        connections = [
+            {
+                "id": f"declared-{io_id}",
+                "kind": "signal",
+                "endpoints": [
+                    {"asset_id": "device", "port_id": "signal"},
+                    {"asset_id": io_id, "port_id": "signal"},
+                ],
+                "status": "declared",
+            }
+            for io_id in ("io-a", "io-b")
+        ]
+
+        _, report = build_matching_result(model_with([device, first_io, second_io], connections))
+
+        self.assertEqual(report["candidate_connection_ids"], [])
+        self.assertEqual(report["supported_connection_ids"], [])
+        self.assertEqual(len(report["conflicting_field_claims"]), 1)
+        self.assertIn("question-conflicting-targets-device-signal", {
+            question["id"] for question in report["human_questions"]
+        })
+
+    def test_corroborating_assertions_for_same_target_are_not_duplicates(self) -> None:
+        device = signal_asset("device", "sensor", "output", "analog_current")
+        io = signal_asset("io", "io_module", "input", "analog_current")
+        connections = [
+            {
+                "id": connection_id,
+                "kind": "signal",
+                "endpoints": [
+                    {"asset_id": "device", "port_id": "signal"},
+                    {"asset_id": "io", "port_id": "signal"},
+                ],
+                "status": status,
+            }
+            for connection_id, status in (("wiring-claim", "declared"), ("scan-claim", "observed"))
+        ]
+
+        _, report = build_matching_result(model_with([device, io], connections))
+
+        self.assertEqual(report["candidate_connection_ids"], [])
+        self.assertEqual(report["duplicate_channel_claims"], [])
+        self.assertEqual(report["supported_connection_ids"], ["scan-claim", "wiring-claim"])
+
+    def test_terminal_details_do_not_create_independent_signal_candidates(self) -> None:
+        device = signal_asset("device", "sensor", "output", "digital")
+        device["ports"].extend([
+            {
+                "id": "contact-plus",
+                "role": "other",
+                "direction": "output",
+                "interface": {"kind": "digital"},
+                "source_refs": ["src"],
+            },
+            {
+                "id": "contact-minus",
+                "role": "other",
+                "direction": "output",
+                "interface": {"kind": "digital"},
+                "source_refs": ["src"],
+            },
+        ])
+        io = signal_asset("io", "io_module", "input", "digital")
+
+        result, report = build_matching_result(model_with([device, io]))
+
+        self.assertEqual(len(report["candidate_connection_ids"]), 1)
+        self.assertEqual(len(result["physical_connections"]), 1)
 
     def test_missing_asserted_endpoint_is_unverifiable_instead_of_crashing(self) -> None:
         device = signal_asset("device", "sensor", "output", "analog_current")

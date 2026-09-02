@@ -82,19 +82,25 @@ fragments without assigning them fixed roles such as BOM, topology, or wiring.
 For HC10, the current fragment names describe how that particular case was
 organized. They are examples, not a required input taxonomy for another case.
 
-Run the reproducible HC10 pipeline (including canonical-schema validation):
+After an operational run has created the case fragments and runner, execute the
+reproducible HC10 pipeline (including canonical-schema validation) with:
 
 ```powershell
 ./cases/hc10/run.ps1
 ```
 
 It creates `cases/hc10/results/canonical-hardware-model.v0.2.json` and
-`cases/hc10/results/matching-report.json`. Declared or observed connections are
-retained as assertions and checked, but only validated connections suppress
-candidate generation.
+`cases/hc10/results/matching-report.json`. Compatible declared or observed
+connections are retained with their original status and suppress free candidate
+generation when they identify one unopposed target. Only physical or functional
+validation changes a connection to `validated`.
 
 Run all automated checks:
 
 ```powershell
 ./tests/test-mvp.ps1
 ```
+
+This generic test entry point covers the schema and core behavior only.
+Case-specific validation under `cases/<case-id>/validation/` is generated and
+run within the corresponding operational case.

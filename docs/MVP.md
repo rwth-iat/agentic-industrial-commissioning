@@ -39,7 +39,7 @@ The MVP is complete when it can:
 
 1. validate representative input and output documents against the canonical schema,
 2. normalize devices and I/O channels without introducing vendor-specific assumptions into the core,
-3. preserve the sourced manufacturer name and manufacturer product code for every normalized asset,
+3. preserve sourced manufacturer names and manufacturer product codes wherever they are available, while retaining partially identified assets without inventing missing identity data,
 4. determine electrical compatibility using structured signal information,
 5. eliminate electrically incompatible mappings,
 6. produce all remaining compatible candidate mappings,
@@ -78,11 +78,12 @@ Raw evidence and derived fragments should be retained so that results remain rep
 
 ## Status
 
-An executable core candidate and the HC10 offline case are implemented. The
-case now separates raw evidence, agent-derived structured inputs, deterministic
-results, generic tests, and case-specific validation. The core remains an MVP
-candidate until its limited signal profile and reconciliation behavior have
-been formally accepted.
+An executable core candidate and the HC10 offline evidence are available. A
+normal operational run generates the case-specific structured inputs, results,
+runner, and validation artifacts while the repository keeps raw evidence,
+generic code, and generic tests separate. The core remains an MVP candidate
+until its limited signal profile and reconciliation behavior have been formally
+accepted.
 
 ## Deferred work
 

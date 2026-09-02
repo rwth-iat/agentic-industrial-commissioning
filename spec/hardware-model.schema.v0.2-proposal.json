@@ -277,14 +277,13 @@
     "identification": {
       "type": "object",
       "required": [
-        "manufacturer_name",
-        "manufacturer_product_code",
         "source_refs"
       ],
       "properties": {
         "manufacturer_name": {
           "type": "string",
-          "minLength": 1
+          "minLength": 1,
+          "description": "Source-backed manufacturer name. Omit when the available evidence does not identify the manufacturer."
         },
         "manufacturer_product_designation": {
           "type": "string"
@@ -292,7 +291,7 @@
         "manufacturer_product_code": {
           "type": "string",
           "minLength": 1,
-          "description": "Manufacturer-assigned order number, model code, or terminal/module designation, e.g. an OEM catalog code. Required for MVP cross-checking."
+          "description": "Source-backed manufacturer-assigned order number, model code, or terminal/module designation. Omit when the available evidence does not identify the product; never invent a placeholder."
         },
         "serial_number": {
           "type": "string"
@@ -315,7 +314,7 @@
             "minLength": 1
           },
           "uniqueItems": true,
-          "description": "Sources supporting the identification and nameplate information. Required so that product identity remains auditable."
+          "description": "Sources supporting the available identification information, including a local tag or designation when manufacturer identity is incomplete."
         }
       },
       "additionalProperties": false
@@ -776,6 +775,27 @@
           "then": {
             "required": [
               "confidence",
+              "evidence"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "enum": [
+                  "declared",
+                  "observed",
+                  "validated"
+                ]
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "required": [
               "evidence"
             ]
           }

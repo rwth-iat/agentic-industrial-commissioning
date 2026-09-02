@@ -132,18 +132,56 @@ def build_matching_result(model: dict) -> tuple[dict, dict]:
         if connection["status"] in {"declared", "observed", "validated"}
     ]
     connection_checks = [_connection_check(connection, assets_by_id) for connection in asserted_connections]
+    checks_by_id = {check["connection_id"]: check for check in connection_checks}
     validated_connection_ids = {
         check["connection_id"] for check in connection_checks if check["result"] == "validated"
     }
-    validated_connections = [
-        connection for connection in asserted_connections if connection["id"] in validated_connection_ids
-    ]
-    resolved_field_ports = {
-        (endpoint["asset_id"], endpoint["port_id"])
-        for connection in validated_connections
-        for endpoint in connection["endpoints"]
-        if assets_by_id[endpoint["asset_id"]].get("role") != "io_module"
-    }
+
+    # A compatible asserted connection is enough to resolve candidate
+    # generation, but it retains its original epistemic status.  Multiple
+    # independent assertions of the same endpoint pair corroborate one target;
+    # assertions naming different targets remain an explicit conflict.
+    assertions_by_field_port = defaultdict(list)
+    for connection in asserted_connections:
+        check = checks_by_id[connection["id"]]
+        if check["result"] not in {"validated", "compatible_unvalidated"}:
+            continue
+        resolved_endpoints = [
+            (assets_by_id[endpoint["asset_id"]], endpoint)
+            for endpoint in connection["endpoints"]
+        ]
+        field_endpoints = [item for item in resolved_endpoints if item[0].get("role") != "io_module"]
+        io_endpoints = [item for item in resolved_endpoints if item[0].get("role") == "io_module"]
+        if len(field_endpoints) != 1 or len(io_endpoints) != 1:
+            continue
+        field_endpoint = field_endpoints[0][1]
+        io_endpoint = io_endpoints[0][1]
+        assertions_by_field_port[(field_endpoint["asset_id"], field_endpoint["port_id"])].append({
+            "connection_id": connection["id"],
+            "io_endpoint": {"asset_id": io_endpoint["asset_id"], "port_id": io_endpoint["port_id"]},
+        })
+
+    resolved_field_ports = set()
+    supported_connection_ids = set()
+    conflicting_field_claims = []
+    for field_key, assertions in assertions_by_field_port.items():
+        targets = {
+            (assertion["io_endpoint"]["asset_id"], assertion["io_endpoint"]["port_id"])
+            for assertion in assertions
+        }
+        if len(targets) == 1:
+            resolved_field_ports.add(field_key)
+            supported_connection_ids.update(assertion["connection_id"] for assertion in assertions)
+            continue
+        conflicting_field_claims.append({
+            "field_endpoint": {"asset_id": field_key[0], "port_id": field_key[1]},
+            "asserted_targets": [
+                {"asset_id": asset_id, "port_id": port_id}
+                for asset_id, port_id in sorted(targets)
+            ],
+            "connection_ids": sorted(assertion["connection_id"] for assertion in assertions),
+            "reason": "multiple compatible asserted connections name different I/O targets",
+        })
     matching_source = {
         "id": "src-electrical-matching",
         "type": "inference",
@@ -153,12 +191,18 @@ def build_matching_result(model: dict) -> tuple[dict, dict]:
     result_model = deepcopy(model)
     result_model.setdefault("sources", []).append(matching_source)
     connections, questions = [], []
+    conflicted_field_ports = {
+        (claim["field_endpoint"]["asset_id"], claim["field_endpoint"]["port_id"])
+        for claim in conflicting_field_claims
+    }
     field_ports = [(asset, port) for asset, port in _ports(model)
                    if asset.get("role") != "io_module" and port.get("role") == "signal"
                    and port["direction"] in {"output", "input", "bidirectional"}]
     for source_asset, source_port in field_ports:
         key = (source_asset["id"], source_port["id"])
         if key in resolved_field_ports:
+            continue
+        if key in conflicted_field_ports:
             continue
         matches = candidates_by_provider[key]
         if not matches:
@@ -196,17 +240,28 @@ def build_matching_result(model: dict) -> tuple[dict, dict]:
             })
     io_claims = defaultdict(list)
     for connection in asserted_connections:
+        field_endpoints = [
+            endpoint for endpoint in connection.get("endpoints", [])
+            if endpoint["asset_id"] in assets_by_id
+            and assets_by_id[endpoint["asset_id"]].get("role") != "io_module"
+        ]
         for endpoint in connection.get("endpoints", []):
             asset = assets_by_id.get(endpoint["asset_id"])
             if asset and asset.get("role") == "io_module":
-                io_claims[(endpoint["asset_id"], endpoint["port_id"])].append(connection["id"])
+                io_claims[(endpoint["asset_id"], endpoint["port_id"])].append({
+                    "connection_id": connection["id"],
+                    "field_endpoints": {
+                        (item["asset_id"], item["port_id"]) for item in field_endpoints
+                    },
+                })
     duplicate_claims = [
         {
             "io_endpoint": {"asset_id": key[0], "port_id": key[1]},
-            "connection_ids": connection_ids,
+            "connection_ids": sorted(item["connection_id"] for item in claims),
             "reason": "multiple asserted connections claim the same I/O channel",
         }
-        for key, connection_ids in io_claims.items() if len(connection_ids) > 1
+        for key, claims in io_claims.items()
+        if len({endpoint for claim in claims for endpoint in claim["field_endpoints"]}) > 1
     ]
 
     for check in connection_checks:
@@ -217,13 +272,16 @@ def build_matching_result(model: dict) -> tuple[dict, dict]:
                 "question": f"How should asserted connection {check['connection_id']} be reconciled?",
                 "reason": check["reason"],
             })
-        elif check["result"] == "compatible_unvalidated":
-            questions.append({
-                "id": f"question-validate-connection-{check['connection_id']}",
-                "priority": "blocking",
-                "question": f"Can asserted connection {check['connection_id']} be independently validated?",
-                "reason": "The assertion is electrically compatible but its source status is not validated.",
-            })
+    for claim in conflicting_field_claims:
+        endpoint = claim["field_endpoint"]
+        questions.append({
+            "id": f"question-conflicting-targets-{endpoint['asset_id']}-{endpoint['port_id']}",
+            "priority": "blocking",
+            "question": f"Which asserted I/O target is correct for {endpoint['asset_id']}/{endpoint['port_id']}?",
+            "reason": claim["reason"],
+            "connection_ids": claim["connection_ids"],
+            "asserted_targets": claim["asserted_targets"],
+        })
     for claim in duplicate_claims:
         endpoint = claim["io_endpoint"]
         questions.append({
@@ -239,8 +297,10 @@ def build_matching_result(model: dict) -> tuple[dict, dict]:
         "schema_version": "mvp-result-1.0",
         "compatibility_matrix": matrix,
         "candidate_connection_ids": [connection["id"] for connection in connections],
+        "supported_connection_ids": sorted(supported_connection_ids),
         "validated_connection_ids": sorted(validated_connection_ids),
         "connection_checks": connection_checks,
+        "conflicting_field_claims": conflicting_field_claims,
         "duplicate_channel_claims": duplicate_claims,
         "human_questions": questions,
     }

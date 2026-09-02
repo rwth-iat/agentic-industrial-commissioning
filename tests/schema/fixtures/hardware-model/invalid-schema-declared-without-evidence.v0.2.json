@@ -1,0 +1,75 @@
+{
+  "schema_version": "0.2.0",
+  "system": {
+    "id": "invalid-declared-without-evidence"
+  },
+  "sources": [
+    {
+      "id": "src-test",
+      "type": "other"
+    }
+  ],
+  "assets": [
+    {
+      "id": "field-device",
+      "role": "sensor",
+      "identification": {
+        "source_refs": [
+          "src-test"
+        ]
+      },
+      "ports": [
+        {
+          "id": "signal",
+          "role": "signal",
+          "direction": "output",
+          "interface": {
+            "kind": "digital"
+          },
+          "source_refs": [
+            "src-test"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "io-module",
+      "role": "io_module",
+      "identification": {
+        "source_refs": [
+          "src-test"
+        ]
+      },
+      "ports": [
+        {
+          "id": "channel-1",
+          "role": "signal",
+          "direction": "input",
+          "interface": {
+            "kind": "digital"
+          },
+          "source_refs": [
+            "src-test"
+          ]
+        }
+      ]
+    }
+  ],
+  "physical_connections": [
+    {
+      "id": "unsupported-declaration",
+      "kind": "signal",
+      "endpoints": [
+        {
+          "asset_id": "field-device",
+          "port_id": "signal"
+        },
+        {
+          "asset_id": "io-module",
+          "port_id": "channel-1"
+        }
+      ],
+      "status": "declared"
+    }
+  ]
+}

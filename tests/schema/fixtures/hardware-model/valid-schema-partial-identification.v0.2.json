@@ -1,0 +1,27 @@
+{
+  "schema_version": "0.2.0",
+  "system": {
+    "id": "valid-partial-identification"
+  },
+  "sources": [
+    {
+      "id": "src-wiring",
+      "type": "handover_documentation"
+    }
+  ],
+  "assets": [
+    {
+      "id": "field-device-local-tag",
+      "name": "Device documented only by local tag",
+      "status": "declared",
+      "identification": {
+        "source_refs": [
+          "src-wiring"
+        ]
+      },
+      "source_refs": [
+        "src-wiring"
+      ]
+    }
+  ]
+}
