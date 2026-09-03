@@ -3,3 +3,4 @@ __pycache__/
 creds/
 SETUP_CODEX.md
 tmp/
+.agent-remote-bridge.json
