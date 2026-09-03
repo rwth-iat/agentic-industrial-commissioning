@@ -1,18 +1,41 @@
-# Current MVP
+# MVP milestones
 
-## Authority
+## Purpose
 
-This document is the authoritative definition of the current minimum viable product (MVP). If another document conflicts with this definition, this document takes precedence.
+This document is a cumulative record of bounded project proof points. Completed
+milestones remain documented instead of being overwritten by the next active
+stage. Each milestone defines its own objective, safety boundary, acceptance
+criteria, and completion evidence.
 
-## Objective
+The long-term direction is defined in [VISION.md](VISION.md). Development order
+and upcoming stages are maintained in [ROADMAP.md](ROADMAP.md).
 
-Validate the canonical hardware model and the core reasoning pipeline independently of any automation vendor or physical testbed.
+## Status vocabulary
 
-## Inputs
+- `PLANNED`: scope is identified but acceptance criteria are not yet active.
+- `ACTIVE`: implementation or validation is in progress.
+- `COMPLETED`: all stated acceptance criteria have supporting evidence.
+- `SUPERSEDED`: retained as history but replaced by a newer proof point.
 
-- an arbitrary set of static, offline evidence artifacts available for the case,
-- one or more agent- or connector-derived canonical fragments,
-- the active [canonical hardware-model v0.2 proposal](../spec/hardware-model.schema.v0.2-proposal.json).
+---
+
+## MVP 1 — Static engineering evidence reconciliation and I/O matching
+
+**Status:** `COMPLETED`
+
+**Completed:** 2026-09-03
+
+### Objective
+
+Validate the canonical hardware model and the core reasoning pipeline
+independently of any automation vendor or physical testbed.
+
+### Inputs
+
+- an arbitrary set of static, offline evidence artifacts available for a case;
+- one or more agent- or connector-derived canonical fragments;
+- the active
+  [canonical hardware-model v0.2 proposal](../spec/hardware-model.schema.v0.2-proposal.json).
 
 The method does not require particular raw categories such as a BOM, datasheet,
 wiring plan, or engineering export. Those are possible evidence types, not a
@@ -21,70 +44,90 @@ the core neither scans nor interprets it. An agent or connector selects relevant
 evidence and translates it into neutral fragments containing canonical sources,
 assets, connections, or extensions.
 
-For the offline MVP, evidence must be limited to static information. PLC
-application code, GVLs, POUs, PLC symbol structures, logical PLC-variable links,
-and live system interaction remain excluded.
+For this milestone, evidence was limited to static information. PLC application
+code, GVLs, POUs, PLC symbol structures, logical PLC-variable links, and live
+system interaction were outside its scope.
 
-## Expected outputs
+### Expected outputs
 
-- normalized device and I/O-channel data represented through the canonical hardware model,
-- an electrical compatibility matrix,
-- candidate device-to-I/O mappings,
-- explicit confidence and ambiguity information,
+- normalized device and I/O-channel data represented through the canonical
+  hardware model;
+- an electrical compatibility matrix;
+- candidate device-to-I/O mappings;
+- explicit confidence and ambiguity information;
 - focused human questions where the available evidence is insufficient.
 
-## Acceptance criteria
+### Acceptance criteria
 
-The MVP is complete when it can:
+MVP 1 required the project to:
 
-1. validate representative input and output documents against the canonical schema,
-2. normalize devices and I/O channels without introducing vendor-specific assumptions into the core,
-3. preserve sourced manufacturer names and manufacturer product codes wherever they are available, while retaining partially identified assets without inventing missing identity data,
-4. determine electrical compatibility using structured signal information,
-5. eliminate electrically incompatible mappings,
-6. produce all remaining compatible candidate mappings,
-7. identify cases in which multiple mappings remain possible,
-8. preserve status, confidence, evidence, and provenance for inferred results,
-9. request human input only when the available evidence cannot resolve a decision safely or uniquely,
-10. pass automated tests for schema validation, normalization, compatibility matching, and ambiguity handling.
+1. validate representative input and output documents against the canonical
+   schema;
+2. normalize devices and I/O channels without introducing vendor-specific
+   assumptions into the core;
+3. preserve sourced manufacturer names and manufacturer product codes wherever
+   available while retaining partially identified assets without inventing
+   missing identity data;
+4. determine electrical compatibility using structured signal information;
+5. eliminate electrically incompatible mappings;
+6. produce all remaining compatible candidate mappings;
+7. identify cases in which multiple mappings remain possible;
+8. preserve status, confidence, evidence, and provenance for inferred results;
+9. request human input only where the available evidence cannot resolve a
+   decision safely or uniquely;
+10. pass automated tests for schema validation, normalization, compatibility
+    matching, reconciliation, and ambiguity handling.
 
-## Non-goals
+### Safety boundary
 
-The current MVP does not include:
+All processing in MVP 1 was offline. A human could create a static topology
+snapshot from a real engineering environment under the applicable local safety
+procedures, but only the resulting files entered the milestone. Live access,
+configuration activation, controller-state changes, and I/O actuation were not
+part of its proof.
 
-- agent-controlled discovery from a live automation or engineering system,
-- physical I/O access or runtime-value acquisition,
-- generated or production-ready vendor-specific connectors,
-- controller configuration, code download, deployment, or state changes,
-- activation of outputs, machinery, interlocks, or safety functions,
-- production commissioning artifacts or PLC code generation.
+### Required artifacts
 
-## Safety boundary
+- representative raw case evidence;
+- canonical fragments derived from that evidence;
+- valid and invalid canonical-model examples;
+- unambiguous, ambiguous, incompatible, and conflicting matching scenarios;
+- automated schema and core tests;
+- reproducible case results with retained provenance.
 
-All agent processing within the current MVP is offline and must not interact directly with physical automation equipment. A human may create a static topology snapshot from a real engineering environment under the applicable local safety procedures. Only the resulting files are provided to the MVP; live access, configuration activation, controller state changes, FreeRun, and I/O actuation remain outside its safety boundary.
+### Completion evidence
 
-## Required test artifacts
+- `spec/hardware-model.schema.v0.2-proposal.json` defines the validated canonical
+  contract used by the pipeline.
+- `src/commissioning_core/` implements assembly, evidence reconciliation, and
+  electrical compatibility matching without vendor-specific branches.
+- `cases/hc10/` and `cases/hc10_v02/` retain representative engineering
+  evidence and case artifacts.
+- Schema fixtures cover valid documents, missing interfaces, missing evidence,
+  schema-version errors, duplicate IDs, dangling references, and reversed
+  ranges.
+- Core tests cover compatibility, ambiguity, asserted connections, competing
+  evidence, duplicate claims, and unresolved endpoints.
+- `tests/test-offline-core.ps1` passes all schema and core checks.
 
-The repository should contain:
+### Historical non-goals
 
-- at least one representative set of raw case evidence,
-- the canonical fragments derived from that evidence,
-- valid canonical-model examples,
-- invalid examples for schema-validation tests,
-- unambiguous, ambiguous, and incompatible matching scenarios,
-- automated tests covering the acceptance criteria.
+The following were deliberately excluded from MVP 1 and therefore do not weaken
+its completed status:
 
-Raw evidence and derived fragments should be retained so that results remain reproducible and auditable. A specific raw folder structure is not required.
+- agent-controlled discovery from a live automation environment;
+- runtime-value acquisition;
+- production-ready vendor-specific connectors;
+- PLC code generation or project modification;
+- controller configuration, deployment, activation, or state changes;
+- physical output actuation or machinery operation.
 
-## Status
+These topics belong to later milestones and the roadmap.
 
-An executable core candidate and the HC10 offline evidence are available. A
-normal operational run generates the case-specific structured inputs, results,
-runner, and validation artifacts while the repository keeps raw evidence,
-generic code, and generic tests separate. The core remains an MVP candidate
-until its limited signal profile and reconciliation behavior have been formally
-accepted.
+---
 
-## Deferred work
+## Subsequent milestones
 
-Potential work beyond the current MVP is maintained in [ROADMAP.md](ROADMAP.md). Items listed there are not part of the current acceptance criteria unless they are explicitly moved into this document.
+The next milestone is not created by rewriting MVP 1. Once its bounded scope and
+acceptance criteria are agreed, it should be appended here with status `ACTIVE`.
+The current development direction is described in [ROADMAP.md](ROADMAP.md).

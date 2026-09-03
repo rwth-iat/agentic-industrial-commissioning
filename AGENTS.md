@@ -40,6 +40,12 @@ Device ↔ I/O matching
 Validation / ambiguity handling
         ↓
 Commissioning artifact generation
+        ↓
+Controlled engineering execution
+        ↓
+Observation / validation
+        ↓
+Model and capability refinement
 ```
 
 ## Primary use cases
@@ -65,7 +71,7 @@ The architecture should support three use cases:
 
 The canonical hardware model under `spec/` is the contract between discovery and downstream reasoning.
 
-During MVP development, the active working schema is `spec/hardware-model.schema.v0.2-proposal.json`; its scope and validation rules are documented in `docs/HARDWARE_MODEL.md`.
+The active working schema is `spec/hardware-model.schema.v0.2-proposal.json`; its scope and validation rules are documented in `docs/HARDWARE_MODEL.md`.
 
 Do not bypass it by passing raw vendor-specific output directly into matching or generation logic.
 
@@ -131,6 +137,46 @@ Do not assume the same API exists across vendors.
 
 The agent may use documentation, installed SDKs, CLIs, COM interfaces, engineering APIs, OPC UA, runtime APIs, file formats, or other available programmatic access paths.
 
+## Capability library
+
+Reusable, vendor- or interface-specific technical access patterns belong under
+`capabilities/`. A capability describes how to perform a technical interaction;
+it does not assign plant semantics and does not replace an environment-specific
+connector.
+
+When using or extending the capability library:
+
+- prefer `READ_ONLY` recipes and inspect the current state before acting;
+- never infer physical meaning or permission from filenames, PLC symbol names,
+  comments, or addresses alone;
+- supply concrete hosts, IP addresses, AMS NetIds, account details, installation
+  paths, and plant symbol names through ignored local configuration rather than
+  committing them as recipe defaults;
+- keep generic remote transport under `scripts/remote/`, local credentials and
+  endpoints under ignored `creds/`, and environment-specific adaptations under
+  `generated/connectors/<environment-id>/`;
+- use human-facing selectors under `scripts/capabilities/` for direct operator
+  workflows; read-only selectors must reject state-changing catalog entries;
+- preserve relevant discovery output as case evidence and translate it into
+  canonical fragments before it enters matching or generation logic;
+- promote a procedure into `capabilities/` only after practical verification or
+  mark it explicitly as experimental;
+- record verification status, environment versions, evidence, limitations, and
+  remaining uncertainty without publishing local secrets or endpoints;
+- do not treat a `HumanApproved` parameter or similar technical switch as proof
+  of user authorization or plant safety.
+
+State-changing recipes remain subject to the repository safety rules above.
+The agent must obtain explicit human approval for the exact operation and must
+not claim that applicable plant safety conditions have been verified unless
+that verification is supported by current evidence.
+
+When no reliable procedure exists, the agent may explore available interfaces
+within the applicable safety boundary. It must preserve failures and evidence,
+avoid converting guesses into facts, and codify a successful path into a small,
+testable artifact for reuse. Deterministic generated code should be preferred
+for recurring control behavior once the approach has been validated.
+
 ## Generated artifacts
 
 Generated vendor-specific integration code should be isolated from the generic core.
@@ -174,12 +220,16 @@ directly.
 - Prefer small, testable modules.
 - Prefer structured schemas over free-form LLM output.
 - Keep vendor names out of generic abstractions unless they are data values.
-- Do not add complexity before the current project scope requires it.
+- Do not add complexity before the active roadmap stage requires it.
 - Add tests for normalization, matching, and schema validation.
 - Preserve raw discovery output for debugging and provenance.
 - Make failures explicit rather than guessing.
-- Design offline-first where possible so development does not depend on access to a physical testbed.
+- Keep logic testable offline where possible, even when a stage also requires
+  explicit live validation against a physical or simulated environment.
 
 ## Project scope and roadmap
 
-Before implementation work, consult [docs/MVP.md](docs/MVP.md) for the authoritative current scope and [docs/ROADMAP.md](docs/ROADMAP.md) for potential future development stages. Do not duplicate their contents in this file.
+Before implementation work, consult [docs/VISION.md](docs/VISION.md) for the
+long-term direction, [docs/ROADMAP.md](docs/ROADMAP.md) for the active development
+stage, and [docs/MVP.md](docs/MVP.md) for completed and formally bounded proof
+points. Do not duplicate their contents in this file.

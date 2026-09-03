@@ -4,207 +4,245 @@
 
 **Agentic Industrial Commissioning**
 
+## North-star vision
+
+A user should be able to express an industrial engineering objective at the
+level of intent, while a generic engineering agent determines and performs the
+technical work required to achieve it.
+
+Examples range from reconstruction and commissioning to operational goals:
+
+```text
+"Reconstruct the installed I/O topology."
+"Integrate this newly installed flow sensor."
+"Create the PLC project for this plant."
+"Keep the volumetric flow at the requested setpoint."
+```
+
+The agent should be able to inspect an unfamiliar environment, understand the
+available engineering evidence, discover usable interfaces, create missing
+integration and PLC artifacts, execute approved engineering actions, observe
+the real result, and revise its approach until the objective is satisfied or a
+safe human decision is required.
+
 ## Problem
 
-Initial commissioning and reconstruction of industrial automation systems still require substantial manual engineering.
+Industrial commissioning, reconstruction, modification, and operation require
+substantial manual engineering across disconnected information sources and
+tools. An engineer repeatedly has to determine:
 
-An engineer often has to determine and reconcile:
+- which automation components are installed;
+- which I/O modules and channels are available;
+- which sensors and actuators are connected;
+- which electrical interfaces are compatible;
+- how signals are scaled and represented;
+- which PLC variables correspond to which physical devices;
+- which controller code, mappings, and configurations already exist;
+- which programmatic interfaces an engineering environment exposes;
+- and which information is missing, contradictory, or unsafe to assume.
 
-- which automation components are installed,
-- which I/O modules and channels are available,
-- which sensors and actuators are connected,
-- which electrical interfaces are compatible,
-- how signals are scaled,
-- which PLC variables correspond to which physical devices,
-- which information already exists in datasheets, engineering projects, documentation, or digital representations,
-- and which information is missing or contradictory.
+Existing integrations usually encode one vendor API or one predefined workflow.
+They do not give an agent the freedom to discover a new environment and develop
+the required access path itself.
 
-This effort reappears during new commissioning, brownfield reconstruction, and later system extensions.
+## Core hypothesis
 
-## Hypothesis
+A coding and engineering agent can take over a large part of this work if it is
+given:
 
-A generic coding/engineering agent can reduce this effort substantially if it is given:
+- controlled access to engineering and automation environments;
+- arbitrary available evidence such as project files, exports, documentation,
+  observations, and runtime information;
+- a vendor-independent canonical representation;
+- the ability to inspect tools, APIs, SDKs, protocols, and installed software;
+- and explicit safety, validation, and human-approval boundaries.
 
-- controlled access to the engineering environment,
-- device documentation and/or a bill of materials,
-- access to available system interfaces,
-- and a vendor-independent target schema.
+The project does not assume that every required connector, capability, PLC
+program, or semantic mapping exists in advance. Discovering and creating these
+artifacts is part of the agent's task.
 
-Instead of requiring manually written integrations for every vendor, the agent should discover a usable access path and generate or adapt the required integration layer itself.
+## Explore, codify, reuse
 
-## Target architecture
+Exploration is a first-class part of the method.
 
-```text
-       Arbitrary available evidence
-       (files, exports, environments,
-        observations, or other sources)
-                │
-                ▼
-        Generic engineering agent
-                │
-                ├─ inspect environment
-                ├─ discover interfaces
-                ├─ read documentation
-                ├─ generate connector
-                └─ validate connector
-                │
-                ▼
-       Canonical-shaped fragments
-                │
-                ▼
-             Normalize
-                │
-                ▼
-     Canonical Hardware Model
-                │
-          ┌─────┴─────┐
-          ▼           ▼
-       Matching    Validation
-          │           │
-          └─────┬─────┘
-                ▼
-       Commissioning Model
-                │
-                ▼
-   Engineering artifacts / queries
-```
+When the agent encounters an unfamiliar environment, it may, within the
+applicable safety boundary:
 
-The purpose, MVP profile, and active schema proposal for this representation are documented in [HARDWARE_MODEL.md](HARDWARE_MODEL.md).
+1. inspect the environment and available evidence;
+2. identify possible programmatic access paths;
+3. perform passive or narrowly bounded probes;
+4. generate and test candidate connectors, scripts, or engineering procedures;
+5. compare observations with the canonical model and the requested objective;
+6. revise unsuccessful approaches without turning guesses into facts;
+7. ask for human approval or missing information where required.
 
-## What is standardized
-
-The project does **not** standardize the internal API of every automation vendor.
-
-It standardizes the **result of discovery** and the contract that downstream reasoning can rely on.
-
-A concrete environment may expose itself through completely different mechanisms:
+Once a reliable path has been found, the agent should convert it into a small,
+testable, reproducible artifact:
 
 ```text
-Environment A → engineering API
-Environment B → OPC UA
-Environment C → CLI / SDK
-Environment D → project files
-Environment E → generated bridge
+Explore -> Validate -> Codify -> Reuse
 ```
 
-All of them should ultimately produce the same canonical representation.
+That artifact may be a capability recipe, environment-specific connector,
+normalization rule, PLC function block, project-generation script, validation
+test, or controlled commissioning procedure. Future runs should prefer the
+validated deterministic path while retaining the ability to explore again when
+the environment changes or the known path fails.
 
-## Agent-generated connectors
-
-A central research idea is that vendor-specific connectors do not necessarily have to be manually implemented in advance.
-
-The agent may:
-
-1. identify the installed engineering platform,
-2. inspect locally available APIs, SDKs, tools, and documentation,
-3. determine a suitable programmatic access path,
-4. generate a small connector,
-5. execute it in a controlled environment,
-6. test the returned information,
-7. normalize the result.
-
-The generated connector is therefore a temporary or reusable bridge between a specific engineering environment and the generic model.
-
-## Commissioning as a matching problem
-
-A useful first abstraction is to model commissioning as constrained matching.
-
-Example:
+## Target lifecycle
 
 ```text
-Known devices                         Discovered I/O
-
-Flow sensor                          AI channel 1
-output: 4–20 mA                      input: 4–20 mA
-
-Pressure sensor        ?             AI channel 2
-output: 4–20 mA                      input: 4–20 mA
-
-Valve                                  AO channel 1
-command: 0–10 V                        output: 0–10 V
+High-level user objective
+           |
+           v
+Available evidence and controlled environment access
+           |
+           v
+Generic engineering agent
+   | inspect environment and project
+   | discover interfaces and capabilities
+   | build or adapt connectors
+   | reconstruct hardware, I/O, signals, and semantics
+           |
+           v
+Canonical Hardware Model and explicit evidence
+           |
+           v
+Plan engineering and commissioning actions
+   | match devices, channels, and PLC symbols
+   | generate configuration, mappings, and PLC code
+   | build, simulate, test, and review
+           |
+           v
+Safety and human-approval gates
+           |
+           v
+Controlled execution in the engineering environment
+           |
+           v
+Observe physical and logical results
+           |
+           +----> update evidence, model, plan, and reusable capabilities
 ```
 
-Electrical compatibility can eliminate impossible assignments immediately.
+The lifecycle is iterative. Discovery can reveal missing model information;
+execution can invalidate an earlier inference; observation can trigger a new
+engineering change. Provenance, confidence, status, and verification state must
+survive every iteration.
 
-Additional evidence may come from:
+## Canonical model as the shared world model
 
-- channel configuration,
-- runtime values,
-- device ranges,
-- existing PLC mappings,
-- naming,
-- documentation,
-- topology,
-- observed process behavior,
-- controlled tests,
-- human confirmation.
+The project does not standardize every vendor's internal API. It standardizes
+the result of discovery and the contract used by downstream reasoning and
+engineering actions.
 
-The system should progressively reduce uncertainty rather than pretending that identical electrical interfaces are uniquely identifiable.
-
-## Human interaction
-
-The objective is not zero human involvement at any cost.
-
-The objective is **minimal-interaction commissioning**:
-
-> Infer everything that can be inferred reliably; ask the engineer only for the information that cannot be determined safely or uniquely.
-
-Example:
+Different environments may expose themselves through different mechanisms:
 
 ```text
-Agent:
-Two 4–20 mA sensors remain compatible with AI1 and AI2.
-No available evidence distinguishes them.
-
-Question:
-Which channel is connected to the flow sensor?
+Environment A -> engineering API
+Environment B -> OPC UA
+Environment C -> CLI or SDK
+Environment D -> project files
+Environment E -> agent-generated remote bridge
 ```
 
-One answer can resolve the remaining ambiguity without requiring the engineer to construct the complete mapping manually.
+All relevant findings should be translated into the canonical representation
+before they enter generic matching, planning, or generation logic. Vendor-
+specific implementation remains isolated in capabilities and connectors.
 
-## Safety
+The active schema and its validated baseline profile are documented in
+[HARDWARE_MODEL.md](HARDWARE_MODEL.md).
 
-Exploration must be staged.
+## Full engineering scope
+
+The long-term agent is not limited to analyzing an existing complete PLC
+project. Depending on the starting point, it should be able to:
+
+- reconstruct a brownfield system from incomplete and conflicting evidence;
+- discover live hardware, runtime state, PLC symbols, and mappings;
+- add or modify variables, data types, function blocks, programs, tasks, and
+  logical links in an existing engineering project;
+- generate I/O mappings and controller logic from the canonical model;
+- create an automation project when no PLC application exists yet;
+- build, test, simulate, deploy, activate, and validate approved changes;
+- diagnose failures and adapt the generated solution;
+- and translate high-level process objectives into deterministic automation
+  behavior and supervised operational actions.
+
+Where reliable deterministic code can perform a recurring task, the agent
+should generate and reuse that code rather than repeatedly improvise. Real-time
+control should normally remain in the controller or another suitable
+deterministic runtime; the agent operates as the exploratory engineering,
+commissioning, and supervisory intelligence around it.
+
+## Minimal human interaction, explicit human authority
+
+The objective is not zero human involvement at any cost. It is to minimize
+manual engineering while preserving human authority over safety-relevant and
+consequential actions.
+
+The agent should infer everything that can be supported reliably and ask only
+for information or approval that cannot be obtained safely or uniquely. A
+high-level objective authorizes analysis and planning, but it does not silently
+authorize every hazardous action that might help achieve the objective.
+
+## Safety model
+
+Autonomy expands only through explicit safety stages:
 
 ### Level 1 — passive discovery
 
-- inspect engineering environment,
-- read configuration,
-- read hardware topology,
-- parse documentation,
-- read runtime values.
+- inspect files, projects, configuration, topology, and documentation;
+- read controller and runtime states;
+- read diagnostics, symbols, and process values.
 
 ### Level 2 — controlled diagnostic interaction
 
-Possible only behind explicit safeguards and approval.
+- perform bounded tests in simulation or a verified safe plant state;
+- observe responses to human actions;
+- execute reversible diagnostic procedures with explicit limits.
 
-Examples:
+### Level 3 — engineering changes
 
-- observe signal changes during a human action,
-- use test/simulation environments,
-- perform narrowly bounded diagnostic operations.
+- create or modify project structure, PLC code, mappings, and configuration;
+- build, simulate, and validate generated artifacts;
+- deploy or activate only after the required review and approval.
 
-### Level 3 — configuration and actuation
+### Level 4 — operational interaction and actuation
 
-Requires explicit validation, safety policy, and human approval.
+- change setpoints, modes, controller state, or physical outputs;
+- perform only explicitly authorized operations within verified plant safety
+  conditions and independent interlocks;
+- observe the resulting state and stop or escalate when expectations are not
+  met.
 
-The agent must never infer that a technically writable output is safe to actuate.
+Technical writability is never evidence of physical safety. Safety systems and
+interlocks must remain independent of agent reasoning.
 
-## Project planning
+## Success criterion
 
-The authoritative definition of the current project scope is maintained in [MVP.md](MVP.md). Potential future development stages are maintained separately in [ROADMAP.md](ROADMAP.md).
+The vision is achieved when a user can provide a high-level industrial
+objective and the agent can safely and traceably perform the required discovery,
+engineering, implementation, and validation across unfamiliar environments,
+while asking the human only for genuinely necessary decisions and approvals.
 
-## Relation to MHS and industrial standards
+## Relation to standards
 
-The project should remain independent of any single external standard or automation vendor.
+The method remains independent of any single external standard or automation
+vendor. The canonical model should support adapters to ecosystems such as:
 
-However, the canonical model should be designed so that adapters/exporters can later map it to relevant ecosystems such as:
+- Model Hardware Standard (MHS);
+- Asset Administration Shell (AAS);
+- OPC UA information models;
+- AutomationML, ECLASS, and related interoperability approaches.
 
-- Model Hardware Standard (MHS),
-- Asset Administration Shell (AAS),
-- OPC UA information models,
-- other industrial interoperability approaches.
+The intended contribution is not another fixed device API. It is an agentic
+method for transforming heterogeneous industrial environments into a common,
+machine-actionable model and using that model to carry out engineering and
+commissioning objectives.
 
-The research contribution is not merely another device API.
+## Planning documents
 
-The intended contribution is an **agentic method for transforming heterogeneous, partially documented industrial automation environments into a common, machine-actionable representation suitable for commissioning and engineering workflows**.
+Completed and active proof points are recorded cumulatively in
+[MVP.md](MVP.md). The staged path toward this vision is maintained in
+[ROADMAP.md](ROADMAP.md).

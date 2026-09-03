@@ -6,9 +6,9 @@ The Canonical Hardware Model is the vendor-independent contract between discover
 
 The model is a lean Commissioning Intermediate Representation (IR). It is not intended to replace an Asset Administration Shell (AAS), AutomationML, ECLASS, OPC UA information models, or a complete digital twin.
 
-## Active MVP proposal
+## Active schema proposal
 
-The active schema for MVP development is [`../spec/hardware-model.schema.v0.2-proposal.json`](../spec/hardware-model.schema.v0.2-proposal.json). The earlier [`../spec/hardware-model.schema.json`](../spec/hardware-model.schema.json) remains available as the original baseline while the proposal is evaluated.
+The active schema is [`../spec/hardware-model.schema.v0.2-proposal.json`](../spec/hardware-model.schema.v0.2-proposal.json). The earlier [`../spec/hardware-model.schema.json`](../spec/hardware-model.schema.json) remains available as the original baseline while the proposal is evaluated.
 
 Version 0.2 uses three central abstractions:
 
@@ -16,9 +16,9 @@ Version 0.2 uses three central abstractions:
 - `ports` represent signal, communication, power, and process interfaces owned by assets;
 - `physical_connections` represent observed, declared, inferred, candidate, validated, rejected, or unknown relations between two ports.
 
-## MVP profile
+## Validated baseline profile
 
-The first MVP depends only on:
+The first completed proof point depends only on:
 
 - stable asset and port IDs;
 - source-backed identification where available, while permitting explicitly partial asset identities;
@@ -39,7 +39,8 @@ The schema already provides optional fields for:
 - namespaced vendor extensions;
 - structured identification inspired by the Digital Nameplate.
 
-These fields may be populated only from reliable sources. The MVP does not require them and must never invent external identifiers.
+These fields may be populated only from reliable sources. The validated
+baseline does not require them and must never invent external identifiers.
 
 The `identification` object is deliberately a small subset rather than an implementation of the complete IDTA Digital Nameplate. At least one identification `source_ref` is mandatory so that a human can cross-check the identity claim. `manufacturer_name` and `manufacturer_product_code` must be preserved when a cited source provides them, but may be omitted for partially identified brownfield assets. Their absence means unknown, not absent, and must never be filled with invented placeholders. Product designation, serial number, global asset ID, and specific asset IDs remain optional.
 

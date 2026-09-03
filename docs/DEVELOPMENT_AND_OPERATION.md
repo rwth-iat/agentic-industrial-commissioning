@@ -50,9 +50,29 @@ vendor APIs and source formats, but it must emit structured data for the
 canonical processing path. Vendor-specific branches must not be added to the
 generic matching logic.
 
+## Reusable capability and transport layers
+
+Curated technical interaction patterns belong under `capabilities/`. They may
+be specific to a vendor, protocol, runtime, or engineering API, but they must
+not contain concrete local endpoints, credentials, plant symbol defaults, or
+case semantics. Capability metadata and verification status are part of this
+reusable method layer.
+
+Human-facing selection and orchestration scripts belong under
+`scripts/capabilities/`. Generic remote-execution transport belongs under
+`scripts/remote/`. Concrete local configuration and credentials remain under
+ignored `creds/`.
+
+An environment-specific connector may compose capabilities and remote
+transport, but it remains responsible for adapting them to one environment,
+preserving raw discovery output as case evidence, and emitting canonical-shaped
+fragments. Raw runtime or engineering output must not bypass the canonical
+processing path.
+
 ## Current maturity
 
-`src/commissioning_core/` is the first core candidate derived during the HC10
-MVP development. It is deliberately limited to the current MVP signal profile.
-The name "core" means vendor-independent within that defined profile; it does
-not claim universal coverage of industrial hardware.
+`src/commissioning_core/` is the first core candidate derived from the HC10
+offline evidence and matching proof point. It is deliberately limited to the
+currently validated signal profile. The name "core" means vendor-independent
+within that defined profile; it does not claim universal coverage of industrial
+hardware.
