@@ -57,6 +57,17 @@
             UserParameters   = @('Symbol', 'Type')
         }
 
+        WaitSymbolCondition = @{
+            Order            = 60
+            Label            = 'Wait for primitive PLC symbol value'
+            Description      = 'Poll one primitive symbol until it reaches an expected value or times out.'
+            Recipe           = 'recipes/read-only/wait-symbol-condition.ps1'
+            PortConfigKey    = 'PlcPort'
+            Safety           = 'READ_ONLY'
+            Verification     = 'prepared'
+            UserParameters   = @('Symbol', 'Type', 'ExpectedValue', 'TimeoutSeconds', 'PollIntervalMilliseconds', 'NumericTolerance')
+        }
+
         SystemConfigToRun = @{
             Order            = 110
             Label            = 'Request Config to Run'
@@ -77,6 +88,28 @@
             Safety           = 'STATE_CHANGING'
             Verification     = 'experimental'
             UserParameters   = @('HumanApproved', 'WaitSeconds')
+        }
+
+        WriteSymbolGuarded = @{
+            Order            = 210
+            Label            = 'Guarded primitive symbol write'
+            Description      = 'Compare, write once, and verify one primitive PLC symbol.'
+            Recipe           = 'recipes/state-changing/write-symbol-guarded.ps1'
+            PortConfigKey    = 'PlcPort'
+            Safety           = 'STATE_CHANGING'
+            Verification     = 'experimental'
+            UserParameters   = @('HumanApproved', 'Symbol', 'Type', 'ExpectedValue', 'Value', 'ExpectedAdsState', 'MinimumValue', 'MaximumValue', 'ReadbackTimeoutSeconds', 'PollIntervalMilliseconds', 'NumericTolerance')
+        }
+
+        PulseBooleanRequest = @{
+            Order            = 220
+            Label            = 'Pulse Boolean request and verify acknowledgement'
+            Description      = 'Pulse one Boolean PLC request and wait for a separate primitive acknowledgement.'
+            Recipe           = 'recipes/state-changing/pulse-boolean-request.ps1'
+            PortConfigKey    = 'PlcPort'
+            Safety           = 'STATE_CHANGING'
+            Verification     = 'experimental'
+            UserParameters   = @('HumanApproved', 'RequestSymbol', 'AcknowledgementSymbol', 'AcknowledgementType', 'ExpectedInitialAcknowledgement', 'ExpectedFinalAcknowledgement', 'ExpectedAdsState', 'PulseMilliseconds', 'AcknowledgementTimeoutSeconds', 'PollIntervalMilliseconds', 'NumericTolerance')
         }
     }
 }

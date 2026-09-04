@@ -1,0 +1,66 @@
+{
+  "schema_version": "0.1.0",
+  "id": "synthetic-enter-operator-mode",
+  "environment_id": "synthetic-twincat-environment",
+  "runtime_binding_ref": "examples/runtime-bindings/twincat-ads.synthetic.v0.1.json",
+  "description": "Synthetic operation used only to demonstrate the controlled-operation contract.",
+  "status": "validated",
+  "sources": [
+    {
+      "id": "synthetic-operation-observation",
+      "type": "runtime_observation",
+      "description": "Synthetic observation used only for public contract validation."
+    }
+  ],
+  "source_refs": [
+    "synthetic-operation-observation"
+  ],
+  "preconditions": [
+    {
+      "id": "operator-inactive-before",
+      "binding_id": "demo-valve-operation-active",
+      "operator": "equals",
+      "expected": false,
+      "required": true
+    }
+  ],
+  "steps": [
+    {
+      "id": "request-operator-mode",
+      "kind": "pulse_request",
+      "binding_id": "demo-valve-operation-request",
+      "acknowledgement_binding_id": "demo-valve-operation-active",
+      "expected_initial_acknowledgement": false,
+      "expected_final_acknowledgement": true,
+      "timeout_seconds": 5
+    }
+  ],
+  "observations": [
+    {
+      "id": "operator-active-after",
+      "binding_id": "demo-valve-operation-active",
+      "operator": "equals",
+      "expected": true,
+      "required": true
+    }
+  ],
+  "restore": {
+    "policy": "required",
+    "steps": [
+      {
+        "id": "restore-offline-mode",
+        "kind": "pulse_request",
+        "binding_id": "demo-valve-offline-request",
+        "acknowledgement_binding_id": "demo-valve-operation-active",
+        "expected_initial_acknowledgement": true,
+        "expected_final_acknowledgement": false,
+        "timeout_seconds": 5
+      }
+    ]
+  },
+  "approval": {
+    "mode": "explicit_per_execution",
+    "scope": "entire_plan"
+  },
+  "on_failure": "restore_then_stop"
+}

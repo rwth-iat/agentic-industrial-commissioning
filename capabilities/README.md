@@ -68,3 +68,8 @@ parameters. Humans should normally use a selector under `scripts/capabilities/`
 rather than assemble low-level recipe arguments manually. A read-only selector
 must not expose state-changing entries; state changes require a separate,
 approval-oriented workflow.
+
+The controlled selector prepares an exact operation and derives an
+operation-bound approval phrase before it can invoke a state-changing recipe.
+That phrase is a defensive guard only: it does not prove that a human approved
+the operation or that the plant is safe.

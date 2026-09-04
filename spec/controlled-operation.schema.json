@@ -1,0 +1,364 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:agentic-industrial-commissioning:schema:controlled-operation:0.1.0",
+  "title": "Controlled Industrial Operation",
+  "description": "Declarative, evidence-backed sequence over runtime-binding IDs. Concrete runtime locators and connection endpoints are intentionally excluded.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "id",
+    "environment_id",
+    "runtime_binding_ref",
+    "status",
+    "sources",
+    "source_refs",
+    "preconditions",
+    "steps",
+    "observations",
+    "restore",
+    "approval",
+    "on_failure"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "id": {
+      "$ref": "#/$defs/nonEmptyString"
+    },
+    "environment_id": {
+      "$ref": "#/$defs/nonEmptyString"
+    },
+    "runtime_binding_ref": {
+      "$ref": "#/$defs/nonEmptyString"
+    },
+    "description": {
+      "$ref": "#/$defs/nonEmptyString"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "reported_success",
+        "validated",
+        "stale",
+        "rejected"
+      ]
+    },
+    "sources": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/source"
+      }
+    },
+    "source_refs": {
+      "$ref": "#/$defs/sourceRefs"
+    },
+    "preconditions": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/condition"
+      }
+    },
+    "steps": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/step"
+      }
+    },
+    "observations": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/condition"
+      }
+    },
+    "restore": {
+      "$ref": "#/$defs/restore"
+    },
+    "approval": {
+      "$ref": "#/$defs/approval"
+    },
+    "on_failure": {
+      "type": "string",
+      "enum": [
+        "stop",
+        "restore_then_stop"
+      ]
+    },
+    "limitations": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/nonEmptyString"
+      }
+    },
+    "extensions": {
+      "$ref": "#/$defs/extensions"
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "nonEmptyString": {
+      "type": "string",
+      "minLength": 1
+    },
+    "extensions": {
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[A-Za-z][A-Za-z0-9_.:-]+$"
+      },
+      "additionalProperties": true
+    },
+    "scalar": {
+      "type": [
+        "boolean",
+        "number",
+        "string"
+      ]
+    },
+    "sourceRefs": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/nonEmptyString"
+      }
+    },
+    "source": {
+      "type": "object",
+      "required": [
+        "id",
+        "type"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "runtime_observation",
+            "exploration_summary",
+            "user_statement",
+            "engineering_procedure",
+            "other"
+          ]
+        },
+        "locator": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "description": {
+          "$ref": "#/$defs/nonEmptyString"
+        }
+      },
+      "additionalProperties": false
+    },
+    "condition": {
+      "type": "object",
+      "required": [
+        "id",
+        "binding_id",
+        "operator",
+        "expected"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "binding_id": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "operator": {
+          "type": "string",
+          "enum": [
+            "equals",
+            "not_equals",
+            "less_than",
+            "less_than_or_equal",
+            "greater_than",
+            "greater_than_or_equal"
+          ]
+        },
+        "expected": {
+          "$ref": "#/$defs/scalar"
+        },
+        "tolerance": {
+          "type": "number",
+          "minimum": 0
+        },
+        "required": {
+          "type": "boolean",
+          "default": true
+        },
+        "description": {
+          "$ref": "#/$defs/nonEmptyString"
+        }
+      },
+      "additionalProperties": false
+    },
+    "step": {
+      "type": "object",
+      "required": [
+        "id",
+        "kind"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "write_binding_guarded",
+            "pulse_request",
+            "wait_condition",
+            "observe",
+            "delay"
+          ]
+        },
+        "binding_id": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "expected_current": {
+          "$ref": "#/$defs/scalar"
+        },
+        "value": {
+          "$ref": "#/$defs/scalar"
+        },
+        "minimum": {
+          "type": "number"
+        },
+        "maximum": {
+          "type": "number"
+        },
+        "acknowledgement_binding_id": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "expected_initial_acknowledgement": {
+          "$ref": "#/$defs/scalar"
+        },
+        "expected_final_acknowledgement": {
+          "$ref": "#/$defs/scalar"
+        },
+        "operator": {
+          "type": "string",
+          "enum": [
+            "equals",
+            "not_equals",
+            "less_than",
+            "less_than_or_equal",
+            "greater_than",
+            "greater_than_or_equal"
+          ]
+        },
+        "expected": {
+          "$ref": "#/$defs/scalar"
+        },
+        "tolerance": {
+          "type": "number",
+          "minimum": 0
+        },
+        "timeout_seconds": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 300
+        },
+        "duration_seconds": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 300
+        },
+        "description": {
+          "$ref": "#/$defs/nonEmptyString"
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": { "kind": { "const": "write_binding_guarded" } },
+            "required": ["kind"]
+          },
+          "then": {
+            "required": ["binding_id", "expected_current", "value", "timeout_seconds"]
+          }
+        },
+        {
+          "if": {
+            "properties": { "kind": { "const": "pulse_request" } },
+            "required": ["kind"]
+          },
+          "then": {
+            "required": ["binding_id", "acknowledgement_binding_id", "expected_initial_acknowledgement", "expected_final_acknowledgement", "timeout_seconds"]
+          }
+        },
+        {
+          "if": {
+            "properties": { "kind": { "enum": ["wait_condition", "observe"] } },
+            "required": ["kind"]
+          },
+          "then": {
+            "required": ["binding_id", "operator", "expected", "timeout_seconds"]
+          }
+        },
+        {
+          "if": {
+            "properties": { "kind": { "const": "delay" } },
+            "required": ["kind"]
+          },
+          "then": {
+            "required": ["duration_seconds"]
+          }
+        }
+      ]
+    },
+    "restore": {
+      "type": "object",
+      "required": [
+        "policy",
+        "steps"
+      ],
+      "properties": {
+        "policy": {
+          "type": "string",
+          "enum": [
+            "required",
+            "manual_only",
+            "not_applicable"
+          ]
+        },
+        "steps": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/step"
+          }
+        },
+        "rationale": {
+          "$ref": "#/$defs/nonEmptyString"
+        }
+      },
+      "additionalProperties": false
+    },
+    "approval": {
+      "type": "object",
+      "required": [
+        "mode",
+        "scope"
+      ],
+      "properties": {
+        "mode": {
+          "const": "explicit_per_execution"
+        },
+        "scope": {
+          "type": "string",
+          "enum": [
+            "entire_plan",
+            "per_state_changing_step"
+          ]
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

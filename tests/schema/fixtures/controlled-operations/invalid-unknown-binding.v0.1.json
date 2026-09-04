@@ -1,0 +1,39 @@
+{
+  "schema_version": "0.1.0",
+  "id": "invalid-unknown-binding",
+  "environment_id": "synthetic-twincat-environment",
+  "runtime_binding_ref": "examples/runtime-bindings/twincat-ads.synthetic.v0.1.json",
+  "status": "reported_success",
+  "sources": [
+    { "id": "summary-1", "type": "exploration_summary" }
+  ],
+  "source_refs": ["summary-1"],
+  "preconditions": [
+    {
+      "id": "missing-precondition",
+      "binding_id": "missing-binding",
+      "operator": "equals",
+      "expected": false
+    }
+  ],
+  "steps": [
+    {
+      "id": "wait-only",
+      "kind": "wait_condition",
+      "binding_id": "demo-valve-operation-active",
+      "operator": "equals",
+      "expected": false,
+      "timeout_seconds": 1
+    }
+  ],
+  "observations": [],
+  "restore": {
+    "policy": "not_applicable",
+    "steps": []
+  },
+  "approval": {
+    "mode": "explicit_per_execution",
+    "scope": "entire_plan"
+  },
+  "on_failure": "stop"
+}

@@ -1,0 +1,133 @@
+{
+  "schema_version": "0.1.0",
+  "environment": {
+    "id": "synthetic-twincat-environment",
+    "platform": "TwinCAT",
+    "runtime": "PLC Runtime 1",
+    "connection_profile": "twincat-ads-default"
+  },
+  "canonical_model": {
+    "system_id": "synthetic-system"
+  },
+  "data_classification": "public_example",
+  "sources": [
+    {
+      "id": "synthetic-runtime-observation",
+      "type": "runtime_observation",
+      "description": "Synthetic evidence used only to exercise the public schema example."
+    }
+  ],
+  "bindings": [
+    {
+      "id": "demo-valve-operation-request",
+      "asset_id": "demo-valve",
+      "role": "operation_mode_request",
+      "access": "read_write",
+      "locator": {
+        "kind": "ads_symbol",
+        "value": "GVL_Demo.Valve.StateOperatorRequest"
+      },
+      "datatype": "BOOL",
+      "interaction": {
+        "semantics": "request",
+        "acknowledgement_binding_id": "demo-valve-operation-active",
+        "auto_reset_expected": true
+      },
+      "status": "validated",
+      "confidence": 1,
+      "source_refs": [
+        "synthetic-runtime-observation"
+      ]
+    },
+    {
+      "id": "demo-valve-operation-active",
+      "asset_id": "demo-valve",
+      "role": "operation_mode_active",
+      "access": "read",
+      "locator": {
+        "kind": "ads_symbol",
+        "value": "GVL_Demo.Valve.StateOperatorActive"
+      },
+      "datatype": "BOOL",
+      "interaction": {
+        "semantics": "state"
+      },
+      "feedback_kind": "logical",
+      "status": "validated",
+      "confidence": 1,
+      "source_refs": [
+        "synthetic-runtime-observation"
+      ]
+    },
+    {
+      "id": "demo-valve-offline-request",
+      "asset_id": "demo-valve",
+      "role": "operation_mode_request",
+      "access": "read_write",
+      "locator": {
+        "kind": "ads_symbol",
+        "value": "GVL_Demo.Valve.StateOfflineRequest"
+      },
+      "datatype": "BOOL",
+      "interaction": {
+        "semantics": "request",
+        "acknowledgement_binding_id": "demo-valve-operation-active",
+        "auto_reset_expected": true
+      },
+      "status": "validated",
+      "confidence": 1,
+      "source_refs": [
+        "synthetic-runtime-observation"
+      ]
+    },
+    {
+      "id": "demo-flow-process-value",
+      "asset_id": "demo-flow-sensor",
+      "role": "process_value",
+      "access": "read",
+      "locator": {
+        "kind": "ads_symbol",
+        "value": "GVL_Demo.FlowView.Value"
+      },
+      "datatype": "REAL",
+      "unit": {
+        "symbol": "l/h"
+      },
+      "interaction": {
+        "semantics": "measurement"
+      },
+      "feedback_kind": "independent_process",
+      "status": "validated",
+      "confidence": 1,
+      "source_refs": [
+        "synthetic-runtime-observation"
+      ]
+    },
+    {
+      "id": "demo-valve-manual-setpoint",
+      "asset_id": "demo-valve",
+      "role": "manual_setpoint",
+      "access": "read_write",
+      "locator": {
+        "kind": "ads_symbol",
+        "value": "GVL_Demo.Valve.ManualSetpoint"
+      },
+      "datatype": "REAL",
+      "unit": {
+        "symbol": "%"
+      },
+      "interaction": {
+        "semantics": "setpoint"
+      },
+      "write_constraints": {
+        "minimum": 0,
+        "maximum": 100
+      },
+      "status": "validated",
+      "confidence": 1,
+      "source_refs": [
+        "synthetic-runtime-observation"
+      ]
+    }
+  ]
+}

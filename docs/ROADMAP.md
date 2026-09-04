@@ -64,6 +64,10 @@ already operational engineering project and controller runtime.
   verified;
 - guarded Config-to-Run and Run-to-Config mechanisms are represented as
   state-changing recipes, with explicit verification status.
+- generic guarded-write and request/acknowledgement recipes, a separate
+  approval-oriented dispatcher, and runtime-binding/controlled-operation
+  contracts are covered by offline checks; live write verification remains a
+  proof point.
 
 ### Remaining proof points
 

@@ -75,14 +75,21 @@ agentic-industrial-commissioning/
 ├── capabilities/                 # curated technical recipes and catalogs
 │   └── twincat/ads/
 ├── examples/
+│   ├── runtime-bindings/          # synthetic binding contract example
+│   └── controlled-operations/     # synthetic operation contract example
 ├── spec/
+│   ├── hardware-model.schema.v0.2-proposal.json
+│   ├── runtime-binding.schema.json
+│   └── controlled-operation.schema.json
 ├── src/
 │   └── commissioning_core/       # deterministic core candidate
 ├── scripts/
 │   ├── capabilities/             # human-facing capability selectors
 │   ├── remote/                   # generic remote execution transport
 │   ├── run-case.ps1              # generic model-fragment runner
-│   └── validate-hardware-model.ps1
+│   ├── validate-hardware-model.ps1
+│   ├── validate-runtime-bindings.ps1
+│   └── validate-controlled-operation.ps1
 ├── generated/
 │   └── connectors/               # environment-specific adaptations
 ├── tests/
@@ -101,6 +108,10 @@ agentic-industrial-commissioning/
 
 The boundary between method development and an operational case run is
 documented in [docs/DEVELOPMENT_AND_OPERATION.md](docs/DEVELOPMENT_AND_OPERATION.md).
+The separate mapping from canonical assets to concrete runtime representations
+is documented in [docs/RUNTIME_BINDINGS.md](docs/RUNTIME_BINDINGS.md).
+Bounded procedures over runtime-binding IDs are documented in
+[docs/CONTROLLED_OPERATIONS.md](docs/CONTROLLED_OPERATIONS.md).
 
 ## Canonical offline pipeline
 
@@ -132,7 +143,8 @@ Run the offline schema and core checks:
 ./tests/test-offline-core.ps1
 ```
 
-This generic test entry point covers the schema and core behavior only.
+This generic test entry point covers the hardware-model, runtime-binding, and
+controlled-operation schemas plus core behavior.
 Case-specific validation under `cases/<case-id>/validation/` is generated and
 run within the corresponding operational case.
 
@@ -140,7 +152,8 @@ run within the corresponding operational case.
 
 The current technical capability set provides reusable TwinCAT ADS recipes for
 system-state reads, PLC-state reads, symbol discovery, primitive symbol reads,
-and guarded system-state transitions. The catalog and verification status are
+guarded symbol writes, request/acknowledgement handshakes, and guarded system
+state transitions. The catalog and verification status are
 documented in [capabilities/twincat/ads/README.md](capabilities/twincat/ads/README.md).
 
 Concrete endpoints, AMS NetIds, installation paths, RDP profiles, and

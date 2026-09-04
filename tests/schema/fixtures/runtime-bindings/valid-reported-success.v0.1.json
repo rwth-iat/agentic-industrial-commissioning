@@ -1,0 +1,37 @@
+{
+  "schema_version": "0.1.0",
+  "environment": {
+    "id": "synthetic-reported-environment",
+    "platform": "TwinCAT",
+    "connection_profile": "synthetic-profile"
+  },
+  "data_classification": "public_example",
+  "sources": [
+    {
+      "id": "summary-1",
+      "type": "exploration_summary",
+      "description": "Synthetic narrative summary without preserved runtime output."
+    }
+  ],
+  "bindings": [
+    {
+      "id": "reported-value",
+      "asset_id": "asset-1",
+      "role": "process_value",
+      "access": "read",
+      "locator": {
+        "kind": "ads_symbol",
+        "value": "GVL_Demo.ReportedValue"
+      },
+      "datatype": "REAL",
+      "interaction": {
+        "semantics": "measurement"
+      },
+      "status": "reported_success",
+      "confidence": 0.8,
+      "source_refs": [
+        "summary-1"
+      ]
+    }
+  ]
+}

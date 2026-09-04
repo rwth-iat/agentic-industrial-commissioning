@@ -42,6 +42,20 @@ are case artifacts. Every derived JSON document uses the same neutral fragment
 shape and may contribute any combination of sources, assets, connections, and
 extensions. Fragment filenames and boundaries are not part of the contract.
 
+Runtime bindings are also derived case artifacts, but they use the separate
+contract in `spec/runtime-binding.schema.json` rather than the canonical model
+fragment shape. They map canonical asset/interface identities to concrete
+runtime representations without changing the canonical hardware schema.
+Concrete binding instances that expose plant symbol locators remain ignored
+local artifacts; committed examples must be synthetic or explicitly sanitized.
+
+Controlled-operation documents are deterministic case results that reference
+runtime-binding IDs and describe preconditions, steps, observations, restore
+behavior, and approval scope. Real operation plans remain private when they
+expose sensitive operating knowledge. Validation evidence for their execution
+belongs under the case's `validation/` directory, not under a generated
+connector.
+
 ## Environment-specific connector
 
 When programmatic extraction is required, replaceable environment-specific

@@ -8,11 +8,23 @@ param(
 
     [string]$Symbol,
 
+    [AllowEmptyString()]
+    [string]$ExpectedValue,
+
     [ValidateSet('Int16', 'UInt16', 'Int32', 'UInt32', 'Single', 'Double', 'Boolean', 'Byte')]
     [string]$Type,
 
     [ValidateRange(1, 1000000)]
     [int]$First = 100,
+
+    [ValidateRange(0, 300)]
+    [int]$TimeoutSeconds = 10,
+
+    [ValidateRange(10, 60000)]
+    [int]$PollIntervalMilliseconds = 100,
+
+    [ValidateRange(0, 1000000000)]
+    [double]$NumericTolerance = 0,
 
     [string]$ConfigPath,
 
@@ -139,6 +151,32 @@ switch ($Capability) {
         }
         $arguments.Symbol = $Symbol
         $arguments.Type = $Type
+    }
+    'WaitSymbolCondition' {
+        if ([string]::IsNullOrWhiteSpace($Symbol) -and $interactiveSelection) {
+            $Symbol = Read-Host 'Exact PLC symbol name'
+        }
+        if ([string]::IsNullOrWhiteSpace($Type) -and $interactiveSelection) {
+            $Type = Read-Host 'Verified type (Int16, UInt16, Int32, UInt32, Single, Double, Boolean, Byte)'
+        }
+        if ([string]::IsNullOrWhiteSpace($ExpectedValue) -and $interactiveSelection) {
+            $ExpectedValue = Read-Host 'Expected value using invariant formatting'
+        }
+        if ([string]::IsNullOrWhiteSpace($Symbol)) {
+            throw 'WaitSymbolCondition requires -Symbol.'
+        }
+        if ([string]::IsNullOrWhiteSpace($Type)) {
+            throw 'WaitSymbolCondition requires -Type after datatype verification.'
+        }
+        if ([string]::IsNullOrWhiteSpace($ExpectedValue)) {
+            throw 'WaitSymbolCondition requires -ExpectedValue.'
+        }
+        $arguments.Symbol = $Symbol
+        $arguments.Type = $Type
+        $arguments.ExpectedValue = $ExpectedValue
+        $arguments.TimeoutSeconds = $TimeoutSeconds
+        $arguments.PollIntervalMilliseconds = $PollIntervalMilliseconds
+        $arguments.NumericTolerance = $NumericTolerance
     }
 }
 

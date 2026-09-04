@@ -1,0 +1,32 @@
+{
+  "schema_version": "0.1.0",
+  "id": "invalid-validated-without-runtime-observation",
+  "environment_id": "synthetic-twincat-environment",
+  "runtime_binding_ref": "examples/runtime-bindings/twincat-ads.synthetic.v0.1.json",
+  "status": "validated",
+  "sources": [
+    { "id": "summary-1", "type": "exploration_summary" }
+  ],
+  "source_refs": ["summary-1"],
+  "preconditions": [],
+  "steps": [
+    {
+      "id": "observe-only",
+      "kind": "observe",
+      "binding_id": "demo-flow-process-value",
+      "operator": "greater_than_or_equal",
+      "expected": 0,
+      "timeout_seconds": 1
+    }
+  ],
+  "observations": [],
+  "restore": {
+    "policy": "not_applicable",
+    "steps": []
+  },
+  "approval": {
+    "mode": "explicit_per_execution",
+    "scope": "entire_plan"
+  },
+  "on_failure": "stop"
+}

@@ -51,3 +51,40 @@ passes configuration values as separate named arguments through the bridge.
 
 State-changing catalog entries are intentionally excluded from the menu and
 rejected by this command. They require a separate approval-oriented workflow.
+
+## Controlled actions
+
+List state-changing entries without contacting the remote environment:
+
+```powershell
+.\scripts\capabilities\twincat\Invoke-AdsControlledAction.ps1 -List
+```
+
+Prepare an exact operation first. Preparation does not load credentials or
+contact the bridge:
+
+```powershell
+$plan = .\scripts\capabilities\twincat\Invoke-AdsControlledAction.ps1 `
+    -Capability WriteSymbolGuarded `
+    -Symbol '<VERIFIED-SYMBOL>' `
+    -Type Boolean `
+    -ExpectedValue False `
+    -Value True `
+    -ExpectedAdsState Run
+
+$plan
+```
+
+Numeric writes additionally require `-MinimumValue` and `-MaximumValue`. Those
+bounds become part of the operation hash and are checked before any remote
+write.
+
+Execution additionally requires `-Execute` and the exact
+`RequiredApproval` phrase returned by that preparation. The phrase only guards
+against accidental or mismatched invocation. The agent must still obtain real
+human approval for the displayed operation and verify current plant safety
+conditions before executing it.
+
+`WriteSymbolGuarded` and `PulseBooleanRequest` remain `experimental` until
+their repository execution path has been live-verified and direct runtime
+evidence has been preserved.

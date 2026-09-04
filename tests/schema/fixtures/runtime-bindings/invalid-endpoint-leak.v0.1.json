@@ -1,0 +1,37 @@
+{
+  "schema_version": "0.1.0",
+  "environment": {
+    "id": "invalid-environment",
+    "platform": "TwinCAT",
+    "connection_profile": "local-profile",
+    "ams_net_id": "not-allowed-here"
+  },
+  "data_classification": "public_example",
+  "sources": [
+    {
+      "id": "source-1",
+      "type": "runtime_observation"
+    }
+  ],
+  "bindings": [
+    {
+      "id": "binding-1",
+      "asset_id": "asset-1",
+      "role": "process_value",
+      "access": "read",
+      "locator": {
+        "kind": "ads_symbol",
+        "value": "GVL_Demo.Value"
+      },
+      "datatype": "REAL",
+      "interaction": {
+        "semantics": "measurement"
+      },
+      "status": "validated",
+      "confidence": 1,
+      "source_refs": [
+        "source-1"
+      ]
+    }
+  ]
+}

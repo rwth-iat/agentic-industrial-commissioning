@@ -91,6 +91,33 @@ The canonical model should represent at least:
 - provenance,
 - validation state.
 
+## Runtime bindings
+
+Concrete mappings from canonical assets or interfaces to runtime locators are a
+separate contract defined by `spec/runtime-binding.schema.json` and documented
+in `docs/RUNTIME_BINDINGS.md`. Do not add PLC symbols, OPC UA NodeIds, API
+resources, runtime datatypes, request handshakes, or similar environment details
+to the canonical hardware model merely because they were discovered together.
+
+Runtime-binding documents must preserve status, confidence, provenance,
+interaction semantics, and the distinction between calculated, logical, and
+independent physical or process feedback. A binding marked `validated` requires
+preserved runtime-observation evidence; a successful narrative without its raw
+record remains `reported_success`.
+
+The public runtime-binding contract uses a logical connection-profile key and
+must not contain concrete hosts, IP addresses, AMS NetIds, accounts, or
+credentials. Concrete plant binding instances and symbol locators must remain
+in ignored local case artifacts unless they have been explicitly sanitized for
+publication.
+
+Controlled multi-step behavior is a separate contract defined by
+`spec/controlled-operation.schema.json` and documented in
+`docs/CONTROLLED_OPERATIONS.md`. Operation steps reference runtime-binding IDs;
+they must not duplicate concrete runtime locators. A structurally valid plan is
+not executable authorization, and a `reported_success`, `draft`, `stale`, or
+`rejected` plan must not be presented or executed as a validated procedure.
+
 ## Uncertainty
 
 Never turn an inference into a fact silently.
@@ -146,6 +173,9 @@ connector.
 
 When using or extending the capability library:
 
+- inspect the catalog and existing recipes before deriving an ad hoc vendor API
+  call; explore only when no suitable procedure exists or current evidence
+  shows that the existing procedure does not apply;
 - prefer `READ_ONLY` recipes and inspect the current state before acting;
 - never infer physical meaning or permission from filenames, PLC symbol names,
   comments, or addresses alone;
@@ -156,7 +186,8 @@ When using or extending the capability library:
   endpoints under ignored `creds/`, and environment-specific adaptations under
   `generated/connectors/<environment-id>/`;
 - use human-facing selectors under `scripts/capabilities/` for direct operator
-  workflows; read-only selectors must reject state-changing catalog entries;
+  workflows; read-only selectors must reject state-changing catalog entries,
+  and controlled selectors must require an operation-specific approval guard;
 - preserve relevant discovery output as case evidence and translate it into
   canonical fragments before it enters matching or generation logic;
 - promote a procedure into `capabilities/` only after practical verification or

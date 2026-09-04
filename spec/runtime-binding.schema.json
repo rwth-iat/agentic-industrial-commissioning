@@ -1,0 +1,344 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:agentic-industrial-commissioning:schema:runtime-binding:0.1.0",
+  "title": "Industrial Runtime Binding",
+  "description": "Vendor-neutral contract for evidence-backed mappings between canonical assets and concrete runtime representations. Connection endpoints and credentials are intentionally excluded.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "environment",
+    "data_classification",
+    "sources",
+    "bindings"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "environment": {
+      "$ref": "#/$defs/environment"
+    },
+    "canonical_model": {
+      "$ref": "#/$defs/canonicalModelReference"
+    },
+    "data_classification": {
+      "type": "string",
+      "enum": [
+        "private",
+        "internal",
+        "public_example"
+      ]
+    },
+    "sources": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/source"
+      }
+    },
+    "bindings": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/binding"
+      }
+    },
+    "extensions": {
+      "$ref": "#/$defs/extensions"
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "extensions": {
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[A-Za-z][A-Za-z0-9_.:-]+$"
+      },
+      "additionalProperties": true
+    },
+    "environment": {
+      "type": "object",
+      "required": [
+        "id",
+        "platform",
+        "connection_profile"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "platform": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "runtime": {
+          "type": "string",
+          "minLength": 1
+        },
+        "connection_profile": {
+          "$ref": "#/$defs/profileKey",
+          "description": "Logical key resolved through ignored local configuration; never a host, IP address, AMS NetId, credential, or other concrete endpoint."
+        }
+      },
+      "additionalProperties": false
+    },
+    "canonicalModelReference": {
+      "type": "object",
+      "required": [
+        "system_id"
+      ],
+      "properties": {
+        "system_id": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "model_ref": {
+          "$ref": "#/$defs/nonEmptyString"
+        }
+      },
+      "additionalProperties": false
+    },
+    "source": {
+      "type": "object",
+      "required": [
+        "id",
+        "type"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "engineering_project",
+            "runtime_observation",
+            "exploration_summary",
+            "user_statement",
+            "generated_connector",
+            "other"
+          ]
+        },
+        "locator": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "captured_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "description": {
+          "$ref": "#/$defs/nonEmptyString"
+        }
+      },
+      "additionalProperties": false
+    },
+    "binding": {
+      "type": "object",
+      "required": [
+        "id",
+        "asset_id",
+        "role",
+        "access",
+        "locator",
+        "datatype",
+        "interaction",
+        "status",
+        "confidence",
+        "source_refs"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "asset_id": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "interface_id": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "role": {
+          "type": "string",
+          "enum": [
+            "process_value",
+            "dynamic_process_value",
+            "operation_mode_request",
+            "operation_mode_active",
+            "source_mode_request",
+            "source_mode_active",
+            "command_request",
+            "command_state",
+            "manual_setpoint",
+            "effective_setpoint",
+            "feedback",
+            "permit",
+            "interlock",
+            "protection",
+            "fault",
+            "safe_state",
+            "conversion_factor",
+            "other"
+          ]
+        },
+        "access": {
+          "type": "string",
+          "enum": [
+            "read",
+            "write",
+            "read_write"
+          ]
+        },
+        "locator": {
+          "$ref": "#/$defs/locator"
+        },
+        "datatype": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "unit": {
+          "$ref": "#/$defs/unit"
+        },
+        "interaction": {
+          "$ref": "#/$defs/interaction"
+        },
+        "write_constraints": {
+          "$ref": "#/$defs/writeConstraints"
+        },
+        "feedback_kind": {
+          "type": "string",
+          "enum": [
+            "physical",
+            "independent_process",
+            "calculated",
+            "logical",
+            "unknown"
+          ]
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "discovered",
+            "inferred",
+            "reported_success",
+            "validated",
+            "rejected",
+            "stale"
+          ]
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "source_refs": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/nonEmptyString"
+          }
+        },
+        "limitations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/nonEmptyString"
+          }
+        },
+        "extensions": {
+          "$ref": "#/$defs/extensions"
+        }
+      },
+      "additionalProperties": false
+    },
+    "locator": {
+      "type": "object",
+      "required": [
+        "kind",
+        "value"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "ads_symbol",
+            "opcua_node",
+            "api_resource",
+            "other"
+          ]
+        },
+        "value": {
+          "$ref": "#/$defs/nonEmptyString"
+        }
+      },
+      "additionalProperties": false
+    },
+    "interaction": {
+      "type": "object",
+      "required": [
+        "semantics"
+      ],
+      "properties": {
+        "semantics": {
+          "type": "string",
+          "enum": [
+            "level",
+            "request",
+            "pulse",
+            "setpoint",
+            "measurement",
+            "feedback",
+            "state",
+            "constant"
+          ]
+        },
+        "acknowledgement_binding_id": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "auto_reset_expected": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "unit": {
+      "type": "object",
+      "required": [
+        "symbol"
+      ],
+      "properties": {
+        "symbol": {
+          "$ref": "#/$defs/nonEmptyString"
+        }
+      },
+      "additionalProperties": false
+    },
+    "writeConstraints": {
+      "type": "object",
+      "properties": {
+        "minimum": {
+          "type": "number"
+        },
+        "maximum": {
+          "type": "number"
+        },
+        "allowed_values": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": ["boolean", "number", "string"]
+          }
+        }
+      },
+      "additionalProperties": false,
+      "anyOf": [
+        { "required": ["minimum", "maximum"] },
+        { "required": ["allowed_values"] }
+      ]
+    },
+    "nonEmptyString": {
+      "type": "string",
+      "minLength": 1
+    },
+    "profileKey": {
+      "type": "string",
+      "pattern": "^[A-Za-z][A-Za-z0-9._-]*$"
+    }
+  }
+}

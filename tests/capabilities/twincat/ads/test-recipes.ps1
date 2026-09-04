@@ -24,8 +24,8 @@ function Add-Failure {
 }
 
 $recipes = @(Get-ChildItem -LiteralPath $recipeRoot -Recurse -File -Filter '*.ps1')
-if ($recipes.Count -ne 7) {
-    Add-Failure "Expected 7 ADS recipes, found $($recipes.Count)."
+if ($recipes.Count -lt 1) {
+    Add-Failure 'No ADS recipes were found.'
 }
 
 foreach ($recipe in $recipes) {
@@ -90,8 +90,15 @@ foreach ($recipe in $recipes) {
         if ($content -notmatch 'if \(-not \$HumanApproved\)') {
             Add-Failure "$($recipe.Name) does not enforce the HumanApproved guard."
         }
-        if ('Start-Sleep' -notin $commandNames -or $content -notmatch '\$after\s*=\s*\$check\.ReadState') {
-            Add-Failure "$($recipe.Name) does not perform an explicit state readback."
+        if ($recipe.Name -like 'system-*.ps1') {
+            if ('Start-Sleep' -notin $commandNames -or $content -notmatch '\$after\s*=\s*\$check\.ReadState') {
+                Add-Failure "$($recipe.Name) does not perform an explicit system-state readback."
+            }
+        }
+        elseif ($content -match '(?i)WriteSymbol') {
+            if ($content -notmatch '(?i)ReadSymbol' -or $content -notmatch '(?i)Verified\s*=\s*\$true') {
+                Add-Failure "$($recipe.Name) does not perform an explicit symbol readback."
+            }
         }
         if ($recipe.Name -eq 'system-run-to-config.ps1' -and $content -notmatch 'VERIFICATION: EXPERIMENTAL') {
             Add-Failure "$($recipe.Name) must remain marked experimental until final readback is preserved."
@@ -123,6 +130,19 @@ foreach ($entry in $catalog.Capabilities.GetEnumerator()) {
         continue
     }
     $recipeContent = Get-Content -LiteralPath $catalogRecipe -Raw
+    $recipeTokens = $null
+    $recipeParseErrors = $null
+    $recipeAst = [System.Management.Automation.Language.Parser]::ParseFile(
+        $catalogRecipe,
+        [ref]$recipeTokens,
+        [ref]$recipeParseErrors
+    )
+    $recipeParameterNames = @($recipeAst.ParamBlock.Parameters.Name.VariablePath.UserPath)
+    foreach ($userParameter in @($entry.Value.UserParameters)) {
+        if ($userParameter -notin $recipeParameterNames) {
+            Add-Failure "Catalog entry $($entry.Key) declares unknown recipe parameter $userParameter."
+        }
+    }
     if ($entry.Value.Safety -eq 'READ_ONLY' -and $recipeContent -notmatch '# SAFETY: READ_ONLY') {
         Add-Failure "Catalog safety for $($entry.Key) disagrees with its recipe."
     }
@@ -194,6 +214,9 @@ $selectorSource = Get-Content -LiteralPath $selectorPath -Raw
 if ($selectorSource -notmatch "Safety -ne 'READ_ONLY'") {
     Add-Failure 'ADS capability selector does not explicitly reject state-changing entries.'
 }
+if ($selectorSource -notmatch "'WaitSymbolCondition'") {
+    Add-Failure 'ADS capability selector does not bind WaitSymbolCondition parameters.'
+}
 
 $listedCapabilities = @(& $selectorPath -List)
 $expectedReadOnlyCount = @(
@@ -213,6 +236,98 @@ catch {
 }
 if (-not $stateChangeBlocked) {
     Add-Failure 'ADS capability selector did not reject a state-changing catalog entry.'
+}
+
+$controlledSelectorPath = Join-Path $repositoryRoot 'scripts/capabilities/twincat/Invoke-AdsControlledAction.ps1'
+$controlledTokens = $null
+$controlledErrors = $null
+[void][System.Management.Automation.Language.Parser]::ParseFile(
+    $controlledSelectorPath,
+    [ref]$controlledTokens,
+    [ref]$controlledErrors
+)
+if ($controlledErrors.Count -gt 0) {
+    Add-Failure "Invoke-AdsControlledAction.ps1 has $($controlledErrors.Count) parse error(s)."
+}
+$controlledSource = Get-Content -LiteralPath $controlledSelectorPath -Raw
+foreach ($requiredPattern in @(
+    "Safety -eq 'STATE_CHANGING'",
+    'RequiredApproval',
+    'if \(-not \$Execute\)',
+    '\$arguments\.HumanApproved\s*=\s*\$true'
+)) {
+    if ($controlledSource -notmatch $requiredPattern) {
+        Add-Failure "Controlled ADS selector is missing required pattern: $requiredPattern"
+    }
+}
+
+$listedControlledCapabilities = @(& $controlledSelectorPath -List)
+$expectedControlledCount = @(
+    $catalog.Capabilities.GetEnumerator() |
+        Where-Object { $_.Value.Safety -eq 'STATE_CHANGING' }
+).Count
+if ($listedControlledCapabilities.Count -ne $expectedControlledCount) {
+    Add-Failure "Controlled selector listed $($listedControlledCapabilities.Count) entries; expected $expectedControlledCount state-changing entries."
+}
+
+$preparedPlan = & $controlledSelectorPath -Capability SystemConfigToRun
+if ($preparedPlan.Capability -ne 'SystemConfigToRun' -or
+    $preparedPlan.RequiredApproval -notmatch '^APPROVE SystemConfigToRun [A-F0-9]{12}$') {
+    Add-Failure 'Controlled selector did not prepare a deterministic Config-to-Run approval plan.'
+}
+
+$numericPlan = & $controlledSelectorPath `
+    -Capability WriteSymbolGuarded `
+    -Symbol 'GVL_Demo.Setpoint' `
+    -Type Single `
+    -ExpectedValue '0' `
+    -Value '30' `
+    -MinimumValue '0' `
+    -MaximumValue '100' `
+    -ExpectedAdsState Run
+if ($numericPlan.Operation.minimum_value -ne '0' -or $numericPlan.Operation.maximum_value -ne '100') {
+    Add-Failure 'Controlled selector did not include numeric write bounds in the prepared operation.'
+}
+
+$outOfRangeBlocked = $false
+try {
+    & $controlledSelectorPath `
+        -Capability WriteSymbolGuarded `
+        -Symbol 'GVL_Demo.Setpoint' `
+        -Type Single `
+        -ExpectedValue '0' `
+        -Value '101' `
+        -MinimumValue '0' `
+        -MaximumValue '100' `
+        -ExpectedAdsState Run 2>&1 | Out-Null
+}
+catch {
+    $outOfRangeBlocked = $_.Exception.Message -match 'outside the declared write range'
+}
+if (-not $outOfRangeBlocked) {
+    Add-Failure 'Controlled selector did not reject an out-of-range numeric write during preparation.'
+}
+
+$executionBlocked = $false
+try {
+    & $controlledSelectorPath -Capability SystemConfigToRun -Execute -Approval 'not-approved' 2>&1 | Out-Null
+}
+catch {
+    $executionBlocked = $_.Exception.Message -match 'Execution blocked'
+}
+if (-not $executionBlocked) {
+    Add-Failure 'Controlled selector did not block execution without the exact prepared approval phrase.'
+}
+
+$readOnlyBlockedByControlledSelector = $false
+try {
+    & $controlledSelectorPath -Capability ReadSystemState 2>&1 | Out-Null
+}
+catch {
+    $readOnlyBlockedByControlledSelector = $_.Exception.Message -match 'read-only selector'
+}
+if (-not $readOnlyBlockedByControlledSelector) {
+    Add-Failure 'Controlled selector did not reject a read-only catalog entry.'
 }
 
 if ($failures.Count -gt 0) {

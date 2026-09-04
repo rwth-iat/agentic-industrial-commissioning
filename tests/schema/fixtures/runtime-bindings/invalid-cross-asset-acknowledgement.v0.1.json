@@ -1,0 +1,52 @@
+{
+  "schema_version": "0.1.0",
+  "environment": {
+    "id": "invalid-environment",
+    "platform": "TwinCAT",
+    "connection_profile": "local-profile"
+  },
+  "data_classification": "public_example",
+  "sources": [
+    {
+      "id": "source-1",
+      "type": "runtime_observation"
+    }
+  ],
+  "bindings": [
+    {
+      "id": "asset-one-request",
+      "asset_id": "asset-1",
+      "role": "command_request",
+      "access": "read_write",
+      "locator": {
+        "kind": "ads_symbol",
+        "value": "GVL_Demo.AssetOne.Request"
+      },
+      "datatype": "BOOL",
+      "interaction": {
+        "semantics": "request",
+        "acknowledgement_binding_id": "asset-two-state"
+      },
+      "status": "validated",
+      "confidence": 1,
+      "source_refs": ["source-1"]
+    },
+    {
+      "id": "asset-two-state",
+      "asset_id": "asset-2",
+      "role": "command_state",
+      "access": "read",
+      "locator": {
+        "kind": "ads_symbol",
+        "value": "GVL_Demo.AssetTwo.State"
+      },
+      "datatype": "BOOL",
+      "interaction": {
+        "semantics": "state"
+      },
+      "status": "validated",
+      "confidence": 1,
+      "source_refs": ["source-1"]
+    }
+  ]
+}
