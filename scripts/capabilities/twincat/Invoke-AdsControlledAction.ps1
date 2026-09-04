@@ -44,6 +44,21 @@ param(
     [ValidateRange(0, 300)]
     [int]$WaitSeconds = 5,
 
+    [string]$EnterModeRequestSymbol,
+
+    [string]$ModeAcknowledgementSymbol,
+
+    [string]$ActivateRequestSymbol,
+
+    [string]$ActiveAcknowledgementSymbol,
+
+    [string]$DeactivateRequestSymbol,
+
+    [string]$ExitModeRequestSymbol,
+
+    [ValidateRange(1, 300)]
+    [int]$HoldSeconds = 5,
+
     [ValidateRange(0, 300)]
     [int]$TimeoutSeconds = 5,
 
@@ -233,6 +248,57 @@ switch ($Capability) {
         $operation.timeout_seconds = $TimeoutSeconds
         $operation.numeric_tolerance = $NumericTolerance
     }
+    'BoundedBooleanRequestActuation' {
+        foreach ($required in @(
+            @{ Name = 'EnterModeRequestSymbol'; Value = $EnterModeRequestSymbol },
+            @{ Name = 'ModeAcknowledgementSymbol'; Value = $ModeAcknowledgementSymbol },
+            @{ Name = 'ActivateRequestSymbol'; Value = $ActivateRequestSymbol },
+            @{ Name = 'ActiveAcknowledgementSymbol'; Value = $ActiveAcknowledgementSymbol },
+            @{ Name = 'DeactivateRequestSymbol'; Value = $DeactivateRequestSymbol },
+            @{ Name = 'ExitModeRequestSymbol'; Value = $ExitModeRequestSymbol },
+            @{ Name = 'ExpectedAdsState'; Value = $ExpectedAdsState }
+        )) {
+            if ([string]::IsNullOrWhiteSpace([string]$required.Value)) {
+                throw "BoundedBooleanRequestActuation requires -$($required.Name)."
+            }
+        }
+        if ($ExpectedAdsState -ne 'Run') {
+            throw 'BoundedBooleanRequestActuation requires -ExpectedAdsState Run.'
+        }
+        $operationSymbols = @(
+            $EnterModeRequestSymbol,
+            $ModeAcknowledgementSymbol,
+            $ActivateRequestSymbol,
+            $ActiveAcknowledgementSymbol,
+            $DeactivateRequestSymbol,
+            $ExitModeRequestSymbol
+        ) | Select-Object -Unique
+        if ($operationSymbols.Count -ne 6) {
+            throw 'BoundedBooleanRequestActuation requires six distinct request and acknowledgement symbols.'
+        }
+        $arguments.EnterModeRequestSymbol = $EnterModeRequestSymbol
+        $arguments.ModeAcknowledgementSymbol = $ModeAcknowledgementSymbol
+        $arguments.ActivateRequestSymbol = $ActivateRequestSymbol
+        $arguments.ActiveAcknowledgementSymbol = $ActiveAcknowledgementSymbol
+        $arguments.DeactivateRequestSymbol = $DeactivateRequestSymbol
+        $arguments.ExitModeRequestSymbol = $ExitModeRequestSymbol
+        $arguments.ExpectedAdsState = $ExpectedAdsState
+        $arguments.HoldSeconds = $HoldSeconds
+        $arguments.PulseMilliseconds = $PulseMilliseconds
+        $arguments.AcknowledgementTimeoutSeconds = $TimeoutSeconds
+        $arguments.PollIntervalMilliseconds = $PollIntervalMilliseconds
+        $operation.enter_mode_request_symbol = $EnterModeRequestSymbol
+        $operation.mode_acknowledgement_symbol = $ModeAcknowledgementSymbol
+        $operation.activate_request_symbol = $ActivateRequestSymbol
+        $operation.active_acknowledgement_symbol = $ActiveAcknowledgementSymbol
+        $operation.hold_seconds = $HoldSeconds
+        $operation.deactivate_request_symbol = $DeactivateRequestSymbol
+        $operation.exit_mode_request_symbol = $ExitModeRequestSymbol
+        $operation.expected_ads_state = $ExpectedAdsState
+        $operation.pulse_milliseconds = $PulseMilliseconds
+        $operation.timeout_seconds = $TimeoutSeconds
+        $operation.restore = 'deactivate_then_exit_mode'
+    }
     default {
         throw "Controlled action '$Capability' has no dispatcher binding."
     }
@@ -246,7 +312,8 @@ try {
 finally {
     $sha256.Dispose()
 }
-$operationId = ([Convert]::ToHexString($hashBytes)).Substring(0, 12)
+$hashText = [BitConverter]::ToString($hashBytes).Replace('-', '')
+$operationId = $hashText.Substring(0, 12)
 $requiredApproval = "APPROVE $Capability $operationId"
 
 $plan = [PSCustomObject]@{

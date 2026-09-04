@@ -46,6 +46,7 @@ phrase.
 | `system-run-to-config.ps1` | 10000 | `WriteControl(Reconfig)` | `STATE_CHANGING` | experimental; final readback pending |
 | `write-symbol-guarded.ps1` | 851 | compare + `WriteSymbol()` + readback | `STATE_CHANGING` | experimental |
 | `pulse-boolean-request.ps1` | 851 | Boolean request pulse + separate acknowledgement | `STATE_CHANGING` | verified in one supervised environment |
+| `bounded-boolean-request-actuation.ps1` | 851 | four request/acknowledgement transitions + monitored hold + restore | `STATE_CHANGING` | experimental wrapper; composed pattern verified |
 
 Ports 10000 and 851 are technical TwinCAT conventions. The target AMS NetId,
 remote host, DLL location, and PLC symbol names are local configuration and are
@@ -118,6 +119,14 @@ pulses the request, clears it, and waits for the expected acknowledgement. This
 supports cyclic request/active handshakes without treating the request bit
 itself as persistent state. Exact and nested TwinCAT symbols are resolved with
 `FindSymbol()` before the datatype and writability checks are applied.
+
+`bounded-boolean-request-actuation.ps1` is the preferred high-level recipe when
+an actuator exposes separate requests for entering a controllable mode,
+activation, deactivation, and leaving that mode. It verifies inactive initial
+state, monitors the active acknowledgement throughout the approved hold, and
+attempts deactivation followed by mode restoration from `finally`. It does not
+write a mapped hardware output directly. The wrapper remains experimental
+until it has completed its own supervised repository-path run.
 
 The repository path was live-verified on 2026-09-04 with a supervised,
 time-bounded binary-actuator sequence. The agent performed read-only prechecks,

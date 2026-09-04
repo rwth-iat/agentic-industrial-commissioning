@@ -89,10 +89,12 @@ subdirectory when they contain sensitive operational knowledge.
 
 ## Execution boundary
 
-Schema validation does not execute an operation. The current Phase-B
-implementation provides generic recipes and an approval-oriented dispatcher,
-but no automatic multi-step operation-plan runner. A plan must not be executed
-merely because it validates structurally.
+Schema validation does not execute an operation. The implementation provides
+generic recipes and an approval-oriented dispatcher, but no general automatic
+runner for arbitrary controlled-operation documents. One narrowly bounded
+multi-step request/acknowledgement actuation is available as an experimental
+recipe; it does not turn an arbitrary structurally valid plan into executable
+authorization.
 
 Before a state-changing recipe is invoked, the agent must present the exact
 operation, current preconditions, expected effect, verification method, and

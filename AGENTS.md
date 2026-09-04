@@ -179,6 +179,13 @@ When using or extending the capability library:
 - prefer `READ_ONLY` recipes and inspect the current state before acting;
 - never infer physical meaning or permission from filenames, PLC symbol names,
   comments, or addresses alone;
+- when a validated functional request/acknowledgement interface exists, prefer
+  it over writing a mapped hardware output or internal command variable
+  directly; a direct primitive write must not be substituted silently for a
+  requested multi-step operation;
+- ensure that an approved bounded operation includes its hold, observation, and
+  restore behavior in the prepared operation and implementation, not only in a
+  narrative description;
 - supply concrete hosts, IP addresses, AMS NetIds, account details, installation
   paths, and plant symbol names through ignored local configuration rather than
   committing them as recipe defaults;

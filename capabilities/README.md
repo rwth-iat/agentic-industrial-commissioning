@@ -73,3 +73,9 @@ The controlled selector prepares an exact operation and derives an
 operation-bound approval phrase before it can invoke a state-changing recipe.
 That phrase is a defensive guard only: it does not prove that a human approved
 the operation or that the plant is safe.
+
+For controlled actuator behavior, prefer a discovered functional interface
+with request and acknowledgement semantics over a direct hardware-output
+write. A time-bounded request must be represented as one complete operation,
+including feedback observation and restoration, so the implementation matches
+the operation shown for approval.

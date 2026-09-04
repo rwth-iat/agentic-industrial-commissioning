@@ -167,7 +167,7 @@ foreach ($verifiedCapability in @('ReadSymbol', 'WaitSymbolCondition', 'PulseBoo
         Add-Failure "$verifiedCapability must remain verified after the preserved supervised live run."
     }
 }
-foreach ($experimentalCapability in @('WriteSymbolGuarded', 'SystemRunToConfig')) {
+foreach ($experimentalCapability in @('WriteSymbolGuarded', 'SystemRunToConfig', 'BoundedBooleanRequestActuation')) {
     if ($catalog.Capabilities[$experimentalCapability].Verification -ne 'experimental') {
         Add-Failure "$experimentalCapability must remain experimental until its own live verification is preserved."
     }
@@ -296,6 +296,76 @@ $preparedPlan = & $controlledSelectorPath -Capability SystemConfigToRun
 if ($preparedPlan.Capability -ne 'SystemConfigToRun' -or
     $preparedPlan.RequiredApproval -notmatch '^APPROVE SystemConfigToRun [A-F0-9]{12}$') {
     Add-Failure 'Controlled selector did not prepare a deterministic Config-to-Run approval plan.'
+}
+
+$boundedPlan = & $controlledSelectorPath `
+    -Capability BoundedBooleanRequestActuation `
+    -EnterModeRequestSymbol 'GVL_Demo.EnterModeReq' `
+    -ModeAcknowledgementSymbol 'GVL_Demo.ModeActive' `
+    -ActivateRequestSymbol 'GVL_Demo.ActivateReq' `
+    -ActiveAcknowledgementSymbol 'GVL_Demo.Active' `
+    -DeactivateRequestSymbol 'GVL_Demo.DeactivateReq' `
+    -ExitModeRequestSymbol 'GVL_Demo.ExitModeReq' `
+    -ExpectedAdsState Run `
+    -HoldSeconds 10
+if ($boundedPlan.Operation.hold_seconds -ne 10 -or
+    $boundedPlan.Operation.restore -ne 'deactivate_then_exit_mode' -or
+    $boundedPlan.RequiredApproval -notmatch '^APPROVE BoundedBooleanRequestActuation [A-F0-9]{12}$') {
+    Add-Failure 'Controlled selector did not prepare the complete bounded request-actuation plan.'
+}
+
+$duplicateBoundedSymbolBlocked = $false
+try {
+    & $controlledSelectorPath `
+        -Capability BoundedBooleanRequestActuation `
+        -EnterModeRequestSymbol 'GVL_Demo.Duplicate' `
+        -ModeAcknowledgementSymbol 'GVL_Demo.Duplicate' `
+        -ActivateRequestSymbol 'GVL_Demo.ActivateReq' `
+        -ActiveAcknowledgementSymbol 'GVL_Demo.Active' `
+        -DeactivateRequestSymbol 'GVL_Demo.DeactivateReq' `
+        -ExitModeRequestSymbol 'GVL_Demo.ExitModeReq' `
+        -ExpectedAdsState Run 2>&1 | Out-Null
+}
+catch {
+    $duplicateBoundedSymbolBlocked = $_.Exception.Message -match 'six distinct'
+}
+if (-not $duplicateBoundedSymbolBlocked) {
+    Add-Failure 'Bounded request-actuation preparation did not reject overlapping request and acknowledgement symbols.'
+}
+
+$boundedRecipePath = Join-Path $stateChangingRoot 'bounded-boolean-request-actuation.ps1'
+$boundedRecipeSource = Get-Content -LiteralPath $boundedRecipePath -Raw
+foreach ($requiredPattern in @(
+    'Invoke-BooleanRequestTransition',
+    'Active acknowledgement',
+    'finally\s*\{',
+    'RestoreDeactivate',
+    'RestoreExitMode'
+)) {
+    if ($boundedRecipeSource -notmatch $requiredPattern) {
+        Add-Failure "Bounded request-actuation recipe is missing required behavior: $requiredPattern"
+    }
+}
+
+$windowsPowerShell = Join-Path ([Environment]::GetFolderPath('System')) 'WindowsPowerShell\v1.0\powershell.exe'
+if (Test-Path -LiteralPath $windowsPowerShell -PathType Leaf) {
+    $escapedControlledSelectorPath = $controlledSelectorPath.Replace("'", "''")
+    $compatibilityOutput = & $windowsPowerShell -NoProfile -NonInteractive -ExecutionPolicy Bypass -Command `
+        "& '$escapedControlledSelectorPath' -Capability SystemConfigToRun | ConvertTo-Json -Compress" 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        Add-Failure "Controlled selector is not compatible with Windows PowerShell 5.1: $compatibilityOutput"
+    }
+    else {
+        try {
+            $compatibilityPlan = $compatibilityOutput | ConvertFrom-Json
+            if ($compatibilityPlan.RequiredApproval -ne $preparedPlan.RequiredApproval) {
+                Add-Failure 'Windows PowerShell 5.1 did not produce the same deterministic approval plan as the current runtime.'
+            }
+        }
+        catch {
+            Add-Failure "Windows PowerShell 5.1 compatibility output was not valid JSON: $compatibilityOutput"
+        }
+    }
 }
 
 $numericPlan = & $controlledSelectorPath `

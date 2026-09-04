@@ -79,6 +79,29 @@ Numeric writes additionally require `-MinimumValue` and `-MaximumValue`. Those
 bounds become part of the operation hash and are checked before any remote
 write.
 
+For a discovered functional actuator interface, prepare the complete bounded
+operation rather than writing a mapped hardware output directly:
+
+```powershell
+$plan = .\scripts\capabilities\twincat\Invoke-AdsControlledAction.ps1 `
+    -Capability BoundedBooleanRequestActuation `
+    -EnterModeRequestSymbol '<ENTER-MODE-REQUEST>' `
+    -ModeAcknowledgementSymbol '<MODE-ACTIVE-ACKNOWLEDGEMENT>' `
+    -ActivateRequestSymbol '<ACTIVATE-REQUEST>' `
+    -ActiveAcknowledgementSymbol '<ACTIVE-ACKNOWLEDGEMENT>' `
+    -DeactivateRequestSymbol '<DEACTIVATE-REQUEST>' `
+    -ExitModeRequestSymbol '<EXIT-MODE-REQUEST>' `
+    -ExpectedAdsState Run `
+    -HoldSeconds 10
+
+$plan
+```
+
+The prepared hash covers all four request symbols, both acknowledgements, the
+hold duration, timeout, pulse duration, expected runtime state, and restore
+order. Execution still requires current safety verification and explicit human
+approval for that exact plan.
+
 Execution additionally requires `-Execute` and the exact
 `RequiredApproval` phrase returned by that preparation. The phrase only guards
 against accidental or mismatched invocation. The agent must still obtain real
@@ -89,3 +112,6 @@ conditions before executing it.
 supervised environment with preserved private runtime evidence.
 `WriteSymbolGuarded` remains `experimental` until its own repository execution
 path has been live-verified and direct runtime evidence has been preserved.
+`BoundedBooleanRequestActuation` also remains `experimental`; its underlying
+four-transition request pattern was verified, but the new single-operation
+wrapper requires a separate supervised live run.
