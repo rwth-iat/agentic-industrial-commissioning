@@ -198,6 +198,7 @@ Run the capability checks separately from the offline core suite:
 ```
 
 The remote architecture, session lifecycle, and safety boundary are documented
-in [docs/REMOTE_ENGINEERING.md](docs/REMOTE_ENGINEERING.md). A sanitized record
-of the real read-only integration check is kept under
+in [docs/REMOTE_ENGINEERING.md](docs/REMOTE_ENGINEERING.md). Sanitized records
+of the real read-only integration check and the first supervised, bounded
+request/acknowledgement actuation are kept under
 `capabilities/twincat/ads/verification/`.

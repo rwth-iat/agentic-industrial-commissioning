@@ -134,17 +134,16 @@ try {
         throw "Expected PLC ADS state '$ExpectedAdsState', actual state: '$($runtimeState.AdsState)'."
     }
 
-    $symbolInfo = $ads.CreateSymbolInfoLoader().GetSymbols($false) |
-        Where-Object { $_.Name -eq $Symbol } |
-        Select-Object -First 1
+    $loader = $ads.CreateSymbolInfoLoader()
+    $symbolInfo = $loader.FindSymbol($Symbol)
     if ($null -eq $symbolInfo) {
         throw "Symbol '$Symbol' was not found in the runtime symbol table."
     }
     if ($symbolInfo.IsReadOnly) {
         throw "Symbol '$Symbol' is marked read-only by the runtime."
     }
-    if ([string]$symbolInfo.TypeName -ne $runtimeTypeMap[$Type]) {
-        throw "Symbol '$Symbol' has runtime type '$($symbolInfo.TypeName)', expected '$($runtimeTypeMap[$Type])'."
+    if ([string]$symbolInfo.Type -ne $runtimeTypeMap[$Type]) {
+        throw "Symbol '$Symbol' has runtime type '$($symbolInfo.Type)', expected '$($runtimeTypeMap[$Type])'."
     }
 
     $before = $ads.ReadSymbol($Symbol, $typeMap[$Type], $true)

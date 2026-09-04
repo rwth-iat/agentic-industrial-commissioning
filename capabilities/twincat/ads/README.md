@@ -40,12 +40,12 @@ phrase.
 | `read-plc-state.ps1` | 851 | `ReadState()` | `READ_ONLY` | verified |
 | `list-symbols.ps1` | 851 | `GetSymbols($false)` | `READ_ONLY` | verified |
 | `search-symbols.ps1` | 851 | symbol-table filter | `READ_ONLY` | verified |
-| `read-symbol.ps1` | 851 | `ReadSymbol()` | `READ_ONLY` | prepared, not verified with a preserved value |
-| `wait-symbol-condition.ps1` | 851 | poll `ReadSymbol()` | `READ_ONLY` | prepared |
+| `read-symbol.ps1` | 851 | `ReadSymbol()` | `READ_ONLY` | verified in one supervised environment |
+| `wait-symbol-condition.ps1` | 851 | poll `ReadSymbol()` | `READ_ONLY` | verified in one supervised environment |
 | `system-config-to-run.ps1` | 10000 | `WriteControl(Reset)` | `STATE_CHANGING` | verified |
 | `system-run-to-config.ps1` | 10000 | `WriteControl(Reconfig)` | `STATE_CHANGING` | experimental; final readback pending |
 | `write-symbol-guarded.ps1` | 851 | compare + `WriteSymbol()` + readback | `STATE_CHANGING` | experimental |
-| `pulse-boolean-request.ps1` | 851 | Boolean request pulse + separate acknowledgement | `STATE_CHANGING` | experimental |
+| `pulse-boolean-request.ps1` | 851 | Boolean request pulse + separate acknowledgement | `STATE_CHANGING` | verified in one supervised environment |
 
 Ports 10000 and 851 are technical TwinCAT conventions. The target AMS NetId,
 remote host, DLL location, and PLC symbol names are local configuration and are
@@ -116,7 +116,17 @@ and stops on any mismatch.
 primitive acknowledgement symbol. It verifies the initial acknowledgement,
 pulses the request, clears it, and waits for the expected acknowledgement. This
 supports cyclic request/active handshakes without treating the request bit
-itself as persistent state.
+itself as persistent state. Exact and nested TwinCAT symbols are resolved with
+`FindSymbol()` before the datatype and writability checks are applied.
+
+The repository path was live-verified on 2026-09-04 with a supervised,
+time-bounded binary-actuator sequence. The agent performed read-only prechecks,
+requested an operating mode, requested actuation, waited for runtime feedback,
+held the approved state for five seconds, restored the initial command and mode,
+and verified the final logical state. A human independently confirmed the
+physical movement. This verifies the technical recipe in one environment; it
+does not establish that PLC feedback is independent physical feedback or that
+the same operation is safe elsewhere.
 
 ## Output and evidence
 

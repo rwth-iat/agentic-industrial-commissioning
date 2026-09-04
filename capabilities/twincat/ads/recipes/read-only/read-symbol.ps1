@@ -22,7 +22,7 @@ param(
 
 # CAPABILITY: Read a primitive PLC symbol
 # SAFETY: READ_ONLY
-# VERIFICATION: PREPARED; NO PROCESS VALUE PRESERVED YET
+# VERIFICATION: VERIFIED IN ONE SUPERVISED TWINCAT ADS ENVIRONMENT
 # The caller must verify the PLC datatype before reading.
 
 Set-StrictMode -Version Latest

@@ -53,7 +53,7 @@
             Recipe           = 'recipes/read-only/read-symbol.ps1'
             PortConfigKey    = 'PlcPort'
             Safety           = 'READ_ONLY'
-            Verification     = 'prepared'
+            Verification     = 'verified'
             UserParameters   = @('Symbol', 'Type')
         }
 
@@ -64,7 +64,7 @@
             Recipe           = 'recipes/read-only/wait-symbol-condition.ps1'
             PortConfigKey    = 'PlcPort'
             Safety           = 'READ_ONLY'
-            Verification     = 'prepared'
+            Verification     = 'verified'
             UserParameters   = @('Symbol', 'Type', 'ExpectedValue', 'TimeoutSeconds', 'PollIntervalMilliseconds', 'NumericTolerance')
         }
 
@@ -108,7 +108,7 @@
             Recipe           = 'recipes/state-changing/pulse-boolean-request.ps1'
             PortConfigKey    = 'PlcPort'
             Safety           = 'STATE_CHANGING'
-            Verification     = 'experimental'
+            Verification     = 'verified'
             UserParameters   = @('HumanApproved', 'RequestSymbol', 'AcknowledgementSymbol', 'AcknowledgementType', 'ExpectedInitialAcknowledgement', 'ExpectedFinalAcknowledgement', 'ExpectedAdsState', 'PulseMilliseconds', 'AcknowledgementTimeoutSeconds', 'PollIntervalMilliseconds', 'NumericTolerance')
         }
     }

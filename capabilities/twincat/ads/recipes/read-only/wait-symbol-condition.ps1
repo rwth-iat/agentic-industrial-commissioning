@@ -35,7 +35,7 @@ param(
 
 # CAPABILITY: Wait until a primitive PLC symbol reaches an expected value
 # SAFETY: READ_ONLY
-# VERIFICATION: PREPARED; LIVE WAIT BEHAVIOR NOT YET PRESERVED
+# VERIFICATION: VERIFIED IN ONE SUPERVISED TWINCAT ADS ENVIRONMENT
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'

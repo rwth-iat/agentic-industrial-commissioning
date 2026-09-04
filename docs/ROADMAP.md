@@ -66,8 +66,10 @@ already operational engineering project and controller runtime.
   state-changing recipes, with explicit verification status.
 - generic guarded-write and request/acknowledgement recipes, a separate
   approval-oriented dispatcher, and runtime-binding/controlled-operation
-  contracts are covered by offline checks; live write verification remains a
-  proof point.
+  contracts are covered by offline checks;
+- a supervised, time-bounded binary-actuator sequence has validated the
+  repository request/acknowledgement path, read-only observation, exact-symbol
+  resolution, human approval boundary, and logical restore in one environment.
 
 ### Remaining proof points
 
@@ -77,7 +79,8 @@ already operational engineering project and controller runtime.
   the canonical model without relying on names alone;
 - answer high-level read requests by selecting and validating the correct
   runtime symbol;
-- demonstrate narrowly bounded writes in a verified safe environment;
+- live-verify the separate guarded level-write path with suitable bounds and a
+  reversible target;
 - complete and preserve the final Run-to-Config readback verification;
 - record live observations as case evidence and feed derived findings back into
   the canonical representation;

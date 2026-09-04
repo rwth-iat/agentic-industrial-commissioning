@@ -85,6 +85,7 @@ against accidental or mismatched invocation. The agent must still obtain real
 human approval for the displayed operation and verify current plant safety
 conditions before executing it.
 
-`WriteSymbolGuarded` and `PulseBooleanRequest` remain `experimental` until
-their repository execution path has been live-verified and direct runtime
-evidence has been preserved.
+`PulseBooleanRequest` has been live-verified through the repository path in one
+supervised environment with preserved private runtime evidence.
+`WriteSymbolGuarded` remains `experimental` until its own repository execution
+path has been live-verified and direct runtime evidence has been preserved.

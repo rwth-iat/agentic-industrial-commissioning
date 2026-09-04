@@ -103,6 +103,17 @@ foreach ($recipe in $recipes) {
         if ($recipe.Name -eq 'system-run-to-config.ps1' -and $content -notmatch 'VERIFICATION: EXPERIMENTAL') {
             Add-Failure "$($recipe.Name) must remain marked experimental until final readback is preserved."
         }
+        if ($recipe.Name -in @('write-symbol-guarded.ps1', 'pulse-boolean-request.ps1')) {
+            if ($content -notmatch '\.FindSymbol\(') {
+                Add-Failure "$($recipe.Name) does not resolve exact or nested symbols with FindSymbol()."
+            }
+            if ($content -match '\.GetSymbols\(') {
+                Add-Failure "$($recipe.Name) must not validate an exact write target through the top-level GetSymbols() collection."
+            }
+            if ($content -match '\.TypeName') {
+                Add-Failure "$($recipe.Name) uses TypeName, which is unavailable on the installed TcAdsSymbolInfo API."
+            }
+        }
     }
     else {
         Add-Failure "$($recipe.Name) is outside a recognized safety directory."
@@ -148,6 +159,17 @@ foreach ($entry in $catalog.Capabilities.GetEnumerator()) {
     }
     if ($entry.Value.Safety -eq 'STATE_CHANGING' -and $recipeContent -notmatch '# SAFETY: STATE_CHANGING') {
         Add-Failure "Catalog safety for $($entry.Key) disagrees with its recipe."
+    }
+}
+
+foreach ($verifiedCapability in @('ReadSymbol', 'WaitSymbolCondition', 'PulseBooleanRequest')) {
+    if ($catalog.Capabilities[$verifiedCapability].Verification -ne 'verified') {
+        Add-Failure "$verifiedCapability must remain verified after the preserved supervised live run."
+    }
+}
+foreach ($experimentalCapability in @('WriteSymbolGuarded', 'SystemRunToConfig')) {
+    if ($catalog.Capabilities[$experimentalCapability].Verification -ne 'experimental') {
+        Add-Failure "$experimentalCapability must remain experimental until its own live verification is preserved."
     }
 }
 

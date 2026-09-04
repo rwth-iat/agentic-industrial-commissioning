@@ -53,7 +53,7 @@ param(
 
 # CAPABILITY: Pulse one Boolean PLC request and wait for a separate primitive acknowledgement
 # SAFETY: STATE_CHANGING
-# VERIFICATION: EXPERIMENTAL; NOT YET EXECUTED THROUGH THE REPOSITORY PATH
+# VERIFICATION: VERIFIED IN ONE SUPERVISED TWINCAT ADS ENVIRONMENT
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
@@ -121,15 +121,15 @@ try {
         throw "Expected PLC ADS state '$ExpectedAdsState', actual state: '$($runtimeState.AdsState)'."
     }
 
-    $symbols = $ads.CreateSymbolInfoLoader().GetSymbols($false)
-    $requestInfo = $symbols | Where-Object { $_.Name -eq $RequestSymbol } | Select-Object -First 1
-    $ackInfo = $symbols | Where-Object { $_.Name -eq $AcknowledgementSymbol } | Select-Object -First 1
+    $loader = $ads.CreateSymbolInfoLoader()
+    $requestInfo = $loader.FindSymbol($RequestSymbol)
+    $ackInfo = $loader.FindSymbol($AcknowledgementSymbol)
     if ($null -eq $requestInfo) { throw "Request symbol '$RequestSymbol' was not found." }
     if ($null -eq $ackInfo) { throw "Acknowledgement symbol '$AcknowledgementSymbol' was not found." }
     if ($requestInfo.IsReadOnly) { throw "Request symbol '$RequestSymbol' is marked read-only." }
-    if ([string]$requestInfo.TypeName -ne 'BOOL') { throw "Request symbol '$RequestSymbol' is not BOOL." }
-    if ([string]$ackInfo.TypeName -ne $runtimeTypeMap[$AcknowledgementType]) {
-        throw "Acknowledgement symbol '$AcknowledgementSymbol' has runtime type '$($ackInfo.TypeName)', expected '$($runtimeTypeMap[$AcknowledgementType])'."
+    if ([string]$requestInfo.Type -ne 'BOOL') { throw "Request symbol '$RequestSymbol' is not BOOL." }
+    if ([string]$ackInfo.Type -ne $runtimeTypeMap[$AcknowledgementType]) {
+        throw "Acknowledgement symbol '$AcknowledgementSymbol' has runtime type '$($ackInfo.Type)', expected '$($runtimeTypeMap[$AcknowledgementType])'."
     }
 
     $requestBefore = [bool]$ads.ReadSymbol($RequestSymbol, [System.Boolean], $true)
