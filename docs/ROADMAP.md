@@ -70,6 +70,19 @@ already operational engineering project and controller runtime.
 - a supervised, time-bounded binary-actuator sequence has validated the
   repository request/acknowledgement path, read-only observation, exact-symbol
   resolution, human approval boundary, and logical restore in one environment.
+- isolated fresh-agent tests reportedly completed bounded component interaction
+  and restoration with Terra at medium and low reasoning effort, including
+  correction of an inverted Boolean interpretation and an unsuitable
+  project-specific postcondition;
+- a generic bounded request-actuation wrapper now represents enter, activate,
+  monitored hold, deactivate, and restore as one approval-bound operation; its
+  implementation is covered offline and remains experimental pending its own
+  supervised live run.
+
+The bounded supervised live-interaction proof is retained as completed MVP 2 in
+[MVP.md](MVP.md#mvp-2--supervised-live-discovery-and-bounded-runtime-interaction).
+Stage 2 remains in progress because MVP 2 intentionally does not cover all
+semantic integration, evidence, and reproducibility requirements below.
 
 ### Remaining proof points
 
@@ -84,15 +97,20 @@ already operational engineering project and controller runtime.
 - complete and preserve the final Run-to-Config readback verification;
 - record live observations as case evidence and feed derived findings back into
   the canonical representation;
-- demonstrate recovery from unavailable routes, wrong datatypes, stale symbols,
-  and failed operations.
+- systematically preserve and regression-test recovery from unavailable routes,
+  wrong datatypes, stale symbols, invalid signal interpretations, and failed
+  operations;
+- classify and place successful exploratory findings as private case evidence
+  or environment-specific generated artifacts instead of leaving them only in
+  a session or storing engineering knowledge under `creds/`.
 
 ### Exit condition
 
 The stage is complete when the agent can receive a high-level read or bounded
 interaction request for an existing project, discover or select the required
 technical path, execute it safely, and return a verified semantic result with
-provenance.
+structured provenance and a correctly placed reusable artifact where the
+exploration produced durable engineering knowledge.
 
 ## Stage 3 — Engineering modification of an existing PLC project
 

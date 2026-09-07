@@ -126,8 +126,124 @@ These topics belong to later milestones and the roadmap.
 
 ---
 
+## MVP 2 — Supervised live discovery and bounded runtime interaction
+
+**Status:** `COMPLETED`
+
+**Completed:** 2026-09-07
+
+### Objective
+
+Demonstrate that an engineering agent can receive a high-level request for an
+existing operational automation project, discover the required live access and
+functional runtime interface, perform an explicitly approved bounded
+interaction, observe the logical response, and restore the initial state.
+
+This milestone proves a supervised live interaction loop. It does not complete
+the broader Stage 2 objective of fully modeled, provenance-preserving runtime
+integration for arbitrary reads and writes.
+
+### Inputs
+
+- the tracked repository with its generic remote and TwinCAT ADS capabilities;
+- minimal ignored local connection configuration;
+- an existing complete and operational PLC project;
+- a high-level component interaction request from the operator;
+- current human confirmation of the applicable plant-safety conditions and
+  physical observations.
+
+Concrete endpoints, credentials, PLC symbols, and plant-specific procedures
+were not committed as public defaults.
+
+### Expected outputs
+
+- a discovered functional request and observation path for the selected
+  component;
+- explicit pre-operation and final-state observations;
+- a time-bounded, reversible interaction within the approved scope;
+- logical confirmation of activation and restoration;
+- independent operator reporting of the physical response;
+- retained uncertainty where PLC feedback was calculated or project-specific
+  signal semantics remained unresolved.
+
+### Acceptance criteria
+
+MVP 2 required the project to demonstrate that:
+
+1. the agent can establish the intended local-to-remote-to-ADS access path
+   without embedding local endpoints or credentials in tracked recipes;
+2. discovery begins read-only and identifies a functional controller-managed
+   interface instead of silently forcing a mapped hardware output;
+3. a human can authorize a concrete component, requested effect, bounded
+   duration, and restoration target;
+4. the agent can observe the initial runtime state, execute the approved
+   interaction, and monitor logical acknowledgements;
+5. the agent stops or restores when an observation contradicts its current
+   hypothesis;
+6. the selected component returns to its initial logical state after successful
+   execution or an early abort;
+7. physical operator observation is distinguished from calculated PLC
+   feedback; and
+8. incorrect signal interpretations remain correctable rather than being
+   silently promoted to facts.
+
+### Safety boundary
+
+All state-changing tests were supervised at the physical plant and limited to
+explicitly selected components, effects, and durations. They did not authorize
+PLC deployment, project modification, configuration activation, safety-system
+bypass, direct forcing of unresolved enable signals, or reuse in another plant
+state.
+
+The human approval applied per concrete run. Technical writability, an approval
+parameter, or a successful earlier run was not treated as continuing
+authorization.
+
+### Completion evidence
+
+- The remote bridge, read-only ADS recipes, guarded state-changing recipes,
+  capability catalog, and approval-oriented dispatcher are covered by offline
+  tests.
+- The supervised bounded actuator run recorded in
+  [`2026-09-04-supervised-bounded-actuation.md`](../capabilities/twincat/ads/verification/2026-09-04-supervised-bounded-actuation.md)
+  verifies exact nested-symbol resolution, request/acknowledgement transitions,
+  logical observation, restoration, and independent physical confirmation in
+  one environment.
+- The isolated-agent tests summarized in
+  [`2026-09-07-fresh-agent-exploratory-interaction.md`](../capabilities/twincat/ads/verification/2026-09-07-fresh-agent-exploratory-interaction.md)
+  report successful bounded interaction using Terra at medium and low reasoning
+  effort, including recovery from incorrect Boolean polarity and an unsuitable
+  project-specific postcondition.
+- `spec/runtime-binding.schema.json` and
+  `spec/controlled-operation.schema.json` define the separate contracts for
+  runtime meaning and bounded multi-step behavior.
+- The generic bounded request-actuation wrapper and its operation-bound approval
+  plan pass offline checks under both Windows PowerShell 5.1 and PowerShell 7.
+
+### Known limitations and non-goals
+
+- The reported fresh-agent runs did not preserve complete structured runtime
+  logs or their exact generated scripts in the repository; their evidence
+  status remains `reported_success` rather than `validated`.
+- PLC feedback used during the tests was not always independent physical
+  feedback. Human observation supplied the independent physical confirmation.
+- Automatic classification and correct placement of agent-generated
+  exploration artifacts was not achieved consistently and is deferred to a
+  separate issue.
+- The generic bounded request-actuation wrapper has offline coverage but has not
+  completed its own supervised live run and remains experimental.
+- The separate guarded level-write path and final Run-to-Config readback were
+  not validated by this milestone.
+- No claim is made about another PLC project, vendor, controller version, or
+  unsupervised plant operation.
+
+These limitations remain active Stage 2 work and do not weaken the narrower
+proof that supervised exploratory discovery, bounded actuation, observation,
+correction, and restoration were achieved.
+
+---
+
 ## Subsequent milestones
 
-The next milestone is not created by rewriting MVP 1. Once its bounded scope and
-acceptance criteria are agreed, it should be appended here with status `ACTIVE`.
-The current development direction is described in [ROADMAP.md](ROADMAP.md).
+Future milestones are appended rather than replacing MVP 1 or MVP 2. Their
+development direction is maintained in [ROADMAP.md](ROADMAP.md).
