@@ -25,11 +25,19 @@ core-development work and add a general test with the change.
 
 Each concrete system is kept under `cases/<case-id>/`:
 
-- `raw/` contains opaque source evidence available for the case;
+- `raw/` contains local, opaque source evidence available for the case;
 - `derived/` contains canonical-shaped fragments extracted from that evidence;
 - `results/` contains deterministic pipeline outputs;
 - `validation/` contains expectations that are specific to the case;
 - `run.ps1` supplies the case paths to the generic runner.
+
+The entire `raw/` subtree is private-by-default and ignored by Git. It may
+contain sensitive plant documents, source projects, exports, observations, or
+recordings and must not be committed. Publishable source fixtures belong under
+`examples/` or `tests/fixtures/` and must be explicitly synthetic or sanitized.
+Previously tracked raw files predate this policy; removing them from tracking
+and repository history is a separate migration and does not permit additional
+raw evidence to be committed.
 
 The method imposes no required file type, filename, directory taxonomy, or
 combination of evidence inside `raw/`. It may contain documents, exports,
@@ -38,9 +46,20 @@ Its internal organization is case-local and has no semantic meaning to the
 core. The generic core never scans or interprets `raw/` directly.
 
 Files in `derived/`, their concrete provenance entries, and files in `results/`
-are case artifacts. Every derived JSON document uses the same neutral fragment
-shape and may contribute any combination of sources, assets, connections, and
-extensions. Fragment filenames and boundaries are not part of the contract.
+are case artifacts. Artifacts that expose concrete plant identities, topology,
+symbols, behavior, or source locations must be stored below the corresponding
+ignored `private/` subdirectory in `derived/`, `results/`, or `validation/`.
+Only explicitly synthetic or sanitized artifacts may be committed. Every
+derived JSON document uses the same neutral fragment shape and may contribute
+any combination of sources, assets, connections, and extensions. Fragment
+filenames and boundaries are not part of the contract.
+
+Static controller software knowledge uses the separate contract in
+`spec/software-model.schema.json`. Hardware-to-software traceability uses
+`spec/implementation-link.schema.json`. Concrete instances of both are private
+case artifacts; only their schemas, validators, synthetic fixtures, and method
+documentation belong to the reusable public layer. Static qualified names are
+not runtime locators, and neither contract authorizes execution.
 
 Runtime bindings are also derived case artifacts, but they use the separate
 contract in `spec/runtime-binding.schema.json` rather than the canonical model
@@ -79,9 +98,9 @@ ignored `creds/`.
 
 An environment-specific connector may compose capabilities and remote
 transport, but it remains responsible for adapting them to one environment,
-preserving raw discovery output as case evidence, and emitting canonical-shaped
-fragments. Raw runtime or engineering output must not bypass the canonical
-processing path.
+preserving raw discovery output in the ignored local case area, and emitting
+canonical-shaped fragments. Raw runtime or engineering output must not bypass
+the canonical processing path.
 
 ## Current maturity
 

@@ -1,0 +1,456 @@
+{
+  "schema_version": "0.1.0",
+  "id": "synthetic-process-cell-software",
+  "system_id": "synthetic-process-cell",
+  "data_classification": "public_example",
+  "scope": {
+    "mode": "project_wide",
+    "inventory_complete": true,
+    "unexamined_sources": [],
+    "unsupported_constructs": [
+      "The implementation of the synthetic valve library block is intentionally unavailable."
+    ]
+  },
+  "sources": [
+    {
+      "id": "synthetic-bom",
+      "type": "bom",
+      "locator": "fixtures/synthetic/process-cell-bom.json",
+      "revision": {
+        "algorithm": "sha256",
+        "value": "1111111111111111111111111111111111111111111111111111111111111111"
+      },
+      "description": "Synthetic component inventory created for public contract testing."
+    },
+    {
+      "id": "synthetic-project",
+      "type": "engineering_project",
+      "locator": "fixtures/synthetic/process-cell-project.xml",
+      "revision": {
+        "algorithm": "sha256",
+        "value": "2222222222222222222222222222222222222222222222222222222222222222"
+      },
+      "description": "Synthetic project structure created independently for public contract testing."
+    },
+    {
+      "id": "synthetic-source-code",
+      "type": "source_code",
+      "locator": "fixtures/synthetic/process-cell-program.st",
+      "revision": {
+        "algorithm": "sha256",
+        "value": "3333333333333333333333333333333333333333333333333333333333333333"
+      },
+      "description": "Synthetic structured-text evidence created for public contract testing."
+    }
+  ],
+  "software_objects": [
+    {
+      "id": "app-main",
+      "kind": "application",
+      "display_name": "Synthetic main application",
+      "qualified_name": "Synthetic.Application",
+      "active_state": "active",
+      "status": "extracted",
+      "confidence": 1,
+      "evidence": [
+        {
+          "source_ref": "synthetic-project",
+          "location": "application[1]",
+          "detail": "The synthetic project declares the main application."
+        }
+      ]
+    },
+    {
+      "id": "valve-command-variable",
+      "kind": "io_variable",
+      "display_name": "Valve command output",
+      "qualified_name": "Synthetic.Valve.Command",
+      "parent_ref": "app-main",
+      "datatype": "REAL",
+      "active_state": "active",
+      "status": "corroborated",
+      "confidence": 0.95,
+      "evidence": [
+        {
+          "source_ref": "synthetic-project",
+          "location": "mapping[1]",
+          "detail": "The project maps the variable to the valve control channel."
+        },
+        {
+          "source_ref": "synthetic-source-code",
+          "location": "line 18",
+          "detail": "The active assignment writes the effective valve setpoint."
+        }
+      ]
+    },
+    {
+      "id": "valve-feedback-variable",
+      "kind": "variable",
+      "display_name": "Calculated valve state",
+      "qualified_name": "Synthetic.Valve.CalculatedState",
+      "parent_ref": "app-main",
+      "datatype": "BOOL",
+      "active_state": "active",
+      "status": "extracted",
+      "confidence": 1,
+      "evidence": [
+        {
+          "source_ref": "synthetic-source-code",
+          "location": "line 19",
+          "detail": "The state is calculated from the command rather than read from a physical input."
+        }
+      ]
+    },
+    {
+      "id": "valve-effective-setpoint-variable",
+      "kind": "variable",
+      "display_name": "Effective valve setpoint",
+      "qualified_name": "Synthetic.Valve.EffectiveSetpoint",
+      "parent_ref": "app-main",
+      "datatype": "REAL",
+      "active_state": "active",
+      "status": "extracted",
+      "confidence": 1,
+      "evidence": [
+        {
+          "source_ref": "synthetic-source-code",
+          "location": "line 18",
+          "detail": "The active expression produces the effective setpoint after applying its availability conditions."
+        }
+      ]
+    },
+    {
+      "id": "operator-mode-variable",
+      "kind": "variable",
+      "display_name": "Operator mode active",
+      "qualified_name": "Synthetic.Mode.OperatorActive",
+      "parent_ref": "app-main",
+      "datatype": "BOOL",
+      "active_state": "active",
+      "status": "extracted",
+      "confidence": 1,
+      "evidence": [
+        {
+          "source_ref": "synthetic-source-code",
+          "location": "line 10",
+          "detail": "The active program reads the operator-mode state."
+        }
+      ]
+    },
+    {
+      "id": "valve-permit-variable",
+      "kind": "variable",
+      "display_name": "Valve command permit",
+      "qualified_name": "Synthetic.Valve.Permit",
+      "parent_ref": "app-main",
+      "datatype": "BOOL",
+      "active_state": "active",
+      "status": "extracted",
+      "confidence": 1,
+      "evidence": [
+        {
+          "source_ref": "synthetic-source-code",
+          "location": "line 11",
+          "detail": "The active command expression requires the permit state."
+        }
+      ]
+    },
+    {
+      "id": "flow-process-value-variable",
+      "kind": "io_variable",
+      "display_name": "Engineering flow process value",
+      "qualified_name": "Synthetic.Flow.ProcessValue",
+      "parent_ref": "app-main",
+      "datatype": "REAL",
+      "active_state": "active",
+      "status": "corroborated",
+      "confidence": 0.98,
+      "evidence": [
+        {
+          "source_ref": "synthetic-project",
+          "location": "mapping[2]",
+          "detail": "The project connects the flow input channel to the application."
+        },
+        {
+          "source_ref": "synthetic-source-code",
+          "location": "line 24",
+          "detail": "The active path converts the input to the engineering process value."
+        }
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "id": "flow-value-assignment",
+      "kind": "transforms",
+      "from_ref": "app-main",
+      "to_ref": "flow-process-value-variable",
+      "status": "extracted",
+      "confidence": 1,
+      "evidence": [
+        {
+          "source_ref": "synthetic-source-code",
+          "location": "line 24",
+          "detail": "The active expression produces the engineering flow value."
+        }
+      ]
+    }
+  ],
+  "component_interfaces": [
+    {
+      "id": "demo-control-valve-interface",
+      "asset_id": "demo-control-valve",
+      "coverage_status": "partial",
+      "inventory_evidence": [
+        {
+          "source_ref": "synthetic-bom",
+          "location": "components[1]",
+          "detail": "The synthetic BOM inventories the control valve."
+        }
+      ],
+      "signals": [
+        {
+          "id": "valve-command",
+          "role": "manual_setpoint",
+          "flow_direction": "to_component",
+          "software_object_ref": "valve-command-variable",
+          "datatype": "REAL",
+          "engineering_range": {
+            "minimum": 0,
+            "maximum": 100,
+            "unit": "%"
+          },
+          "availability": {
+            "kind": "all_of",
+            "conditions": [
+              {
+                "kind": "predicate",
+                "subject_kind": "signal",
+                "subject_ref": "operator-mode-active",
+                "operator": "equals",
+                "expected": true,
+                "polarity": "positive",
+                "context": {
+                  "kind": "operating_mode",
+                  "description": "Manual command ownership requires operator mode."
+                }
+              },
+              {
+                "kind": "predicate",
+                "subject_kind": "signal",
+                "subject_ref": "valve-permit",
+                "operator": "equals",
+                "expected": true,
+                "polarity": "positive",
+                "context": {
+                  "kind": "interlock",
+                  "description": "The synthetic command path requires the permit."
+                }
+              }
+            ]
+          },
+          "expected_effect": {
+            "kind": "setpoint_relative",
+            "target_signal_ref": "valve-effective-setpoint",
+            "operator": "equals",
+            "expected": {
+              "reference_signal_ref": "valve-command",
+              "scale": 1,
+              "offset": 0
+            },
+            "description": "The example records the declared command-relative effect; it does not claim physical feedback."
+          },
+          "status": "corroborated",
+          "confidence": 0.9,
+          "evidence": [
+            {
+              "source_ref": "synthetic-project",
+              "location": "mapping[1]",
+              "detail": "The output channel is mapped to the valve."
+            },
+            {
+              "source_ref": "synthetic-source-code",
+              "location": "lines 10-19",
+              "detail": "The command path and its availability conditions are explicit in the active synthetic code."
+            }
+          ]
+        },
+        {
+          "id": "valve-effective-setpoint",
+          "role": "effective_setpoint",
+          "flow_direction": "internal",
+          "software_object_ref": "valve-effective-setpoint-variable",
+          "datatype": "REAL",
+          "engineering_range": {
+            "minimum": 0,
+            "maximum": 100,
+            "unit": "%"
+          },
+          "status": "extracted",
+          "confidence": 1,
+          "evidence": [
+            {
+              "source_ref": "synthetic-source-code",
+              "location": "line 18",
+              "detail": "The active command expression yields the effective setpoint."
+            }
+          ]
+        },
+        {
+          "id": "operator-mode-active",
+          "role": "operation_mode_active",
+          "flow_direction": "internal",
+          "software_object_ref": "operator-mode-variable",
+          "datatype": "BOOL",
+          "status": "extracted",
+          "confidence": 1,
+          "evidence": [
+            {
+              "source_ref": "synthetic-source-code",
+              "location": "line 10",
+              "detail": "The variable represents the active operator-mode state in the synthetic source."
+            }
+          ]
+        },
+        {
+          "id": "valve-permit",
+          "role": "permit",
+          "flow_direction": "internal",
+          "software_object_ref": "valve-permit-variable",
+          "datatype": "BOOL",
+          "status": "extracted",
+          "confidence": 1,
+          "evidence": [
+            {
+              "source_ref": "synthetic-source-code",
+              "location": "line 11",
+              "detail": "The permit is used by the active command expression."
+            }
+          ]
+        },
+        {
+          "id": "valve-calculated-state",
+          "role": "feedback",
+          "flow_direction": "internal",
+          "software_object_ref": "valve-feedback-variable",
+          "datatype": "BOOL",
+          "feedback_kind": "calculated",
+          "status": "extracted",
+          "confidence": 1,
+          "evidence": [
+            {
+              "source_ref": "synthetic-source-code",
+              "location": "line 19",
+              "detail": "The feedback is explicitly calculated from the command."
+            }
+          ]
+        }
+      ],
+      "dependencies": [
+        {
+          "id": "valve-command-availability",
+          "purpose": "enable",
+          "condition": {
+            "kind": "all_of",
+            "conditions": [
+              {
+                "kind": "predicate",
+                "subject_kind": "signal",
+                "subject_ref": "operator-mode-active",
+                "operator": "equals",
+                "expected": true,
+                "polarity": "positive",
+                "context": {
+                  "kind": "operating_mode",
+                  "description": "Operator mode selects manual ownership."
+                }
+              },
+              {
+                "kind": "predicate",
+                "subject_kind": "signal",
+                "subject_ref": "valve-permit",
+                "operator": "equals",
+                "expected": true,
+                "polarity": "positive",
+                "context": {
+                  "kind": "interlock",
+                  "description": "The permit enables the synthetic command path."
+                }
+              }
+            ]
+          },
+          "status": "extracted",
+          "confidence": 1,
+          "evidence": [
+            {
+              "source_ref": "synthetic-source-code",
+              "location": "lines 10-18",
+              "detail": "The active Boolean expression uses both predicates."
+            }
+          ]
+        }
+      ],
+      "limitations": [
+        "The internal implementation of the synthetic valve library block is unavailable."
+      ]
+    },
+    {
+      "id": "demo-flow-sensor-interface",
+      "asset_id": "demo-flow-sensor",
+      "coverage_status": "reconstructed",
+      "inventory_evidence": [
+        {
+          "source_ref": "synthetic-bom",
+          "location": "components[2]",
+          "detail": "The synthetic BOM inventories the flow sensor."
+        }
+      ],
+      "signals": [
+        {
+          "id": "flow-process-value",
+          "role": "process_value",
+          "flow_direction": "from_component",
+          "software_object_ref": "flow-process-value-variable",
+          "datatype": "REAL",
+          "engineering_range": {
+            "minimum": 0,
+            "maximum": 100,
+            "unit": "l/h"
+          },
+          "feedback_kind": "independent_process",
+          "status": "corroborated",
+          "confidence": 0.96,
+          "evidence": [
+            {
+              "source_ref": "synthetic-project",
+              "location": "mapping[2]",
+              "detail": "The project maps the sensor input channel."
+            },
+            {
+              "source_ref": "synthetic-source-code",
+              "location": "line 24",
+              "detail": "The active conversion path produces the engineering value."
+            }
+          ]
+        }
+      ],
+      "dependencies": []
+    }
+  ],
+  "gaps": [
+    {
+      "id": "valve-library-gap",
+      "scope_ref": "demo-control-valve-interface",
+      "category": "inaccessible_library",
+      "description": "The synthetic library implementation is unavailable, so internal state-machine behavior remains unresolved.",
+      "status": "unresolved",
+      "evidence": [
+        {
+          "source_ref": "synthetic-project",
+          "location": "library-reference[1]",
+          "detail": "Only compiled synthetic library metadata is available."
+        }
+      ]
+    }
+  ]
+}

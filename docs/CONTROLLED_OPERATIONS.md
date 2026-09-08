@@ -84,8 +84,8 @@ Cross-check its binding references and access directions:
 ```
 
 The public example under `examples/controlled-operations/` is synthetic. Real
-plant operation documents belong to a case and remain in an ignored `private/`
-subdirectory when they contain sensitive operational knowledge.
+plant operation documents belong to an ignored case `private/` subdirectory
+unless they have been explicitly sanitized for publication.
 
 ## Execution boundary
 

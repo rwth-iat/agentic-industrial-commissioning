@@ -91,6 +91,14 @@ The canonical model should represent at least:
 - provenance,
 - validation state.
 
+Static component-facing controller knowledge is a separate contract defined by
+`spec/software-model.schema.json` and documented in `docs/SOFTWARE_MODEL.md`.
+Hardware-to-software traceability uses
+`spec/implementation-link.schema.json` and is documented in
+`docs/IMPLEMENTATION_LINKS.md`. Do not place PLC objects, software conditions,
+or implementation paths in the canonical hardware model. Passing either static
+contract does not establish runtime validity or executable authorization.
+
 ## Runtime bindings
 
 Concrete mappings from canonical assets or interfaces to runtime locators are a
@@ -237,21 +245,29 @@ the canonical schema or generic core to a manufacturer or engineering system.
 
 Store concrete system work under `cases/<case-id>/`:
 
-- source evidence under `raw/`,
+- local source evidence under `raw/`,
 - agent-derived canonical fragments under `derived/`,
 - deterministic outputs under `results/`,
 - case-specific checks under `validation/`.
+
+The entire `raw/` subtree is private-by-default and ignored repository-wide.
+Do not commit source projects, exports, documents, recordings, or other raw
+plant evidence. If source material is intentionally publishable, create an
+explicitly sanitized or synthetic fixture under `examples/` or `tests/fixtures/`
+instead of making an exception inside a case `raw/` directory. Derived,
+result, and validation artifacts that expose concrete plant knowledge belong
+in an ignored `private/` subdirectory of their respective case area.
 
 Environment-specific extraction code belongs under
 `generated/connectors/<environment-id>/`. If a case exposes a genuinely generic
 gap, report it explicitly and handle the core change as development work with a
 general test.
 
-Treat `raw/` as opaque evidence. Do not require a particular set of evidence
-types, filenames, formats, or subdirectories, and do not infer semantics from
-its folder layout. Discover and cite what is actually available. The generic
-core must consume derived canonical fragments rather than reading `raw/`
-directly.
+Treat local `raw/` as opaque, sensitive evidence. Do not require a particular
+set of evidence types, filenames, formats, or subdirectories, and do not infer
+semantics from its folder layout. Discover and cite what is actually available.
+The generic core must consume derived canonical fragments rather than reading
+`raw/` directly.
 
 ## Development rules
 
@@ -260,7 +276,7 @@ directly.
 - Keep vendor names out of generic abstractions unless they are data values.
 - Do not add complexity before the active roadmap stage requires it.
 - Add tests for normalization, matching, and schema validation.
-- Preserve raw discovery output for debugging and provenance.
+- Preserve raw discovery output locally for debugging and provenance.
 - Make failures explicit rather than guessing.
 - Keep logic testable offline where possible, even when a stage also requires
   explicit live validation against a physical or simulated environment.

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject>
+  <GVL Name="Plant">
+    <Declaration><![CDATA[VAR_GLOBAL
+  PumpAlpha : FB_Device;
+  FlowValue : REAL;
+  ValveCommand : BOOL := FALSE;
+END_VAR]]></Declaration>
+  </GVL>
+</TcPlcObject>

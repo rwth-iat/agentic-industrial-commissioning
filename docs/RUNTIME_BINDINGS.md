@@ -88,8 +88,9 @@ under `cases/<case-id>/derived/private/`. Private subdirectories below a case
 are ignored repository-wide.
 
 Original runtime exports, scripts, logs, and transcripts belong under the
-case's `raw/` area. Case-specific verification belongs under `validation/`.
-Executable environment adaptation remains under
+case's local, repository-ignored `raw/` area. Case-specific verification that
+exposes plant knowledge belongs under `validation/private/`. Executable
+environment adaptation remains under
 `generated/connectors/<environment-id>/`; validation evidence does not.
 
 ## Validation

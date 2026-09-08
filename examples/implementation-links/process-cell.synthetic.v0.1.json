@@ -1,0 +1,135 @@
+{
+  "schema_version": "0.1.0",
+  "id": "synthetic-process-cell-links",
+  "system_id": "synthetic-process-cell",
+  "data_classification": "public_example",
+  "hardware_model": {
+    "system_id": "synthetic-process-cell",
+    "schema_version": "0.2.0",
+    "model_ref": "examples/hardware-models/process-cell.synthetic.v0.2.json"
+  },
+  "software_model": {
+    "id": "synthetic-process-cell-software",
+    "system_id": "synthetic-process-cell",
+    "schema_version": "0.1.0",
+    "model_ref": "examples/software-models/process-cell.synthetic.v0.1.json"
+  },
+  "sources": [
+    {
+      "id": "synthetic-hardware-model-source",
+      "type": "hardware_model",
+      "locator": "examples/hardware-models/process-cell.synthetic.v0.2.json",
+      "revision": {
+        "algorithm": "sha256",
+        "value": "4444444444444444444444444444444444444444444444444444444444444444"
+      },
+      "description": "Synthetic canonical hardware model used for public link testing."
+    },
+    {
+      "id": "synthetic-software-model-source",
+      "type": "software_model",
+      "locator": "examples/software-models/process-cell.synthetic.v0.1.json",
+      "revision": {
+        "algorithm": "sha256",
+        "value": "5555555555555555555555555555555555555555555555555555555555555555"
+      },
+      "description": "Synthetic software model used for public link testing."
+    }
+  ],
+  "links": [
+    {
+      "id": "demo-valve-command-link",
+      "kind": "io_signal",
+      "hardware": {
+        "component_asset_id": "demo-control-valve",
+        "endpoint": {
+          "asset_id": "demo-io-module",
+          "port_id": "valve-output-channel"
+        }
+      },
+      "software": {
+        "component_interface_id": "demo-control-valve-interface",
+        "signal_id": "valve-command"
+      },
+      "status": "corroborated",
+      "confidence": 0.93,
+      "evidence": [
+        {
+          "source_ref": "synthetic-hardware-model-source",
+          "location": "assets[1].ports[1]",
+          "detail": "The synthetic hardware model declares the valve command input."
+        },
+        {
+          "source_ref": "synthetic-software-model-source",
+          "location": "component_interfaces[1].signals[1]",
+          "detail": "The synthetic software model exposes the command signal for the same asset."
+        }
+      ]
+    },
+    {
+      "id": "demo-flow-value-link",
+      "kind": "io_signal",
+      "hardware": {
+        "component_asset_id": "demo-flow-sensor",
+        "endpoint": {
+          "asset_id": "demo-io-module",
+          "port_id": "flow-input-channel"
+        }
+      },
+      "software": {
+        "component_interface_id": "demo-flow-sensor-interface",
+        "signal_id": "flow-process-value"
+      },
+      "status": "corroborated",
+      "confidence": 0.97,
+      "evidence": [
+        {
+          "source_ref": "synthetic-hardware-model-source",
+          "location": "assets[2].ports[1]",
+          "detail": "The synthetic hardware model declares the sensor output."
+        },
+        {
+          "source_ref": "synthetic-software-model-source",
+          "location": "component_interfaces[2].signals[1]",
+          "detail": "The synthetic software model exposes the active flow process value."
+        }
+      ]
+    },
+    {
+      "id": "demo-valve-feedback-ownership",
+      "kind": "component_ownership",
+      "hardware": {
+        "component_asset_id": "demo-control-valve"
+      },
+      "software": {
+        "component_interface_id": "demo-control-valve-interface",
+        "signal_id": "valve-calculated-state"
+      },
+      "status": "inferred",
+      "confidence": 0.85,
+      "evidence": [
+        {
+          "source_ref": "synthetic-software-model-source",
+          "location": "component_interfaces[1].signals[4]",
+          "detail": "The calculated signal is associated with the valve but has no independent physical port."
+        }
+      ]
+    }
+  ],
+  "gaps": [
+    {
+      "id": "demo-valve-feedback-port-gap",
+      "category": "unresolved_hardware",
+      "asset_id": "demo-control-valve",
+      "signal_id": "valve-calculated-state",
+      "description": "No independent physical feedback port is present in the synthetic hardware evidence.",
+      "evidence": [
+        {
+          "source_ref": "synthetic-hardware-model-source",
+          "location": "assets[1]",
+          "detail": "Only the command input is declared for the valve."
+        }
+      ]
+    }
+  ]
+}

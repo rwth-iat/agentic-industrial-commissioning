@@ -84,6 +84,19 @@ The bounded supervised live-interaction proof is retained as completed MVP 2 in
 Stage 2 remains in progress because MVP 2 intentionally does not cover all
 semantic integration, evidence, and reproducibility requirements below.
 
+### Planned static software reconstruction extension
+
+The implementation and acceptance plan is recorded in
+[SOFTWARE_RECONSTRUCTION_PLAN.md](SOFTWARE_RECONSTRUCTION_PLAN.md).
+It covers evidence-driven component discovery from available BOM/hardware and
+software sources, separate software and implementation-link contracts, reuse
+with targeted reconstruction when knowledge is missing, private case storage,
+and independent fresh-agent acceptance. Its status is `ACTIVE`: WP1 contracts,
+WP2 bounded read-only extraction/private V03 reconstruction, and WP3 offline
+component query/runtime-candidate integration are complete. Independent
+fresh-agent acceptance remains planned. Existing MVP records and the remaining
+live proof points below retain their scope.
+
 ### Remaining proof points
 
 - preserve successful reads of concrete process values and their datatype,

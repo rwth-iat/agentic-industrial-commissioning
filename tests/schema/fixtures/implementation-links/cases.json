@@ -1,0 +1,62 @@
+[
+  {
+    "name": "valid-public-example",
+    "mutation": "none",
+    "expected_exit_code": 0
+  },
+  {
+    "name": "valid-private-placement",
+    "mutation": "classify-private-correctly",
+    "expected_exit_code": 0
+  },
+  {
+    "name": "invalid-dangling-component-asset",
+    "mutation": "set-dangling-component-asset",
+    "expected_exit_code": 1
+  },
+  {
+    "name": "invalid-port-ownership",
+    "mutation": "set-port-from-another-asset",
+    "expected_exit_code": 1
+  },
+  {
+    "name": "invalid-cross-asset-interface",
+    "mutation": "set-cross-asset-component",
+    "expected_exit_code": 1
+  },
+  {
+    "name": "invalid-dangling-software-signal",
+    "mutation": "set-dangling-signal",
+    "expected_exit_code": 1
+  },
+  {
+    "name": "invalid-validated-with-static-evidence",
+    "mutation": "set-static-link-validated",
+    "expected_exit_code": 1
+  },
+  {
+    "name": "invalid-signal-port-direction",
+    "mutation": "set-direction-mismatch",
+    "expected_exit_code": 1
+  },
+  {
+    "name": "invalid-private-placement",
+    "mutation": "classify-private-outside-case-private",
+    "expected_exit_code": 1
+  },
+  {
+    "name": "invalid-public-model-reference-to-case-raw",
+    "mutation": "reference-case-raw-model",
+    "expected_exit_code": 1
+  },
+  {
+    "name": "invalid-software-model-identity",
+    "mutation": "set-wrong-software-model-id",
+    "expected_exit_code": 1
+  },
+  {
+    "name": "invalid-hardware-system-identity",
+    "mutation": "set-wrong-hardware-system-id",
+    "expected_exit_code": 1
+  }
+]

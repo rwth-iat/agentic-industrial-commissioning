@@ -83,8 +83,8 @@ remote session's authority. Therefore:
 - a command-line `-HumanApproved` flag is a defensive check, not evidence of
   approval;
 - credentials and concrete endpoints must remain in ignored local files;
-- remote output used by the project must be preserved as case evidence and
-  normalized before entering the generic core.
+- remote output used by the project must be preserved in the ignored local
+  case `raw/` area and normalized before entering the generic core.
 
 ## RDP and programmatic access
 

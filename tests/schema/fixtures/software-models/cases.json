@@ -1,0 +1,62 @@
+[
+  {
+    "name": "valid-public-example",
+    "mutation": "none",
+    "expected_exit_code": 0
+  },
+  {
+    "name": "valid-private-placement",
+    "mutation": "classify-private-correctly",
+    "expected_exit_code": 0
+  },
+  {
+    "name": "invalid-inferred-without-evidence",
+    "mutation": "remove-signal-evidence",
+    "expected_exit_code": 1
+  },
+  {
+    "name": "invalid-validated-with-static-evidence",
+    "mutation": "set-static-signal-validated",
+    "expected_exit_code": 1
+  },
+  {
+    "name": "invalid-dangling-software-object",
+    "mutation": "set-dangling-object-reference",
+    "expected_exit_code": 1
+  },
+  {
+    "name": "invalid-dangling-condition-signal",
+    "mutation": "set-dangling-condition-reference",
+    "expected_exit_code": 1
+  },
+  {
+    "name": "invalid-reversed-engineering-range",
+    "mutation": "reverse-engineering-range",
+    "expected_exit_code": 1
+  },
+  {
+    "name": "invalid-duplicate-signal-id",
+    "mutation": "duplicate-signal-id",
+    "expected_exit_code": 1
+  },
+  {
+    "name": "invalid-public-reference-to-case-raw",
+    "mutation": "reference-case-raw",
+    "expected_exit_code": 1
+  },
+  {
+    "name": "invalid-private-placement",
+    "mutation": "classify-private-outside-case-private",
+    "expected_exit_code": 1
+  },
+  {
+    "name": "invalid-relative-effect-without-reference",
+    "mutation": "remove-relative-effect-reference",
+    "expected_exit_code": 1
+  },
+  {
+    "name": "invalid-complete-inventory-with-unexamined-source",
+    "mutation": "add-unexamined-source-to-complete-inventory",
+    "expected_exit_code": 1
+  }
+]

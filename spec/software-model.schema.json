@@ -1,0 +1,579 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:agentic-industrial-commissioning:schema:software-model:0.1.0",
+  "title": "Industrial Static Software Model",
+  "description": "Vendor-neutral, evidence-backed representation of static controller software facts and component-facing semantics. Runtime locators and executable operations are intentionally excluded.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "id",
+    "system_id",
+    "data_classification",
+    "scope",
+    "sources",
+    "software_objects",
+    "relations",
+    "component_interfaces",
+    "gaps"
+  ],
+  "properties": {
+    "schema_version": { "const": "0.1.0" },
+    "id": { "$ref": "#/$defs/id" },
+    "system_id": { "$ref": "#/$defs/id" },
+    "data_classification": {
+      "type": "string",
+      "enum": ["private", "internal", "public_example"]
+    },
+    "scope": { "$ref": "#/$defs/scope" },
+    "sources": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/source" }
+    },
+    "software_objects": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/softwareObject" }
+    },
+    "relations": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/relation" }
+    },
+    "component_interfaces": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/componentInterface" }
+    },
+    "gaps": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/gap" }
+    },
+    "extensions": { "$ref": "#/$defs/extensions" }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z][A-Za-z0-9._:-]*$"
+    },
+    "nonEmptyString": { "type": "string", "minLength": 1 },
+    "scalar": { "type": ["boolean", "number", "string"] },
+    "extensions": {
+      "type": "object",
+      "propertyNames": { "pattern": "^[A-Za-z][A-Za-z0-9_.:-]+$" },
+      "additionalProperties": true
+    },
+    "revision": {
+      "type": "object",
+      "required": ["algorithm", "value"],
+      "properties": {
+        "algorithm": { "const": "sha256" },
+        "value": { "type": "string", "pattern": "^[a-fA-F0-9]{64}$" }
+      },
+      "additionalProperties": false
+    },
+    "source": {
+      "type": "object",
+      "required": ["id", "type", "description"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "type": {
+          "type": "string",
+          "enum": [
+            "bom",
+            "hardware_model",
+            "engineering_project",
+            "project_export",
+            "source_code",
+            "library_metadata",
+            "runtime_observation",
+            "operator_observation",
+            "generated_fact",
+            "other"
+          ]
+        },
+        "locator": { "$ref": "#/$defs/nonEmptyString" },
+        "revision": { "$ref": "#/$defs/revision" },
+        "captured_at": { "type": "string", "format": "date-time" },
+        "description": { "$ref": "#/$defs/nonEmptyString" }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "enum": [
+                  "bom",
+                  "hardware_model",
+                  "engineering_project",
+                  "project_export",
+                  "source_code",
+                  "library_metadata",
+                  "generated_fact"
+                ]
+              }
+            },
+            "required": ["type"]
+          },
+          "then": { "required": ["locator", "revision"] }
+        }
+      ]
+    },
+    "evidence": {
+      "type": "object",
+      "required": ["source_ref", "detail"],
+      "properties": {
+        "source_ref": { "$ref": "#/$defs/id" },
+        "location": { "$ref": "#/$defs/nonEmptyString" },
+        "detail": { "$ref": "#/$defs/nonEmptyString" }
+      },
+      "additionalProperties": false
+    },
+    "evidenceList": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/evidence" }
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "extracted",
+        "inferred",
+        "corroborated",
+        "validated",
+        "rejected",
+        "stale",
+        "unresolved"
+      ]
+    },
+    "claimFields": {
+      "type": "object",
+      "required": ["status", "confidence", "evidence"],
+      "properties": {
+        "status": { "$ref": "#/$defs/status" },
+        "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+        "evidence": { "$ref": "#/$defs/evidenceList" },
+        "rationale": { "$ref": "#/$defs/nonEmptyString" }
+      }
+    },
+    "scope": {
+      "type": "object",
+      "required": [
+        "mode",
+        "inventory_complete",
+        "unexamined_sources",
+        "unsupported_constructs"
+      ],
+      "properties": {
+        "mode": { "type": "string", "enum": ["project_wide", "focused"] },
+        "focus_asset_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/id" }
+        },
+        "inventory_complete": { "type": "boolean" },
+        "unexamined_sources": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/nonEmptyString" }
+        },
+        "unsupported_constructs": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/nonEmptyString" }
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": { "mode": { "const": "focused" } },
+            "required": ["mode"]
+          },
+          "then": { "required": ["focus_asset_ids"] }
+        }
+      ]
+    },
+    "range": {
+      "type": "object",
+      "required": ["minimum", "maximum"],
+      "properties": {
+        "minimum": { "type": "number" },
+        "maximum": { "type": "number" },
+        "unit": { "$ref": "#/$defs/nonEmptyString" }
+      },
+      "additionalProperties": false
+    },
+    "softwareObject": {
+      "allOf": [
+        { "$ref": "#/$defs/claimFields" },
+        {
+          "type": "object",
+          "required": ["id", "kind", "display_name", "active_state"],
+          "properties": {
+            "id": { "$ref": "#/$defs/id" },
+            "kind": {
+              "type": "string",
+              "enum": [
+                "application",
+                "program",
+                "function_block",
+                "function",
+                "method",
+                "task",
+                "variable",
+                "io_variable",
+                "instance",
+                "type",
+                "library",
+                "expression",
+                "other"
+              ]
+            },
+            "display_name": { "$ref": "#/$defs/nonEmptyString" },
+            "qualified_name": { "$ref": "#/$defs/nonEmptyString" },
+            "parent_ref": { "$ref": "#/$defs/id" },
+            "datatype": { "$ref": "#/$defs/nonEmptyString" },
+            "active_state": { "type": "string", "enum": ["active", "inactive", "unknown"] },
+            "status": { "$ref": "#/$defs/status" },
+            "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+            "evidence": { "$ref": "#/$defs/evidenceList" },
+            "rationale": { "$ref": "#/$defs/nonEmptyString" },
+            "extensions": { "$ref": "#/$defs/extensions" }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "conditionContext": {
+      "type": "object",
+      "required": ["kind", "description"],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "general",
+            "operating_mode",
+            "command_source",
+            "service_state",
+            "interlock",
+            "protection",
+            "other"
+          ]
+        },
+        "description": { "$ref": "#/$defs/nonEmptyString" }
+      },
+      "additionalProperties": false
+    },
+    "condition": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "subject_kind",
+            "subject_ref",
+            "operator",
+            "expected",
+            "polarity",
+            "context"
+          ],
+          "properties": {
+            "kind": { "const": "predicate" },
+            "subject_kind": { "type": "string", "enum": ["software_object", "signal"] },
+            "subject_ref": { "$ref": "#/$defs/id" },
+            "operator": {
+              "type": "string",
+              "enum": [
+                "equals",
+                "not_equals",
+                "less_than",
+                "less_than_or_equal",
+                "greater_than",
+                "greater_than_or_equal"
+              ]
+            },
+            "expected": { "$ref": "#/$defs/scalar" },
+            "polarity": { "type": "string", "enum": ["positive", "negative"] },
+            "context": { "$ref": "#/$defs/conditionContext" }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["kind", "conditions"],
+          "properties": {
+            "kind": { "type": "string", "enum": ["all_of", "any_of"] },
+            "conditions": {
+              "type": "array",
+              "minItems": 2,
+              "items": { "$ref": "#/$defs/condition" }
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["kind", "condition"],
+          "properties": {
+            "kind": { "const": "not" },
+            "condition": { "$ref": "#/$defs/condition" }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "relation": {
+      "allOf": [
+        { "$ref": "#/$defs/claimFields" },
+        {
+          "type": "object",
+          "required": ["id", "kind", "from_ref", "to_ref"],
+          "properties": {
+            "id": { "$ref": "#/$defs/id" },
+            "kind": {
+              "type": "string",
+              "enum": [
+                "contains",
+                "instance_of",
+                "calls",
+                "reads",
+                "writes",
+                "assigns",
+                "transforms",
+                "depends_on",
+                "aliases",
+                "other"
+              ]
+            },
+            "from_ref": { "$ref": "#/$defs/id" },
+            "to_ref": { "$ref": "#/$defs/id" },
+            "condition": { "$ref": "#/$defs/condition" },
+            "status": { "$ref": "#/$defs/status" },
+            "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+            "evidence": { "$ref": "#/$defs/evidenceList" },
+            "rationale": { "$ref": "#/$defs/nonEmptyString" },
+            "extensions": { "$ref": "#/$defs/extensions" }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "relativeValue": {
+      "type": "object",
+      "required": ["reference_signal_ref", "scale", "offset"],
+      "properties": {
+        "reference_signal_ref": { "$ref": "#/$defs/id" },
+        "scale": { "type": "number" },
+        "offset": { "type": "number" }
+      },
+      "additionalProperties": false
+    },
+    "expectedEffect": {
+      "type": "object",
+      "required": ["kind", "target_signal_ref", "operator", "expected"],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": ["state", "value", "setpoint_relative", "range"]
+        },
+        "target_signal_ref": { "$ref": "#/$defs/id" },
+        "operator": {
+          "type": "string",
+          "enum": [
+            "equals",
+            "not_equals",
+            "less_than",
+            "less_than_or_equal",
+            "greater_than",
+            "greater_than_or_equal",
+            "within"
+          ]
+        },
+        "expected": {
+          "oneOf": [
+            { "$ref": "#/$defs/scalar" },
+            { "$ref": "#/$defs/relativeValue" },
+            { "$ref": "#/$defs/range" }
+          ]
+        },
+        "description": { "$ref": "#/$defs/nonEmptyString" }
+      },
+      "additionalProperties": false
+    },
+    "signal": {
+      "allOf": [
+        { "$ref": "#/$defs/claimFields" },
+        {
+          "type": "object",
+          "required": [
+            "id",
+            "role",
+            "flow_direction",
+            "software_object_ref"
+          ],
+          "properties": {
+            "id": { "$ref": "#/$defs/id" },
+            "role": {
+              "type": "string",
+              "enum": [
+                "process_value",
+                "dynamic_process_value",
+                "operation_mode_request",
+                "operation_mode_active",
+                "source_mode_request",
+                "source_mode_active",
+                "command_request",
+                "command_state",
+                "manual_setpoint",
+                "effective_setpoint",
+                "feedback",
+                "permit",
+                "interlock",
+                "protection",
+                "fault",
+                "safe_state",
+                "conversion_factor",
+                "other"
+              ]
+            },
+            "flow_direction": {
+              "type": "string",
+              "enum": ["from_component", "to_component", "bidirectional", "internal"]
+            },
+            "software_object_ref": { "$ref": "#/$defs/id" },
+            "datatype": { "$ref": "#/$defs/nonEmptyString" },
+            "engineering_range": { "$ref": "#/$defs/range" },
+            "availability": { "$ref": "#/$defs/condition" },
+            "expected_effect": { "$ref": "#/$defs/expectedEffect" },
+            "feedback_kind": {
+              "type": "string",
+              "enum": ["physical", "independent_process", "calculated", "logical", "unknown"]
+            },
+            "status": { "$ref": "#/$defs/status" },
+            "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+            "evidence": { "$ref": "#/$defs/evidenceList" },
+            "rationale": { "$ref": "#/$defs/nonEmptyString" },
+            "extensions": { "$ref": "#/$defs/extensions" }
+          },
+          "additionalProperties": false,
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "role": {
+                    "enum": ["command_request", "manual_setpoint"]
+                  }
+                },
+                "required": ["role"]
+              },
+              "then": { "required": ["expected_effect"] }
+            },
+            {
+              "if": {
+                "properties": {
+                  "role": {
+                    "enum": ["feedback", "command_state", "process_value", "dynamic_process_value"]
+                  }
+                },
+                "required": ["role"]
+              },
+              "then": { "required": ["feedback_kind"] }
+            }
+          ]
+        }
+      ]
+    },
+    "dependency": {
+      "allOf": [
+        { "$ref": "#/$defs/claimFields" },
+        {
+          "type": "object",
+          "required": ["id", "purpose", "condition"],
+          "properties": {
+            "id": { "$ref": "#/$defs/id" },
+            "purpose": {
+              "type": "string",
+              "enum": ["enable", "inhibit", "select", "scale", "observe", "other"]
+            },
+            "condition": { "$ref": "#/$defs/condition" },
+            "status": { "$ref": "#/$defs/status" },
+            "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+            "evidence": { "$ref": "#/$defs/evidenceList" },
+            "rationale": { "$ref": "#/$defs/nonEmptyString" },
+            "extensions": { "$ref": "#/$defs/extensions" }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "componentInterface": {
+      "type": "object",
+      "required": [
+        "id",
+        "asset_id",
+        "coverage_status",
+        "inventory_evidence",
+        "signals",
+        "dependencies"
+      ],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "asset_id": { "$ref": "#/$defs/id" },
+        "coverage_status": {
+          "type": "string",
+          "enum": ["reconstructed", "partial", "ambiguous", "unresolved"]
+        },
+        "inventory_evidence": { "$ref": "#/$defs/evidenceList" },
+        "signals": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/signal" }
+        },
+        "dependencies": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/dependency" }
+        },
+        "limitations": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/nonEmptyString" }
+        },
+        "extensions": { "$ref": "#/$defs/extensions" }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "coverage_status": { "enum": ["partial", "ambiguous", "unresolved"] }
+            },
+            "required": ["coverage_status"]
+          },
+          "then": { "required": ["limitations"] }
+        }
+      ]
+    },
+    "gap": {
+      "type": "object",
+      "required": ["id", "category", "description", "status", "evidence"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "scope_ref": { "$ref": "#/$defs/id" },
+        "category": {
+          "type": "string",
+          "enum": [
+            "missing_source",
+            "unsupported_construct",
+            "inaccessible_library",
+            "ambiguous_mapping",
+            "conflicting_evidence",
+            "unknown_semantics",
+            "other"
+          ]
+        },
+        "description": { "$ref": "#/$defs/nonEmptyString" },
+        "status": { "type": "string", "enum": ["unresolved", "stale", "conflicting"] },
+        "evidence": { "$ref": "#/$defs/evidenceList" }
+      },
+      "additionalProperties": false
+    }
+  }
+}

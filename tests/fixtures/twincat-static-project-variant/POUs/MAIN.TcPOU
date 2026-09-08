@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject>
+  <POU Name="MAIN">
+    <Declaration><![CDATA[PROGRAM MAIN
+VAR
+  LocalPermit : BOOL;
+END_VAR]]></Declaration>
+    <Implementation><ST><![CDATA[
+Plant.MixerRenamed(Start := LocalPermit);
+Plant.ValveCommand := LocalPermit;
+]]></ST></Implementation>
+  </POU>
+</TcPlcObject>

@@ -88,7 +88,7 @@ part of its proof.
 
 ### Required artifacts
 
-- representative raw case evidence;
+- representative raw case evidence retained in the local case workspace;
 - canonical fragments derived from that evidence;
 - valid and invalid canonical-model examples;
 - unambiguous, ambiguous, incompatible, and conflicting matching scenarios;
@@ -109,6 +109,11 @@ part of its proof.
 - Core tests cover compatibility, ambiguity, asserted connections, competing
   evidence, duplicate claims, and unresolved endpoints.
 - `tests/test-offline-core.ps1` passes all schema and core checks.
+
+The current privacy policy treats every case `raw/` directory as ignored local
+evidence. Raw HC10 files already tracked when this milestone was completed are
+a legacy migration concern; removing them from tracking and repository history
+is intentionally separate from this completion record.
 
 ### Historical non-goals
 

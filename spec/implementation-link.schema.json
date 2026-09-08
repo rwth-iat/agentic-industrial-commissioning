@@ -1,0 +1,227 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:agentic-industrial-commissioning:schema:implementation-link:0.1.0",
+  "title": "Industrial Hardware Software Implementation Links",
+  "description": "Vendor-neutral, evidence-backed links between canonical hardware assets or ports and component-facing static software signals. Runtime locators are intentionally excluded.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "id",
+    "system_id",
+    "data_classification",
+    "hardware_model",
+    "software_model",
+    "sources",
+    "links",
+    "gaps"
+  ],
+  "properties": {
+    "schema_version": { "const": "0.1.0" },
+    "id": { "$ref": "#/$defs/id" },
+    "system_id": { "$ref": "#/$defs/id" },
+    "data_classification": {
+      "type": "string",
+      "enum": ["private", "internal", "public_example"]
+    },
+    "hardware_model": { "$ref": "#/$defs/hardwareModelRef" },
+    "software_model": { "$ref": "#/$defs/softwareModelRef" },
+    "sources": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/source" }
+    },
+    "links": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/link" }
+    },
+    "gaps": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/gap" }
+    },
+    "extensions": { "$ref": "#/$defs/extensions" }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[A-Za-z][A-Za-z0-9._:-]*$" },
+    "nonEmptyString": { "type": "string", "minLength": 1 },
+    "extensions": {
+      "type": "object",
+      "propertyNames": { "pattern": "^[A-Za-z][A-Za-z0-9_.:-]+$" },
+      "additionalProperties": true
+    },
+    "revision": {
+      "type": "object",
+      "required": ["algorithm", "value"],
+      "properties": {
+        "algorithm": { "const": "sha256" },
+        "value": { "type": "string", "pattern": "^[a-fA-F0-9]{64}$" }
+      },
+      "additionalProperties": false
+    },
+    "hardwareModelRef": {
+      "type": "object",
+      "required": ["system_id", "schema_version", "model_ref"],
+      "properties": {
+        "system_id": { "$ref": "#/$defs/id" },
+        "schema_version": { "$ref": "#/$defs/nonEmptyString" },
+        "model_ref": { "$ref": "#/$defs/nonEmptyString" },
+        "revision": { "$ref": "#/$defs/revision" }
+      },
+      "additionalProperties": false
+    },
+    "softwareModelRef": {
+      "type": "object",
+      "required": ["id", "system_id", "schema_version", "model_ref"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "system_id": { "$ref": "#/$defs/id" },
+        "schema_version": { "$ref": "#/$defs/nonEmptyString" },
+        "model_ref": { "$ref": "#/$defs/nonEmptyString" },
+        "revision": { "$ref": "#/$defs/revision" }
+      },
+      "additionalProperties": false
+    },
+    "source": {
+      "type": "object",
+      "required": ["id", "type", "description"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "type": {
+          "type": "string",
+          "enum": [
+            "hardware_model",
+            "software_model",
+            "engineering_project",
+            "runtime_observation",
+            "operator_observation",
+            "other"
+          ]
+        },
+        "locator": { "$ref": "#/$defs/nonEmptyString" },
+        "revision": { "$ref": "#/$defs/revision" },
+        "description": { "$ref": "#/$defs/nonEmptyString" }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "enum": ["hardware_model", "software_model", "engineering_project"]
+              }
+            },
+            "required": ["type"]
+          },
+          "then": { "required": ["locator", "revision"] }
+        }
+      ]
+    },
+    "evidence": {
+      "type": "object",
+      "required": ["source_ref", "detail"],
+      "properties": {
+        "source_ref": { "$ref": "#/$defs/id" },
+        "location": { "$ref": "#/$defs/nonEmptyString" },
+        "detail": { "$ref": "#/$defs/nonEmptyString" }
+      },
+      "additionalProperties": false
+    },
+    "evidenceList": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/evidence" }
+    },
+    "status": {
+      "type": "string",
+      "enum": ["extracted", "inferred", "corroborated", "validated", "rejected", "stale"]
+    },
+    "hardwareEndpoint": {
+      "type": "object",
+      "required": ["component_asset_id"],
+      "properties": {
+        "component_asset_id": { "$ref": "#/$defs/id" },
+        "endpoint": { "$ref": "#/$defs/portRef" }
+      },
+      "additionalProperties": false
+    },
+    "portRef": {
+      "type": "object",
+      "required": ["asset_id", "port_id"],
+      "properties": {
+        "asset_id": { "$ref": "#/$defs/id" },
+        "port_id": { "$ref": "#/$defs/id" }
+      },
+      "additionalProperties": false
+    },
+    "softwareEndpoint": {
+      "type": "object",
+      "required": ["component_interface_id", "signal_id"],
+      "properties": {
+        "component_interface_id": { "$ref": "#/$defs/id" },
+        "signal_id": { "$ref": "#/$defs/id" }
+      },
+      "additionalProperties": false
+    },
+    "link": {
+      "type": "object",
+      "required": [
+        "id",
+        "kind",
+        "hardware",
+        "software",
+        "status",
+        "confidence",
+        "evidence"
+      ],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "kind": {
+          "type": "string",
+          "enum": ["io_signal", "component_ownership", "candidate_mapping"]
+        },
+        "hardware": { "$ref": "#/$defs/hardwareEndpoint" },
+        "software": { "$ref": "#/$defs/softwareEndpoint" },
+        "status": { "$ref": "#/$defs/status" },
+        "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+        "evidence": { "$ref": "#/$defs/evidenceList" },
+        "rationale": { "$ref": "#/$defs/nonEmptyString" },
+        "extensions": { "$ref": "#/$defs/extensions" }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": { "kind": { "const": "io_signal" } },
+            "required": ["kind"]
+          },
+          "then": {
+            "properties": { "hardware": { "required": ["endpoint"] } }
+          }
+        },
+        {
+          "if": {
+            "properties": { "status": { "enum": ["rejected", "stale"] } },
+            "required": ["status"]
+          },
+          "then": { "required": ["rationale"] }
+        }
+      ]
+    },
+    "gap": {
+      "type": "object",
+      "required": ["id", "category", "description", "evidence"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "category": {
+          "type": "string",
+          "enum": ["unresolved_hardware", "unresolved_software", "ambiguous_mapping", "conflicting_evidence", "other"]
+        },
+        "asset_id": { "$ref": "#/$defs/id" },
+        "signal_id": { "$ref": "#/$defs/id" },
+        "description": { "$ref": "#/$defs/nonEmptyString" },
+        "evidence": { "$ref": "#/$defs/evidenceList" }
+      },
+      "additionalProperties": false
+    }
+  }
+}

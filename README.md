@@ -79,6 +79,8 @@ agentic-industrial-commissioning/
 │   └── controlled-operations/     # synthetic operation contract example
 ├── spec/
 │   ├── hardware-model.schema.v0.2-proposal.json
+│   ├── software-model.schema.json
+│   ├── implementation-link.schema.json
 │   ├── runtime-binding.schema.json
 │   └── controlled-operation.schema.json
 ├── src/
@@ -88,6 +90,8 @@ agentic-industrial-commissioning/
 │   ├── remote/                   # generic remote execution transport
 │   ├── run-case.ps1              # generic model-fragment runner
 │   ├── validate-hardware-model.ps1
+│   ├── validate-software-model.ps1
+│   ├── validate-implementation-links.ps1
 │   ├── validate-runtime-bindings.ps1
 │   └── validate-controlled-operation.ps1
 ├── generated/
@@ -98,7 +102,7 @@ agentic-industrial-commissioning/
 │   └── schema/
 ├── cases/
 │   └── hc10/
-│       ├── raw/                  # opaque, unmodified source evidence
+│       ├── raw/                  # local, ignored source evidence
 │       ├── derived/              # agent-derived canonical fragments
 │       ├── results/              # deterministic pipeline results
 │       ├── validation/           # HC10-specific checks
@@ -112,20 +116,28 @@ The separate mapping from canonical assets to concrete runtime representations
 is documented in [docs/RUNTIME_BINDINGS.md](docs/RUNTIME_BINDINGS.md).
 Bounded procedures over runtime-binding IDs are documented in
 [docs/CONTROLLED_OPERATIONS.md](docs/CONTROLLED_OPERATIONS.md).
+Static component-facing software knowledge and its hardware traceability are
+documented in [docs/SOFTWARE_MODEL.md](docs/SOFTWARE_MODEL.md) and
+[docs/IMPLEMENTATION_LINKS.md](docs/IMPLEMENTATION_LINKS.md).
+The frozen fresh-agent evaluation boundary and scoring rules are recorded in
+[docs/SOFTWARE_RECONSTRUCTION_ACCEPTANCE.md](docs/SOFTWARE_RECONSTRUCTION_ACCEPTANCE.md).
 
 ## Canonical offline pipeline
 
 The core candidate does not prescribe or read the contents of `raw/`. That
-directory may contain any available offline evidence in any organization or
-format. An agent or connector interprets that evidence and writes one or more
-canonical-shaped fragments to `derived/`. The generic runner merges all supplied
-fragments without assigning them fixed roles such as BOM, topology, or wiring.
+local, repository-ignored directory may contain any available offline evidence
+in any organization or format. An agent or connector interprets that evidence
+and writes one or more canonical-shaped fragments to `derived/`. Concrete plant
+fragments belong under `derived/private/`; committed examples must be synthetic
+or explicitly sanitized. The generic runner merges all supplied fragments
+without assigning them fixed roles such as BOM, topology, or wiring.
 
 For HC10, the current fragment names describe how that particular case was
 organized. They are examples, not a required input taxonomy for another case.
 
-After an operational run has created the case fragments and runner, execute the
-reproducible HC10 pipeline (including canonical-schema validation) with:
+After an operational run has created the local case evidence, fragments, and
+runner, execute the reproducible HC10 pipeline (including canonical-schema
+validation) with:
 
 ```powershell
 ./cases/hc10/run.ps1

@@ -1,0 +1,125 @@
+{
+  "schema_version": "0.2.0",
+  "system": {
+    "id": "synthetic-process-cell",
+    "name": "Synthetic process cell"
+  },
+  "sources": [
+    {
+      "id": "synthetic-hardware-source",
+      "type": "scan",
+      "title": "Synthetic hardware inventory"
+    }
+  ],
+  "assets": [
+    {
+      "id": "demo-control-valve",
+      "name": "Synthetic control valve",
+      "asset_kind": "instance",
+      "role": "actuator",
+      "identification": {
+        "manufacturer_name": "Synthetic Manufacturer",
+        "manufacturer_product_designation": "Synthetic control valve",
+        "manufacturer_product_code": "SYNTH-CV-01",
+        "source_refs": ["synthetic-hardware-source"]
+      },
+      "ports": [
+        {
+          "id": "control-input",
+          "role": "signal",
+          "direction": "input",
+          "interface": {
+            "kind": "analog_current",
+            "signal_range": {
+              "min": 4,
+              "max": 20,
+              "unit": { "symbol": "mA" }
+            }
+          },
+          "source_refs": ["synthetic-hardware-source"],
+          "status": "observed"
+        }
+      ],
+      "source_refs": ["synthetic-hardware-source"],
+      "status": "observed"
+    },
+    {
+      "id": "demo-flow-sensor",
+      "name": "Synthetic flow sensor",
+      "asset_kind": "instance",
+      "role": "sensor",
+      "identification": {
+        "manufacturer_name": "Synthetic Manufacturer",
+        "manufacturer_product_designation": "Synthetic flow sensor",
+        "manufacturer_product_code": "SYNTH-FS-01",
+        "source_refs": ["synthetic-hardware-source"]
+      },
+      "ports": [
+        {
+          "id": "measurement-output",
+          "role": "signal",
+          "direction": "output",
+          "interface": {
+            "kind": "analog_current",
+            "signal_range": {
+              "min": 4,
+              "max": 20,
+              "unit": { "symbol": "mA" }
+            }
+          },
+          "source_refs": ["synthetic-hardware-source"],
+          "status": "observed"
+        }
+      ],
+      "source_refs": ["synthetic-hardware-source"],
+      "status": "observed"
+    },
+    {
+      "id": "demo-io-module",
+      "name": "Synthetic mixed I O module",
+      "asset_kind": "instance",
+      "role": "io_module",
+      "identification": {
+        "manufacturer_name": "Synthetic Manufacturer",
+        "manufacturer_product_designation": "Synthetic mixed I O module",
+        "manufacturer_product_code": "SYNTH-IO-01",
+        "source_refs": ["synthetic-hardware-source"]
+      },
+      "ports": [
+        {
+          "id": "valve-output-channel",
+          "role": "signal",
+          "direction": "output",
+          "interface": {
+            "kind": "analog_current",
+            "signal_range": {
+              "min": 4,
+              "max": 20,
+              "unit": { "symbol": "mA" }
+            }
+          },
+          "source_refs": ["synthetic-hardware-source"],
+          "status": "observed"
+        },
+        {
+          "id": "flow-input-channel",
+          "role": "signal",
+          "direction": "input",
+          "interface": {
+            "kind": "analog_current",
+            "signal_range": {
+              "min": 4,
+              "max": 20,
+              "unit": { "symbol": "mA" }
+            }
+          },
+          "source_refs": ["synthetic-hardware-source"],
+          "status": "observed"
+        }
+      ],
+      "source_refs": ["synthetic-hardware-source"],
+      "status": "observed"
+    }
+  ],
+  "physical_connections": []
+}

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TcSmProject>
+  <Project><Io><Device><Box Id="1"><Name>Coupler</Name><EtherCAT Type="SyntheticCoupler" ProductCode="#x1"/><Box Id="2"><Name>Terminal A</Name><EtherCAT Type="SyntheticOutput" ProductCode="#x2"/></Box></Box></Device></Io></Project>
+  <Mappings>
+    <OwnerA Name="PLC">
+      <OwnerB Name="Terminal A">
+        <Link VarA="Task Outputs^Plant.ValveCommand" VarB="Channel 1^Output" />
+      </OwnerB>
+    </OwnerA>
+  </Mappings>
+</TcSmProject>

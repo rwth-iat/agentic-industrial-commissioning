@@ -140,7 +140,7 @@ the same operation is safe elsewhere.
 ## Output and evidence
 
 Recipes return PowerShell objects so callers can serialize the result. A case
-run should preserve relevant raw output under `cases/<case-id>/raw/`, then
-derive canonical fragments with explicit source, evidence, status, and
-confidence. Raw ADS output must not bypass the canonical model on its way into
-matching or generation logic.
+run should preserve relevant raw output under the local, Git-ignored
+`cases/<case-id>/raw/` area, then derive canonical fragments with explicit
+source, evidence, status, and confidence. Raw ADS output must not bypass the
+canonical model on its way into matching or generation logic.
