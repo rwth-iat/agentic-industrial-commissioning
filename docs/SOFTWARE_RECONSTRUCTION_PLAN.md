@@ -1,7 +1,8 @@
 # Static software reconstruction: implementation and acceptance plan
 
-**Status:** `ACTIVE` — WP1 through WP3 are complete; independent agent
-acceptance remains planned.
+**Status:** `ACTIVE` — WP1 through WP3 are complete. Three bounded independent
+agent runs passed on 2026-09-08; WP4 remains incomplete because the full frozen
+scenario set was not executed.
 
 This is a bounded static-reconstruction extension supporting Stage 2 in
 [ROADMAP.md](ROADMAP.md). The completed MVP 1 and MVP 2 records remain unchanged.
@@ -170,8 +171,29 @@ not provide executable authorization or activate outputs.
 
 ### WP4 — Independent agent acceptance and honest completion record
 
-**Status:** `PLANNED`. The frozen initial criteria are recorded in
-[`SOFTWARE_RECONSTRUCTION_ACCEPTANCE.md`](SOFTWARE_RECONSTRUCTION_ACCEPTANCE.md).
+**Status:** `PARTIALLY COMPLETED` on 2026-09-08. Three bounded offline runs with
+the intended Luna model at medium reasoning passed, but the frozen initial
+criteria in
+[`SOFTWARE_RECONSTRUCTION_ACCEPTANCE.md`](SOFTWARE_RECONSTRUCTION_ACCEPTANCE.md)
+require the complete scenario set. WP4 therefore remains open rather than being
+reported as complete.
+
+Retained private case evidence records:
+
+- reuse and direct revision checking for existing component knowledge;
+- targeted investigation of partial or unresolved component knowledge without
+  forcing unsupported certainty;
+- isolated focused reconstruction without a previous software model,
+  implementation links, prepared component answer, query result, or runtime
+  candidate. The generated private software model and implementation links pass
+  the full repository validators in the source environment.
+
+The completed runs provide useful evidence for reuse, focused reconstruction,
+dependency traversal, inactive-code discrimination, condition and feedback
+classification, missing-library handling, and private placement. They do not
+complete the frozen project-wide, deliberately changed-evidence, or held-out
+synthetic scenarios. Those scenarios are retained as not executed; the passing
+bounded runs must not be generalized into full WP4 acceptance.
 
 - Run fresh agents using the repository, actual input evidence, and a high-level
   prompt, without conversation history or prepared component answers.

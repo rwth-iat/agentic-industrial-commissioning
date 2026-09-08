@@ -93,9 +93,13 @@ software sources, separate software and implementation-link contracts, reuse
 with targeted reconstruction when knowledge is missing, private case storage,
 and independent fresh-agent acceptance. Its status is `ACTIVE`: WP1 contracts,
 WP2 bounded read-only extraction/private V03 reconstruction, and WP3 offline
-component query/runtime-candidate integration are complete. Independent
-fresh-agent acceptance remains planned. Existing MVP records and the remaining
-live proof points below retain their scope.
+component query/runtime-candidate integration are complete. Three bounded
+independent offline runs with Luna at medium reasoning passed on 2026-09-08,
+covering persisted-knowledge reuse, partial or unresolved knowledge, and
+isolated focused reconstruction. WP4 remains incomplete because its frozen
+project-wide, deliberately changed-evidence, and held-out synthetic coverage
+was not fully executed. Existing MVP records and the remaining live proof points
+below retain their scope.
 
 ### Remaining proof points
 
