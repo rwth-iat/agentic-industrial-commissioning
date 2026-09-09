@@ -110,3 +110,18 @@ Run the committed contract tests with:
 
 The public example under `examples/runtime-bindings/` is synthetic and must not
 be treated as a real plant binding.
+
+## Candidate promotion and versioning
+
+Treat the runtime-binding candidates supplied to a Stage 2 run as a frozen
+baseline. Preserve timestamped raw reads, create the next binding-document
+version, and promote only the bindings directly supported by retained
+`runtime_observation` evidence. Keep rejected, absent, conflicting, and stale
+candidates visible with their reasons.
+
+The new version must retain the canonical asset identity, verified datatype,
+interaction semantics, feedback classification, limitations, and provenance.
+Discovery of a replacement symbol by name is not sufficient for validation.
+The full read-only feedback loop and its stopping point before controlled writes
+are defined in
+[STAGE2_RUNBOOK.md](STAGE2_RUNBOOK.md).

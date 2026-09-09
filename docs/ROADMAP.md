@@ -53,6 +53,13 @@ The bounded completion record is maintained as MVP 1 in
 Let the agent use high-level requests to inspect and interact with a complete,
 already operational engineering project and controller runtime.
 
+The component-scoped read-only validation, evidence retention, artifact
+versioning, and later controlled-operation transition are defined in
+[STAGE2_RUNBOOK.md](STAGE2_RUNBOOK.md).
+Focused component packages are sufficient inputs; a project-wide aggregate is
+not a prerequisite when required dependencies are included.
+The same runbook contains the generic small-model prompt sequence.
+
 ### Foundation already established
 
 - a human-controlled remote bridge reaches the engineering environment;
@@ -86,8 +93,8 @@ semantic integration, evidence, and reproducibility requirements below.
 
 ### Planned static software reconstruction extension
 
-The implementation and acceptance plan is recorded in
-[SOFTWARE_RECONSTRUCTION_PLAN.md](SOFTWARE_RECONSTRUCTION_PLAN.md).
+The historical implementation and acceptance plan is retained in
+[archive/SOFTWARE_RECONSTRUCTION_PLAN.md](archive/SOFTWARE_RECONSTRUCTION_PLAN.md).
 It covers evidence-driven component discovery from available BOM/hardware and
 software sources, separate software and implementation-link contracts, reuse
 with targeted reconstruction when knowledge is missing, private case storage,

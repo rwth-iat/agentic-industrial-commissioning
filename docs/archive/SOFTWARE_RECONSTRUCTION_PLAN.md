@@ -5,7 +5,7 @@ agent runs passed on 2026-09-08; WP4 remains incomplete because the full frozen
 scenario set was not executed.
 
 This is a bounded static-reconstruction extension supporting Stage 2 in
-[ROADMAP.md](ROADMAP.md). The completed MVP 1 and MVP 2 records remain unchanged.
+[ROADMAP.md](../ROADMAP.md). The completed MVP 1 and MVP 2 records remain unchanged.
 The previous software-feature implementation was withdrawn; its generated
 answers are not an implementation baseline or acceptance oracle.
 
@@ -260,3 +260,6 @@ The planned implementation and initial acceptance are offline. PLC changes,
 deployment, runtime writes, actuation, and real-time control are outside this plan.
 Later Stage-2 live validation remains a separate operation under existing safety
 and evidence rules. This plan does not mark Stage 2 complete.
+That later component-scoped evidence and versioning loop is now documented in
+[STAGE2_RUNBOOK.md](../STAGE2_RUNBOOK.md); it
+does not change this static plan's WP4 acceptance status.

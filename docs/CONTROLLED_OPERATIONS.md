@@ -100,3 +100,10 @@ Before a state-changing recipe is invoked, the agent must present the exact
 operation, current preconditions, expected effect, verification method, and
 remaining uncertainty to the human. The human must explicitly approve that
 operation in the current context.
+
+For component-scoped Stage 2 work, create the first operation as `draft` only
+after completing the separate read-only validation loop in
+[STAGE2_RUNBOOK.md](STAGE2_RUNBOOK.md).
+Sensor reads do not require controlled-operation documents. An actuator
+readiness assessment may describe a future sequence, but it is not itself a
+schema-valid or executable controlled operation.

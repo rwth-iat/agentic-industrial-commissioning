@@ -48,12 +48,15 @@ checked before reuse. Facts matching a missing component selector are returned a
 bounded input for targeted reconstruction; they are not silently promoted to a
 canonical asset or semantic conclusion.
 
-The optional runtime-candidate output translates statically evidenced qualified
-software objects into the separate runtime-binding contract. Because static
-evidence cannot establish deployed symbol existence or access rights, these
-candidates are `inferred`, private, and read-only. Static/runtime disagreements
-remain visible and prevent automatic reuse. Neither a query result nor a
-candidate grants executable authorization.
+The optional runtime-candidate output of `scripts/query-component.py` translates
+statically evidenced qualified software objects into the separate
+runtime-binding contract. Because that automatic translation cannot establish
+deployed symbol existence, access rights, or safe write semantics, its generated
+candidates are `inferred`, private, and read-only. A separately reconstructed
+functional request candidate may record `write` or `read_write` access when the
+static evidence supports that direction, but it remains unvalidated and grants
+no executable authorization. Static/runtime disagreements remain visible and
+prevent automatic reuse.
 
 ## Sources and revisions
 
@@ -138,3 +141,17 @@ Concrete plant models belong under
 Committed examples must be synthetic or explicitly sanitized. The public
 example is
 [`examples/software-models/process-cell.synthetic.v0.1.json`](../examples/software-models/process-cell.synthetic.v0.1.json).
+
+## Live feedback and versioning
+
+Stage 2 runtime work starts from a frozen static software-model revision. A live
+observation does not authorize overwriting that baseline. When direct runtime
+evidence validates or contradicts a software relation, condition, expected
+effect, datatype, or feedback classification, create the next model version and
+reference the retained `runtime_observation` source.
+
+Do not create a new software-model version merely because an ADS symbol was
+read. Locator existence and access normally update the runtime-binding document.
+Only supported software-semantic findings belong here, and physical truth still
+belongs in the canonical hardware model. The complete feedback loop is defined
+in [STAGE2_RUNBOOK.md](STAGE2_RUNBOOK.md).

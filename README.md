@@ -38,14 +38,18 @@ representation are documented in [docs/HARDWARE_MODEL.md](docs/HARDWARE_MODEL.md
 
 ## Current implementation layers
 
-The repository currently contains two deliberately separated implementation
+The repository currently contains three deliberately separated implementation
 layers:
 
 1. An offline evidence, canonical-model, and matching pipeline derives and
    reconciles structured hardware information from heterogeneous engineering
    evidence.
-2. A remote capability layer provides a verified read-only path from a local
-   agent through a human-opened PowerShell bridge to a TwinCAT ADS environment.
+2. Separate static-software, implementation-link, runtime-binding, and
+   controlled-operation contracts represent controller knowledge without
+   contaminating the canonical hardware model.
+3. A remote capability layer provides read-only discovery plus separately
+   guarded state-changing paths from a local agent through a human-opened
+   PowerShell bridge to a TwinCAT ADS environment.
 
 The capability layer remains isolated from the vendor-independent core. Its
 recipes, transport, local configuration, safety boundaries, and verification
@@ -110,8 +114,9 @@ agentic-industrial-commissioning/
 └── creds/                         # ignored local configuration and secrets
 ```
 
-The boundary between method development and an operational case run is
-documented in [docs/DEVELOPMENT_AND_OPERATION.md](docs/DEVELOPMENT_AND_OPERATION.md).
+The boundary between reusable method development and a concrete operational
+case is governed by `AGENTS.md`; case artifacts remain under `cases/<case-id>/`
+and environment-specific adaptations under `generated/connectors/`.
 The separate mapping from canonical assets to concrete runtime representations
 is documented in [docs/RUNTIME_BINDINGS.md](docs/RUNTIME_BINDINGS.md).
 Bounded procedures over runtime-binding IDs are documented in
@@ -119,8 +124,9 @@ Bounded procedures over runtime-binding IDs are documented in
 Static component-facing software knowledge and its hardware traceability are
 documented in [docs/SOFTWARE_MODEL.md](docs/SOFTWARE_MODEL.md) and
 [docs/IMPLEMENTATION_LINKS.md](docs/IMPLEMENTATION_LINKS.md).
-The frozen fresh-agent evaluation boundary and scoring rules are recorded in
-[docs/SOFTWARE_RECONSTRUCTION_ACCEPTANCE.md](docs/SOFTWARE_RECONSTRUCTION_ACCEPTANCE.md).
+The component-scoped live-evidence loop, artifact versioning, and minimal generic
+sensor/actuator prompts are maintained together in
+[docs/STAGE2_RUNBOOK.md](docs/STAGE2_RUNBOOK.md).
 
 ## Canonical offline pipeline
 

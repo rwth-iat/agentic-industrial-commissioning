@@ -126,6 +126,30 @@ they must not duplicate concrete runtime locators. A structurally valid plan is
 not executable authorization, and a `reported_success`, `draft`, `stale`, or
 `rejected` plan must not be presented or executed as a validated procedure.
 
+## Stage 2 live-evidence feedback
+
+For component-scoped live work, follow
+`docs/STAGE2_RUNBOOK.md`. A merged project-wide software model is not required
+when focused component artifacts and their dependencies are available.
+
+Begin with a separately bounded read-only phase. Preserve raw runtime output
+under the ignored case `raw/runtime/<run-id>/` area before promoting any binding
+or model claim. Do not overwrite the static input baseline: create a new artifact
+version, retain rejected and conflicting candidates, update cross-document
+revisions and hashes, and validate every changed contract.
+
+Update only the contract supported by the observation. Runtime locator evidence
+normally updates runtime bindings; software behavior may update the software
+model and implementation links; physical hardware claims require physical or
+hardware evidence. A runtime read must not silently rewrite the canonical
+hardware model.
+
+For an actuator, prepare a case-private controlled-operation draft only after
+the required bindings, modes, ownership, conditions, feedback, and restore path
+have been validated sufficiently. End the read-only phase before requesting
+approval for any write. Approval is exact, current-operation authority and does
+not carry over to later runs.
+
 ## Uncertainty
 
 Never turn an inference into a fact silently.
@@ -239,9 +263,10 @@ Generated artifacts must record enough metadata to reproduce how they were creat
 
 ## Development and operational case boundary
 
-Treat changes to `spec/`, `src/`, the generic scripts, and generic tests as
-method-development work. A normal operational case run must not silently adapt
-the canonical schema or generic core to a manufacturer or engineering system.
+Treat changes to `AGENTS.md`, `docs/`, `spec/`, `examples/`, `src/`, generic
+scripts, and generic tests as method-development work. A normal operational
+case run must not silently adapt the documented method, canonical schemas, or
+generic core to a manufacturer or engineering system.
 
 Store concrete system work under `cases/<case-id>/`:
 

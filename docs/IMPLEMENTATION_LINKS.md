@@ -70,3 +70,15 @@ Concrete plant link documents are ignored private case artifacts. The public
 synthetic example is
 [`examples/implementation-links/process-cell.synthetic.v0.1.json`](../examples/implementation-links/process-cell.synthetic.v0.1.json).
 
+## Live feedback and versioning
+
+Preserve the implementation-link revision used as a Stage 2 input. Create a new
+version only when retained evidence strengthens, rejects, or changes the trace
+between the canonical component and its software signal or I/O endpoint. Live
+symbol existence alone validates a runtime locator, not the physical endpoint.
+
+When a link changes, update its software- and hardware-model references and
+hashes together, then run the cross-document validator. See
+[STAGE2_RUNBOOK.md](STAGE2_RUNBOOK.md) for
+the complete component loop.
+
