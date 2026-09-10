@@ -6,7 +6,7 @@ $ErrorActionPreference = 'Stop'
 
 $repositoryRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $validator = Join-Path $repositoryRoot 'scripts/validate-runtime-bindings.ps1'
-$powerShell = Join-Path $PSHOME 'pwsh.exe'
+$powerShell = (Get-Process -Id $PID).Path
 
 $cases = @(
     @{

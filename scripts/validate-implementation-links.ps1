@@ -16,6 +16,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
+. (Join-Path $PSScriptRoot 'json-schema-validation.common.ps1')
 . (Join-Path $PSScriptRoot 'software-contract-validation.common.ps1')
 if ([string]::IsNullOrWhiteSpace($SchemaPath)) {
     $SchemaPath = Join-Path $repositoryRoot 'spec/implementation-link.schema.json'
@@ -213,12 +214,10 @@ foreach ($path in $LinkPath) {
     $resolvedLinkPath = (Resolve-Path -LiteralPath $path).Path
     $errors = [System.Collections.Generic.List[string]]::new()
     $rawDocument = Get-Content -Raw -LiteralPath $resolvedLinkPath
-    $schemaValid = $false
-    try {
-        $schemaValid = Test-Json -Json $rawDocument -SchemaFile $resolvedSchemaPath -ErrorAction SilentlyContinue
-    }
-    catch {
-        Add-ContractError -Errors $errors -Path '$' -Message "schema validation failed: $($_.Exception.Message)"
+    $schemaResult = Test-JsonSchemaFile -DocumentPath $resolvedLinkPath -SchemaPath $resolvedSchemaPath
+    $schemaValid = $schemaResult.Valid
+    if (-not $schemaValid) {
+        Add-ContractError -Errors $errors -Path '$' -Message "schema validation failed using $($schemaResult.Engine): $($schemaResult.Error)"
     }
     if (-not $schemaValid -and $errors.Count -eq 0) {
         Add-ContractError -Errors $errors -Path '$' -Message 'document does not conform to the JSON Schema'

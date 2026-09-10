@@ -10,6 +10,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
+. (Join-Path $PSScriptRoot 'json-schema-validation.common.ps1')
 if ([string]::IsNullOrWhiteSpace($SchemaPath)) {
     $SchemaPath = Join-Path $repositoryRoot 'spec/runtime-binding.schema.json'
 }
@@ -136,12 +137,10 @@ foreach ($path in $BindingPath) {
     $errors = [System.Collections.Generic.List[string]]::new()
     $rawDocument = Get-Content -Raw -LiteralPath $resolvedBindingPath
 
-    $schemaValid = $false
-    try {
-        $schemaValid = Test-Json -Json $rawDocument -SchemaFile $resolvedSchemaPath -ErrorAction SilentlyContinue
-    }
-    catch {
-        Add-ValidationError -Errors $errors -Path '$' -Message "schema validation failed: $($_.Exception.Message)"
+    $schemaResult = Test-JsonSchemaFile -DocumentPath $resolvedBindingPath -SchemaPath $resolvedSchemaPath
+    $schemaValid = $schemaResult.Valid
+    if (-not $schemaValid) {
+        Add-ValidationError -Errors $errors -Path '$' -Message "schema validation failed using $($schemaResult.Engine): $($schemaResult.Error)"
     }
 
     if (-not $schemaValid -and $errors.Count -eq 0) {

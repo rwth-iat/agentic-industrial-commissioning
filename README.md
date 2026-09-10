@@ -161,8 +161,14 @@ Run the offline schema and core checks:
 ./tests/test-offline-core.ps1
 ```
 
-This generic test entry point covers the hardware-model, runtime-binding, and
-controlled-operation schemas plus core behavior.
+This generic test entry point covers the hardware-model, software-model,
+implementation-link, runtime-binding, and controlled-operation contracts plus
+core behavior.
+The contract validators also run from Windows PowerShell 5.1. When `Test-Json`
+is unavailable there, they automatically delegate only the JSON Schema check to
+an installed PowerShell 7 runtime and retain their repository-specific semantic
+checks in the calling process. Set `AIC_PWSH_PATH` to a `pwsh.exe` path when
+automatic discovery is not sufficient.
 Case-specific validation under `cases/<case-id>/validation/` is generated and
 run within the corresponding operational case.
 

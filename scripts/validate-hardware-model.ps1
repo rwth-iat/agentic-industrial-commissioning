@@ -10,6 +10,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
+. (Join-Path $PSScriptRoot 'json-schema-validation.common.ps1')
 if ([string]::IsNullOrWhiteSpace($SchemaPath)) {
     $SchemaPath = Join-Path $repositoryRoot 'spec/hardware-model.schema.v0.2-proposal.json'
 }
@@ -233,12 +234,10 @@ foreach ($path in $ModelPath) {
     $errors = [System.Collections.Generic.List[string]]::new()
     $rawModel = Get-Content -Raw -LiteralPath $resolvedModelPath
 
-    $schemaValid = $false
-    try {
-        $schemaValid = Test-Json -Json $rawModel -SchemaFile $resolvedSchemaPath -ErrorAction SilentlyContinue
-    }
-    catch {
-        Add-ValidationError -Errors $errors -Path '$' -Message "schema validation failed: $($_.Exception.Message)"
+    $schemaResult = Test-JsonSchemaFile -DocumentPath $resolvedModelPath -SchemaPath $resolvedSchemaPath
+    $schemaValid = $schemaResult.Valid
+    if (-not $schemaValid) {
+        Add-ValidationError -Errors $errors -Path '$' -Message "schema validation failed using $($schemaResult.Engine): $($schemaResult.Error)"
     }
 
     if (-not $schemaValid -and $errors.Count -eq 0) {

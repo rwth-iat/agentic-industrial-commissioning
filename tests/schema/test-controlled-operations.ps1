@@ -7,7 +7,7 @@ $ErrorActionPreference = 'Stop'
 $repositoryRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $validator = Join-Path $repositoryRoot 'scripts/validate-controlled-operation.ps1'
 $runtimeBindings = Join-Path $repositoryRoot 'examples/runtime-bindings/twincat-ads.synthetic.v0.1.json'
-$powerShell = Join-Path $PSHOME 'pwsh.exe'
+$powerShell = (Get-Process -Id $PID).Path
 
 $cases = @(
     @{
