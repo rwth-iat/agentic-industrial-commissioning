@@ -1,0 +1,43 @@
+{
+  "schema_version": "0.1.0",
+  "record_type": "preflight",
+  "run_id": "run-synthetic-001",
+  "case_id": "synthetic-case",
+  "asset_id": "asset-y20",
+  "requested_interface": "open",
+  "created_at": "2026-09-10T12:00:05Z",
+  "data_classification": "private",
+  "observed_at": "2026-09-10T12:00:04Z",
+  "raw_evidence_refs": [
+    "cases/synthetic-case/raw/runtime/run-synthetic-001/preflight.json"
+  ],
+  "checks": [
+    {
+      "id": "binding-resolution",
+      "status": "passed",
+      "detail": "Synthetic bindings resolved with the expected datatypes.",
+      "evidence_refs": [
+        "cases/synthetic-case/raw/runtime/run-synthetic-001/preflight.json"
+      ]
+    },
+    {
+      "id": "initial-state",
+      "status": "passed",
+      "detail": "Synthetic mode and request states were inactive.",
+      "evidence_refs": [
+        "cases/synthetic-case/raw/runtime/run-synthetic-001/preflight.json"
+      ]
+    }
+  ],
+  "hypotheses": [
+    {
+      "id": "open-request",
+      "statement": "The functional open request causes the component to open.",
+      "status": "untested",
+      "evidence_refs": []
+    }
+  ],
+  "assessment": "ready_for_supervised_probe",
+  "blockers": [],
+  "writes_observed": false
+}

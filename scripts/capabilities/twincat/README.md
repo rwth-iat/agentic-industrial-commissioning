@@ -1,117 +1,75 @@
-# TwinCAT capability selector
+# TwinCAT commissioning selectors
 
-`Invoke-AdsCapability.ps1` is the human-facing command-line interface for the
-read-only TwinCAT ADS recipes.
+`Invoke-AdsCapability.ps1` exposes the read-only TwinCAT ADS catalog.
+Component commissioning uses the runtime-binding-aware entry points in this
+directory; callers supply binding IDs, never free PLC symbols.
 
 ## Prerequisites
 
-- `creds/remote.local.psd1` contains the local engineering-host configuration.
-- `creds/twincat-ads.local.psd1` contains the local ADS target and assembly
-  configuration.
-- The human has connected the required trusted network or VPN.
+- `creds/remote.local.psd1` contains the ignored engineering-host settings.
+- `creds/twincat-ads.local.psd1` contains the ignored ADS target and assembly
+  settings.
+- The remote bridge is running through `creds/Start-AgentRemoteBridge.ps1`.
 
-Tracked templates are available at `scripts/remote/config.example.psd1` and
-`capabilities/twincat/ads/config.example.psd1`. Never commit the populated local
-files.
+Concrete endpoints, credentials, and plant locators remain private.
 
-Start the remote bridge in one terminal:
+## Direct read-only capabilities
 
-```powershell
-.\creds\Start-AgentRemoteBridge.ps1
-```
-
-List the available read-only capabilities:
+List or invoke read-only catalog entries with:
 
 ```powershell
 .\scripts\capabilities\twincat\Invoke-AdsCapability.ps1 -List
-```
 
-Open the interactive menu:
-
-```powershell
-.\scripts\capabilities\twincat\Invoke-AdsCapability.ps1
-```
-
-Or invoke a capability directly:
-
-```powershell
 .\scripts\capabilities\twincat\Invoke-AdsCapability.ps1 `
     -Capability ReadSystemState
 ```
 
-```powershell
-.\scripts\capabilities\twincat\Invoke-AdsCapability.ps1 `
-    -Capability SearchSymbols `
-    -Pattern 'temperature|flow'
-```
+The selector rejects every state-changing catalog entry.
 
-The selector loads `creds/twincat-ads.local.psd1` by default, resolves the
-correct recipe and ADS port through `capabilities/twincat/ads/catalog.psd1`, and
-passes configuration values as separate named arguments through the bridge.
+## Component preflight
 
-State-changing catalog entries are intentionally excluded from the menu and
-rejected by this command. They require a separate approval-oriented workflow.
+`Invoke-AdsBindingPreflight.ps1` receives a persisted run manifest, one
+component runtime-binding document, and four functional request binding IDs.
+It derives both acknowledgement bindings from the contract. Optional permit,
+ownership, protection, or other conditions are supplied as additional binding
+ID/value expectations.
 
-## Controlled actions
+Without `-Execute`, it prepares a locator-free read plan. With `-Execute`, it
+uses only the `READ_ONLY` binding-preflight capability, preserves raw output,
+and writes `preflight.json`. Failed or unavailable checks produce
+`hard_blocked`; a complete passing check produces
+`ready_for_supervised_probe`.
 
-List state-changing entries without contacting the remote environment:
+## Supervised bounded probe
 
-```powershell
-.\scripts\capabilities\twincat\Invoke-AdsControlledAction.ps1 -List
-```
+`Invoke-AdsSupervisedProbe.ps1` uses the same binding IDs plus the persisted
+manifest and preflight. Its default mode prepares the exact operation and
+returns an operation-specific approval phrase without loading credentials or
+contacting the runtime.
 
-Prepare an exact operation first. Preparation does not load credentials or
-contact the bridge:
+Execution requires all of the following:
 
-```powershell
-$plan = .\scripts\capabilities\twincat\Invoke-AdsControlledAction.ps1 `
-    -Capability WriteSymbolGuarded `
-    -Symbol '<VERIFIED-SYMBOL>' `
-    -Type Boolean `
-    -ExpectedValue False `
-    -Value True `
-    -ExpectedAdsState Run
+- the preflight assessment is `ready_for_supervised_probe`;
+- the runtime-binding path and SHA-256 revision match the manifest;
+- the exact approval phrase is supplied with current approval provenance;
+- the hold is at most five seconds;
+- every precondition is re-read immediately before the first write.
 
-$plan
-```
+The ADS recipe records actual reads, writes, timeout, abort, and verified
+restore events. The dispatcher translates private PLC locators back to binding
+IDs and stores immutable raw execution facts. It never writes a mapped hardware
+output directly.
 
-Numeric writes additionally require `-MinimumValue` and `-MaximumValue`. Those
-bounds become part of the operation hash and are checked before any remote
-write.
+After human observation and adapter generation, finalize the execution record
+with `scripts/complete-supervised-probe.ps1`. The finalizer consumes executor
+facts instead of reconstructing events from narrative.
 
-For a discovered functional actuator interface, prepare the complete bounded
-operation rather than writing a mapped hardware output directly:
+`validated_interface` is accepted only when `adapter_ref` points to an existing
+`generated/connectors/<environment>/components/<component>/verification.json`.
+That file must declare `verification_status: verified`, the requested
+interface, matching input revisions, evidence references, and an existing
+entrypoint inside the adapter directory.
 
-```powershell
-$plan = .\scripts\capabilities\twincat\Invoke-AdsControlledAction.ps1 `
-    -Capability BoundedBooleanRequestActuation `
-    -EnterModeRequestSymbol '<ENTER-MODE-REQUEST>' `
-    -ModeAcknowledgementSymbol '<MODE-ACTIVE-ACKNOWLEDGEMENT>' `
-    -ActivateRequestSymbol '<ACTIVATE-REQUEST>' `
-    -ActiveAcknowledgementSymbol '<ACTIVE-ACKNOWLEDGEMENT>' `
-    -DeactivateRequestSymbol '<DEACTIVATE-REQUEST>' `
-    -ExitModeRequestSymbol '<EXIT-MODE-REQUEST>' `
-    -ExpectedAdsState Run `
-    -HoldSeconds 10
-
-$plan
-```
-
-The prepared hash covers all four request symbols, both acknowledgements, the
-hold duration, timeout, pulse duration, expected runtime state, and restore
-order. Execution still requires current safety verification and explicit human
-approval for that exact plan.
-
-Execution additionally requires `-Execute` and the exact
-`RequiredApproval` phrase returned by that preparation. The phrase only guards
-against accidental or mismatched invocation. The agent must still obtain real
-human approval for the displayed operation and verify current plant safety
-conditions before executing it.
-
-`PulseBooleanRequest` has been live-verified through the repository path in one
-supervised environment with preserved private runtime evidence.
-`WriteSymbolGuarded` remains `experimental` until its own repository execution
-path has been live-verified and direct runtime evidence has been preserved.
-`BoundedBooleanRequestActuation` also remains `experimental`; its underlying
-four-transition request pattern was verified, but the new single-operation
-wrapper requires a separate supervised live run.
+This infrastructure is component-generic but currently uses the TwinCAT ADS
+capability implementation. It does not place TwinCAT assumptions in the
+vendor-independent commissioning core.

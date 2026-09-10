@@ -96,7 +96,8 @@ foreach ($recipe in $recipes) {
             }
         }
         elseif ($content -match '(?i)WriteSymbol') {
-            if ($content -notmatch '(?i)ReadSymbol' -or $content -notmatch '(?i)Verified\s*=\s*\$true') {
+            if ($content -notmatch '(?i)ReadSymbol' -or
+                ($content -notmatch '(?i)Verified\s*=\s*\$true' -and $content -notmatch 'Invoke-VerifiedRestore')) {
                 Add-Failure "$($recipe.Name) does not perform an explicit symbol readback."
             }
         }
@@ -260,166 +261,22 @@ if (-not $stateChangeBlocked) {
     Add-Failure 'ADS capability selector did not reject a state-changing catalog entry.'
 }
 
-$controlledSelectorPath = Join-Path $repositoryRoot 'scripts/capabilities/twincat/Invoke-AdsControlledAction.ps1'
-$controlledTokens = $null
-$controlledErrors = $null
-[void][System.Management.Automation.Language.Parser]::ParseFile(
-    $controlledSelectorPath,
-    [ref]$controlledTokens,
-    [ref]$controlledErrors
-)
-if ($controlledErrors.Count -gt 0) {
-    Add-Failure "Invoke-AdsControlledAction.ps1 has $($controlledErrors.Count) parse error(s)."
-}
-$controlledSource = Get-Content -LiteralPath $controlledSelectorPath -Raw
-foreach ($requiredPattern in @(
-    "Safety -eq 'STATE_CHANGING'",
-    'RequiredApproval',
-    'if \(-not \$Execute\)',
-    '\$arguments\.HumanApproved\s*=\s*\$true'
-)) {
-    if ($controlledSource -notmatch $requiredPattern) {
-        Add-Failure "Controlled ADS selector is missing required pattern: $requiredPattern"
-    }
-}
-
-$listedControlledCapabilities = @(& $controlledSelectorPath -List)
-$expectedControlledCount = @(
-    $catalog.Capabilities.GetEnumerator() |
-        Where-Object { $_.Value.Safety -eq 'STATE_CHANGING' }
-).Count
-if ($listedControlledCapabilities.Count -ne $expectedControlledCount) {
-    Add-Failure "Controlled selector listed $($listedControlledCapabilities.Count) entries; expected $expectedControlledCount state-changing entries."
-}
-
-$preparedPlan = & $controlledSelectorPath -Capability SystemConfigToRun
-if ($preparedPlan.Capability -ne 'SystemConfigToRun' -or
-    $preparedPlan.RequiredApproval -notmatch '^APPROVE SystemConfigToRun [A-F0-9]{12}$') {
-    Add-Failure 'Controlled selector did not prepare a deterministic Config-to-Run approval plan.'
-}
-
-$boundedPlan = & $controlledSelectorPath `
-    -Capability BoundedBooleanRequestActuation `
-    -EnterModeRequestSymbol 'GVL_Demo.EnterModeReq' `
-    -ModeAcknowledgementSymbol 'GVL_Demo.ModeActive' `
-    -ActivateRequestSymbol 'GVL_Demo.ActivateReq' `
-    -ActiveAcknowledgementSymbol 'GVL_Demo.Active' `
-    -DeactivateRequestSymbol 'GVL_Demo.DeactivateReq' `
-    -ExitModeRequestSymbol 'GVL_Demo.ExitModeReq' `
-    -ExpectedAdsState Run `
-    -HoldSeconds 10
-if ($boundedPlan.Operation.hold_seconds -ne 10 -or
-    $boundedPlan.Operation.restore -ne 'deactivate_then_exit_mode' -or
-    $boundedPlan.RequiredApproval -notmatch '^APPROVE BoundedBooleanRequestActuation [A-F0-9]{12}$') {
-    Add-Failure 'Controlled selector did not prepare the complete bounded request-actuation plan.'
-}
-
-$duplicateBoundedSymbolBlocked = $false
-try {
-    & $controlledSelectorPath `
-        -Capability BoundedBooleanRequestActuation `
-        -EnterModeRequestSymbol 'GVL_Demo.Duplicate' `
-        -ModeAcknowledgementSymbol 'GVL_Demo.Duplicate' `
-        -ActivateRequestSymbol 'GVL_Demo.ActivateReq' `
-        -ActiveAcknowledgementSymbol 'GVL_Demo.Active' `
-        -DeactivateRequestSymbol 'GVL_Demo.DeactivateReq' `
-        -ExitModeRequestSymbol 'GVL_Demo.ExitModeReq' `
-        -ExpectedAdsState Run 2>&1 | Out-Null
-}
-catch {
-    $duplicateBoundedSymbolBlocked = $_.Exception.Message -match 'six distinct'
-}
-if (-not $duplicateBoundedSymbolBlocked) {
-    Add-Failure 'Bounded request-actuation preparation did not reject overlapping request and acknowledgement symbols.'
-}
-
 $boundedRecipePath = Join-Path $stateChangingRoot 'bounded-boolean-request-actuation.ps1'
 $boundedRecipeSource = Get-Content -LiteralPath $boundedRecipePath -Raw
 foreach ($requiredPattern in @(
     'Invoke-BooleanRequestTransition',
     'Active acknowledgement',
     'finally\s*\{',
-    'RestoreDeactivate',
-    'RestoreExitMode'
+    'Invoke-VerifiedRestore',
+    'if \(\$writeOccurred\)',
+    'Test-NoWriteFinalState',
+    "Add-ProbeEvent -Kind 'write'",
+    "Add-ProbeEvent -Kind 'timeout'",
+    "Add-ProbeEvent -Kind 'restore'"
 )) {
     if ($boundedRecipeSource -notmatch $requiredPattern) {
         Add-Failure "Bounded request-actuation recipe is missing required behavior: $requiredPattern"
     }
-}
-
-$windowsPowerShell = Join-Path ([Environment]::GetFolderPath('System')) 'WindowsPowerShell\v1.0\powershell.exe'
-if (Test-Path -LiteralPath $windowsPowerShell -PathType Leaf) {
-    $escapedControlledSelectorPath = $controlledSelectorPath.Replace("'", "''")
-    $compatibilityOutput = & $windowsPowerShell -NoProfile -NonInteractive -ExecutionPolicy Bypass -Command `
-        "& '$escapedControlledSelectorPath' -Capability SystemConfigToRun | ConvertTo-Json -Compress" 2>&1
-    if ($LASTEXITCODE -ne 0) {
-        Add-Failure "Controlled selector is not compatible with Windows PowerShell 5.1: $compatibilityOutput"
-    }
-    else {
-        try {
-            $compatibilityPlan = $compatibilityOutput | ConvertFrom-Json
-            if ($compatibilityPlan.RequiredApproval -ne $preparedPlan.RequiredApproval) {
-                Add-Failure 'Windows PowerShell 5.1 did not produce the same deterministic approval plan as the current runtime.'
-            }
-        }
-        catch {
-            Add-Failure "Windows PowerShell 5.1 compatibility output was not valid JSON: $compatibilityOutput"
-        }
-    }
-}
-
-$numericPlan = & $controlledSelectorPath `
-    -Capability WriteSymbolGuarded `
-    -Symbol 'GVL_Demo.Setpoint' `
-    -Type Single `
-    -ExpectedValue '0' `
-    -Value '30' `
-    -MinimumValue '0' `
-    -MaximumValue '100' `
-    -ExpectedAdsState Run
-if ($numericPlan.Operation.minimum_value -ne '0' -or $numericPlan.Operation.maximum_value -ne '100') {
-    Add-Failure 'Controlled selector did not include numeric write bounds in the prepared operation.'
-}
-
-$outOfRangeBlocked = $false
-try {
-    & $controlledSelectorPath `
-        -Capability WriteSymbolGuarded `
-        -Symbol 'GVL_Demo.Setpoint' `
-        -Type Single `
-        -ExpectedValue '0' `
-        -Value '101' `
-        -MinimumValue '0' `
-        -MaximumValue '100' `
-        -ExpectedAdsState Run 2>&1 | Out-Null
-}
-catch {
-    $outOfRangeBlocked = $_.Exception.Message -match 'outside the declared write range'
-}
-if (-not $outOfRangeBlocked) {
-    Add-Failure 'Controlled selector did not reject an out-of-range numeric write during preparation.'
-}
-
-$executionBlocked = $false
-try {
-    & $controlledSelectorPath -Capability SystemConfigToRun -Execute -Approval 'not-approved' 2>&1 | Out-Null
-}
-catch {
-    $executionBlocked = $_.Exception.Message -match 'Execution blocked'
-}
-if (-not $executionBlocked) {
-    Add-Failure 'Controlled selector did not block execution without the exact prepared approval phrase.'
-}
-
-$readOnlyBlockedByControlledSelector = $false
-try {
-    & $controlledSelectorPath -Capability ReadSystemState 2>&1 | Out-Null
-}
-catch {
-    $readOnlyBlockedByControlledSelector = $_.Exception.Message -match 'read-only selector'
-}
-if (-not $readOnlyBlockedByControlledSelector) {
-    Add-Failure 'Controlled selector did not reject a read-only catalog entry.'
 }
 
 if ($failures.Count -gt 0) {

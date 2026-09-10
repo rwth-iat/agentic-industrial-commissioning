@@ -26,8 +26,9 @@ The contracts remain separate:
   component interfaces and signals;
 - runtime bindings map semantic interfaces to environment-specific runtime
   locators;
-- controlled operations describe approval-bound multi-step behavior over
-  runtime-binding IDs.
+- bounded commissioning probes combine runtime bindings under the approval and
+  restoration rules of the commissioning runbook; validated recurring behavior
+  is codified in generated component adapters.
 
 Static qualified names are engineering-project identifiers. They are not
 validated runtime locators and must not be copied into runtime bindings without
@@ -114,8 +115,9 @@ Each predicate records:
 
 Command requests and manual setpoints require an expected effect. Effects may
 express a state, value, range, or a value relative to another semantic signal.
-This is still a static expectation. Timing, hold, observation, failure, and
-restore behavior belong in a controlled operation.
+This is still a static expectation. Probe timing, observation, failure, and
+restore behavior belong in the bounded execution record and generated adapter,
+not in the software model.
 
 Signals classified as process values, command states, dynamic process values,
 or feedback must state whether the observation is physical, independent
@@ -144,7 +146,7 @@ example is
 
 ## Live feedback and versioning
 
-Stage 2 runtime work starts from a frozen static software-model revision. A live
+Commissioning runtime work starts from a frozen static software-model revision. A live
 observation does not authorize overwriting that baseline. When direct runtime
 evidence validates or contradicts a software relation, condition, expected
 effect, datatype, or feedback classification, create the next model version and
@@ -154,4 +156,4 @@ Do not create a new software-model version merely because an ADS symbol was
 read. Locator existence and access normally update the runtime-binding document.
 Only supported software-semantic findings belong here, and physical truth still
 belongs in the canonical hardware model. The complete feedback loop is defined
-in [STAGE2_RUNBOOK.md](STAGE2_RUNBOOK.md).
+in [COMMISSIONING_RUNBOOK.md](COMMISSIONING_RUNBOOK.md).

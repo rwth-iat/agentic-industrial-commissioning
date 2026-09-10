@@ -26,11 +26,11 @@ For direct human use, the catalog is presented by
 without parameters opens a read-only selection menu; `-List` prints the same
 choices without contacting a remote system.
 
-State-changing entries are exposed only through
-`scripts/capabilities/twincat/Invoke-AdsControlledAction.ps1`. Its default mode
-prepares and hashes the exact operation without contacting the bridge.
-Execution requires a separate `-Execute` call with the matching approval
-phrase.
+The active bounded state-changing path is
+`scripts/capabilities/twincat/Invoke-AdsSupervisedProbe.ps1`. It resolves
+runtime-binding IDs, validates the current manifest and preflight, and prepares
+the exact operation without contacting the bridge. Execution requires a
+separate `-Execute` call with the matching approval phrase.
 
 ## Capability index
 
@@ -42,6 +42,7 @@ phrase.
 | `search-symbols.ps1` | 851 | symbol-table filter | `READ_ONLY` | verified |
 | `read-symbol.ps1` | 851 | `ReadSymbol()` | `READ_ONLY` | verified in one supervised environment |
 | `wait-symbol-condition.ps1` | 851 | poll `ReadSymbol()` | `READ_ONLY` | verified in one supervised environment |
+| `read-binding-preflight.ps1` | 851 | bounded metadata, state, and value reads | `READ_ONLY` | experimental pending first complete run |
 | `system-config-to-run.ps1` | 10000 | `WriteControl(Reset)` | `STATE_CHANGING` | verified |
 | `system-run-to-config.ps1` | 10000 | `WriteControl(Reconfig)` | `STATE_CHANGING` | experimental; final readback pending |
 | `write-symbol-guarded.ps1` | 851 | compare + `WriteSymbol()` + readback | `STATE_CHANGING` | experimental |
@@ -124,9 +125,11 @@ itself as persistent state. Exact and nested TwinCAT symbols are resolved with
 an actuator exposes separate requests for entering a controllable mode,
 activation, deactivation, and leaving that mode. It verifies inactive initial
 state, monitors the active acknowledgement throughout the approved hold, and
-attempts deactivation followed by mode restoration from `finally`. It does not
-write a mapped hardware output directly. The wrapper remains experimental
-until it has completed its own supervised repository-path run.
+performs deactivation followed by mode restoration from `finally`. Every
+actual read and write receives a timestamped event, and restoration is read
+back explicitly. It does not write a mapped hardware output directly. The
+wrapper remains experimental until it has completed its own supervised
+repository-path run.
 
 The repository path was live-verified on 2026-09-04 with a supervised,
 time-bounded binary-actuator sequence. The agent performed read-only prechecks,

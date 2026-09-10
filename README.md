@@ -36,20 +36,25 @@ planned development stages are maintained in [docs/ROADMAP.md](docs/ROADMAP.md).
 The design and active proposal for the vendor-independent intermediate
 representation are documented in [docs/HARDWARE_MODEL.md](docs/HARDWARE_MODEL.md).
 
-## Current implementation layers
+The active brownfield commissioning architecture is documented in
+[docs/COMMISSIONING_ARCHITECTURE.md](docs/COMMISSIONING_ARCHITECTURE.md).
 
-The repository currently contains three deliberately separated implementation
-layers:
+## Active architecture
+
+The target architecture contains five deliberately separated layers:
 
 1. An offline evidence, canonical-model, and matching pipeline derives and
    reconciles structured hardware information from heterogeneous engineering
    evidence.
-2. Separate static-software, implementation-link, runtime-binding, and
-   controlled-operation contracts represent controller knowledge without
-   contaminating the canonical hardware model.
-3. A remote capability layer provides read-only discovery plus separately
-   guarded state-changing paths from a local agent through a human-opened
-   PowerShell bridge to a TwinCAT ADS environment.
+2. A system-scoped hardware model plus repeated component-scoped software
+   models, implementation links, and runtime bindings provide the offline
+   commissioning baseline.
+3. Environment connectors and reusable capabilities provide transport,
+   read-only discovery, and guarded low-level interactions.
+4. The agent performs read-only preflight and, when authorized, bounded
+   exploratory probes against one requested component interaction.
+5. Successful exploration is codified as a deterministic semantic component
+   adapter under `generated/connectors/<environment-id>/components/`.
 
 The capability layer remains isolated from the vendor-independent core. Its
 recipes, transport, local configuration, safety boundaries, and verification
@@ -79,25 +84,29 @@ agentic-industrial-commissioning/
 ├── capabilities/                 # curated technical recipes and catalogs
 │   └── twincat/ads/
 ├── examples/
-│   ├── runtime-bindings/          # synthetic binding contract example
-│   └── controlled-operations/     # synthetic operation contract example
+│   └── runtime-bindings/          # synthetic binding contract example
 ├── spec/
 │   ├── hardware-model.schema.v0.2-proposal.json
 │   ├── software-model.schema.json
 │   ├── implementation-link.schema.json
 │   ├── runtime-binding.schema.json
-│   └── controlled-operation.schema.json
+│   └── commissioning-record.schema.json
 ├── src/
 │   └── commissioning_core/       # deterministic core candidate
 ├── scripts/
 │   ├── capabilities/             # human-facing capability selectors
 │   ├── remote/                   # generic remote execution transport
 │   ├── run-case.ps1              # generic model-fragment runner
+│   ├── new-commissioning-run.ps1
+│   ├── complete-supervised-probe.ps1
+│   ├── commissioning/             # binding and run-context invariants
+│   ├── capabilities/twincat/      # binding-aware preflight and probe dispatchers
 │   ├── validate-hardware-model.ps1
 │   ├── validate-software-model.ps1
 │   ├── validate-implementation-links.ps1
 │   ├── validate-runtime-bindings.ps1
-│   └── validate-controlled-operation.ps1
+│   ├── validate-commissioning-record.ps1
+│   └── write-commissioning-record.ps1
 ├── generated/
 │   └── connectors/               # environment-specific adaptations
 ├── tests/
@@ -119,14 +128,14 @@ case is governed by `AGENTS.md`; case artifacts remain under `cases/<case-id>/`
 and environment-specific adaptations under `generated/connectors/`.
 The separate mapping from canonical assets to concrete runtime representations
 is documented in [docs/RUNTIME_BINDINGS.md](docs/RUNTIME_BINDINGS.md).
-Bounded procedures over runtime-binding IDs are documented in
-[docs/CONTROLLED_OPERATIONS.md](docs/CONTROLLED_OPERATIONS.md).
 Static component-facing software knowledge and its hardware traceability are
 documented in [docs/SOFTWARE_MODEL.md](docs/SOFTWARE_MODEL.md) and
 [docs/IMPLEMENTATION_LINKS.md](docs/IMPLEMENTATION_LINKS.md).
-The component-scoped live-evidence loop, artifact versioning, and minimal generic
-sensor/actuator prompts are maintained together in
-[docs/STAGE2_RUNBOOK.md](docs/STAGE2_RUNBOOK.md).
+The component-scoped preflight, supervised-probe, evidence, and adapter loop is
+defined in
+[docs/COMMISSIONING_RUNBOOK.md](docs/COMMISSIONING_RUNBOOK.md).
+The minimal private run records and their deterministic persistence are defined
+in [docs/COMMISSIONING_RECORDS.md](docs/COMMISSIONING_RECORDS.md).
 
 ## Canonical offline pipeline
 
@@ -162,7 +171,7 @@ Run the offline schema and core checks:
 ```
 
 This generic test entry point covers the hardware-model, software-model,
-implementation-link, runtime-binding, and controlled-operation contracts plus
+implementation-link, runtime-binding, and commissioning-record contracts plus
 core behavior.
 The contract validators also run from Windows PowerShell 5.1. When `Test-Json`
 is unavailable there, they automatically delegate only the JSON Schema check to

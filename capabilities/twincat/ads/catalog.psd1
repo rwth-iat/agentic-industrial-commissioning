@@ -68,6 +68,17 @@
             UserParameters   = @('Symbol', 'Type', 'ExpectedValue', 'TimeoutSeconds', 'PollIntervalMilliseconds', 'NumericTolerance')
         }
 
+        ReadBindingPreflight = @{
+            Order            = 70
+            Label            = 'Commissioning binding preflight'
+            Description      = 'Read PLC state and a bounded set of resolved runtime bindings without writes.'
+            Recipe           = 'recipes/read-only/read-binding-preflight.ps1'
+            PortConfigKey    = 'PlcPort'
+            Safety           = 'READ_ONLY'
+            Verification     = 'experimental'
+            UserParameters   = @('Bindings', 'ExpectedAdsState')
+        }
+
         SystemConfigToRun = @{
             Order            = 110
             Label            = 'Request Config to Run'
@@ -120,7 +131,7 @@
             PortConfigKey    = 'PlcPort'
             Safety           = 'STATE_CHANGING'
             Verification     = 'experimental'
-            UserParameters   = @('HumanApproved', 'EnterModeRequestSymbol', 'ModeAcknowledgementSymbol', 'ActivateRequestSymbol', 'ActiveAcknowledgementSymbol', 'DeactivateRequestSymbol', 'ExitModeRequestSymbol', 'ExpectedAdsState', 'HoldSeconds', 'PulseMilliseconds', 'AcknowledgementTimeoutSeconds', 'PollIntervalMilliseconds')
+            UserParameters   = @('HumanApproved', 'EnterModeRequestSymbol', 'ModeAcknowledgementSymbol', 'ActivateRequestSymbol', 'ActiveAcknowledgementSymbol', 'DeactivateRequestSymbol', 'ExitModeRequestSymbol', 'ExpectedAdsState', 'HoldSeconds', 'PulseMilliseconds', 'AcknowledgementTimeoutSeconds', 'PollIntervalMilliseconds', 'Preconditions')
         }
     }
 }

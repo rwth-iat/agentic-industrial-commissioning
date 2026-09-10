@@ -25,6 +25,12 @@ integration and PLC artifacts, execute approved engineering actions, observe
 the real result, and revise its approach until the objective is satisfied or a
 safe human decision is required.
 
+The current repository focus is narrower than this long-term vision: automatic
+commissioning of brownfield systems whose PLC application and four offline
+knowledge-contract types already exist. The concrete architecture for that
+focus is defined in
+[COMMISSIONING_ARCHITECTURE.md](COMMISSIONING_ARCHITECTURE.md).
+
 ## Problem
 
 Industrial commissioning, reconstruction, modification, and operation require
@@ -84,10 +90,14 @@ Explore -> Validate -> Codify -> Reuse
 ```
 
 That artifact may be a capability recipe, environment-specific connector,
-normalization rule, PLC function block, project-generation script, validation
-test, or controlled commissioning procedure. Future runs should prefer the
-validated deterministic path while retaining the ability to explore again when
-the environment changes or the known path fails.
+component adapter, normalization rule, PLC function block, project-generation
+script, or validation test. Future runs should prefer the validated
+deterministic path while retaining the ability to explore again when the
+environment changes or the known path fails.
+
+For the active brownfield commissioning focus, the durable result is normally
+a small deterministic component adapter. A separate persistent plan contract
+is not required for every exploratory interaction.
 
 ## Target lifecycle
 
@@ -152,6 +162,12 @@ specific implementation remains isolated in capabilities and connectors.
 
 The active schema and its validated baseline profile are documented in
 [HARDWARE_MODEL.md](HARDWARE_MODEL.md).
+
+The hardware model is normally case- or system-scoped. Software models,
+implementation links, and runtime bindings are component-scoped contract
+instances and may therefore occur repeatedly below component-specific case
+directories. Together they form the versioned offline baseline consumed by a
+component commissioning run.
 
 ## Full engineering scope
 

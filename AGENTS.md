@@ -1,314 +1,164 @@
 # AGENTS.md
 
-## Project purpose
+## Purpose and active focus
 
-This repository develops a **generic, vendor-independent agentic approach for automated discovery, integration, reverse engineering, and commissioning of industrial automation systems**.
+This repository develops a generic, vendor-independent method for agentic
+industrial commissioning.
 
-The project is not intended to hard-code integrations for individual automation vendors into the core.
+The active focus is brownfield commissioning with an existing PLC application
+and an already reconstructed offline knowledge baseline. Static reconstruction,
+greenfield generation, and broader operation remain documented in the roadmap,
+but must not add complexity to the current commissioning path.
 
-## Core principle
+## Architecture boundary
 
-Keep the core independent of vendor, PLC platform, fieldbus, engineering suite, and device manufacturer.
+Keep the generic core independent of vendor, PLC platform, fieldbus,
+engineering suite, and device manufacturer. Vendor-specific technical access
+belongs in capabilities or environment-specific generated connectors.
 
-Where feasible, a coding/engineering agent should:
+Commissioning uses four contract types:
 
-1. inspect the available environment,
-2. discover a programmatic access path,
-3. create or adapt the required connector,
-4. validate that connector,
-5. translate discovered information into the canonical hardware model defined under `spec/`.
+1. The hardware model is normally case- or system-scoped.
+2. Software models are component-scoped.
+3. Implementation links are component-scoped.
+4. Runtime bindings are component-scoped.
 
-Vendor-specific code may exist as a generated or replaceable artifact, but vendor-specific assumptions must not leak into the canonical model or core matching logic.
+The last three contract types may occur repeatedly below component-specific
+case directories. A run uses the requested component package and only the
+relevant hardware-model slice. It must not require a merged project-wide
+software, link, or binding document.
 
-## Target pipeline
+Do not mix their responsibilities:
 
-```text
-Environment discovery
-        ↓
-Interface discovery
-        ↓
-Connector generation/adaptation
-        ↓
-Hardware / I/O discovery
-        ↓
-Normalization
-        ↓
-Canonical Hardware Model
-        ↓
-Device ↔ I/O matching
-        ↓
-Validation / ambiguity handling
-        ↓
-Commissioning artifact generation
-        ↓
-Controlled engineering execution
-        ↓
-Observation / validation
-        ↓
-Model and capability refinement
-```
+- hardware models describe physical systems, devices, interfaces, signals,
+  connections, uncertainty, and provenance;
+- software models describe component-facing controller semantics;
+- implementation links trace hardware identities to software semantics;
+- runtime bindings describe concrete runtime access and interaction semantics.
 
-## Primary use cases
+Passing a schema proves structure, not runtime truth or authorization.
 
-The architecture should support three use cases:
+## Commissioning workflow
 
-1. **Greenfield commissioning**
-   - discover a newly assembled automation system,
-   - match known devices to available I/O,
-   - generate initial engineering artifacts.
+For component work, follow
+[`docs/COMMISSIONING_RUNBOOK.md`](docs/COMMISSIONING_RUNBOOK.md). The architecture
+and responsibility split are defined in
+[`docs/COMMISSIONING_ARCHITECTURE.md`](docs/COMMISSIONING_ARCHITECTURE.md).
 
-2. **Brownfield reconstruction**
-   - inspect an existing system and engineering project,
-   - reconstruct hardware, mappings, semantics, and documentation,
-   - represent conflicting or missing information explicitly.
+Every live run begins with a separately bounded read-only preflight. Read-only
+access does not authorize later writes. Assess readiness for the requested
+interaction from current evidence; do not treat readiness as a permanent
+component property.
 
-3. **System extension**
-   - detect newly added or changed devices,
-   - integrate them into an existing canonical system model,
-   - minimize manual re-engineering.
+Persist run records through `scripts/write-commissioning-record.ps1` and
+validate them with `scripts/validate-commissioning-record.ps1`. Their contract
+and placement are defined in `docs/COMMISSIONING_RECORDS.md`. Execution events
+must come from the technical executor; do not reconstruct reads, writes, or
+timestamps from narrative.
 
-## Canonical model
+After successful exploration, generate or update a small deterministic
+component adapter under
+`generated/connectors/<environment-id>/components/<component-id>/`. Recurring
+multi-component behavior may compose validated component adapters. Do not add a
+fifth static knowledge model merely to preserve the exploratory sequence.
 
-The canonical hardware model under `spec/` is the contract between discovery and downstream reasoning.
+A high-level state-changing commissioning request remains incomplete after a
+successful probe. Continue through adapter generation and offline verification
+without requiring a second user instruction. Claim `validated_interface` only
+when the adapter verification references the current four input revisions and
+retained evidence. Pause only for exact state-change approval, required human
+observation, unresolved ambiguity, or a concrete blocker.
 
-The active working schema is `spec/hardware-model.schema.v0.2-proposal.json`; its scope and validation rules are documented in `docs/HARDWARE_MODEL.md`.
-
-Do not bypass it by passing raw vendor-specific output directly into matching or generation logic.
-
-The canonical model should represent at least:
-
-- systems,
-- controllers,
-- I/O modules,
-- channels,
-- devices,
-- electrical signal characteristics,
-- engineering units and ranges,
-- capabilities,
-- constraints,
-- mappings,
-- confidence,
-- provenance,
-- validation state.
-
-Static component-facing controller knowledge is a separate contract defined by
-`spec/software-model.schema.json` and documented in `docs/SOFTWARE_MODEL.md`.
-Hardware-to-software traceability uses
-`spec/implementation-link.schema.json` and is documented in
-`docs/IMPLEMENTATION_LINKS.md`. Do not place PLC objects, software conditions,
-or implementation paths in the canonical hardware model. Passing either static
-contract does not establish runtime validity or executable authorization.
-
-## Runtime bindings
-
-Concrete mappings from canonical assets or interfaces to runtime locators are a
-separate contract defined by `spec/runtime-binding.schema.json` and documented
-in `docs/RUNTIME_BINDINGS.md`. Do not add PLC symbols, OPC UA NodeIds, API
-resources, runtime datatypes, request handshakes, or similar environment details
-to the canonical hardware model merely because they were discovered together.
-
-Runtime-binding documents must preserve status, confidence, provenance,
-interaction semantics, and the distinction between calculated, logical, and
-independent physical or process feedback. A binding marked `validated` requires
-preserved runtime-observation evidence; a successful narrative without its raw
-record remains `reported_success`.
-
-The public runtime-binding contract uses a logical connection-profile key and
-must not contain concrete hosts, IP addresses, AMS NetIds, accounts, or
-credentials. Concrete plant binding instances and symbol locators must remain
-in ignored local case artifacts unless they have been explicitly sanitized for
-publication.
-
-Controlled multi-step behavior is a separate contract defined by
-`spec/controlled-operation.schema.json` and documented in
-`docs/CONTROLLED_OPERATIONS.md`. Operation steps reference runtime-binding IDs;
-they must not duplicate concrete runtime locators. A structurally valid plan is
-not executable authorization, and a `reported_success`, `draft`, `stale`, or
-`rejected` plan must not be presented or executed as a validated procedure.
-
-## Stage 2 live-evidence feedback
-
-For component-scoped live work, follow
-`docs/STAGE2_RUNBOOK.md`. A merged project-wide software model is not required
-when focused component artifacts and their dependencies are available.
-
-Begin with a separately bounded read-only phase. Preserve raw runtime output
-under the ignored case `raw/runtime/<run-id>/` area before promoting any binding
-or model claim. Do not overwrite the static input baseline: create a new artifact
-version, retain rejected and conflicting candidates, update cross-document
-revisions and hashes, and validate every changed contract.
-
-Update only the contract supported by the observation. Runtime locator evidence
-normally updates runtime bindings; software behavior may update the software
-model and implementation links; physical hardware claims require physical or
-hardware evidence. A runtime read must not silently rewrite the canonical
-hardware model.
-
-For an actuator, prepare a case-private controlled-operation draft only after
-the required bindings, modes, ownership, conditions, feedback, and restore path
-have been validated sufficiently. End the read-only phase before requesting
-approval for any write. Approval is exact, current-operation authority and does
-not carry over to later runs.
-
-## Uncertainty
-
-Never turn an inference into a fact silently.
-
-For inferred information, preserve:
-
-- `status`,
-- `confidence`,
-- `evidence`,
-- `source` / provenance where available.
-
-If multiple mappings remain physically compatible, return candidate mappings instead of choosing arbitrarily.
-
-## Safety rules
+## Safety
 
 Safety takes priority over autonomy.
 
-Unless a task explicitly requires otherwise:
+Unless the exact task is explicitly approved:
 
-- discovery is read-only,
-- do not activate physical outputs,
-- do not change controller state,
-- do not activate a configuration,
-- do not download or deploy PLC code,
-- do not start machinery,
+- remain read-only;
+- do not activate physical outputs;
+- do not change controller state;
+- do not activate configuration;
+- do not download or deploy PLC code;
+- do not start machinery;
 - do not bypass interlocks or safety functions.
 
-Any future write, deployment, or actuation path must require an explicit safety boundary and human approval.
+A state-changing probe requires exact human approval for the current component,
+effect, bounds, duration, runtime context, observation, abort, and restoration
+path. Recheck preconditions immediately before execution. Approval does not
+carry over to another run or changed context. A technical `HumanApproved`
+parameter is not proof of authorization or plant safety.
 
-## Connector behavior
+Prefer a validated controller-managed functional request interface over direct
+writes to mapped outputs or internal variables. Never silently substitute a
+primitive write for a requested semantic action.
 
-A connector is an implementation detail used to access a concrete automation environment.
+The PLC or another deterministic controller retains hard real-time control,
+interlocks, and safety functions. The agent performs commissioning,
+exploration, validation, and supervisory orchestration around that boundary.
 
-A generated connector should ideally expose a small, generic set of capabilities such as:
+## Evidence and uncertainty
 
-- inspect environment,
-- discover topology,
-- read channel metadata,
-- read mappings,
-- read diagnostics,
-- optionally read runtime values.
+Never turn an inference into a fact silently. Preserve status, confidence,
+evidence, provenance, contradictions, and rejected candidates. If multiple
+identities or mappings remain plausible, present candidates instead of choosing
+arbitrarily.
 
-Do not assume the same API exists across vendors.
+Preserve raw live output privately under
+`cases/<case-id>/raw/runtime/<run-id>/` before promoting a claim. A request for
+the current value requires a new acquisition after that request; otherwise
+label any reused value as last known with its timestamp.
 
-The agent may use documentation, installed SDKs, CLIs, COM interfaces, engineering APIs, OPC UA, runtime APIs, file formats, or other available programmatic access paths.
+Treat the offline documents as the run's versioned input baseline. Do not
+overwrite them. Create a new version only for the contract whose claim changed:
 
-## Capability library
+- locator, datatype, access, or runtime semantics update runtime bindings;
+- controller behavior or signal meaning may update the software model;
+- changed hardware-to-software trace may update implementation links;
+- physical hardware claims require physical or hardware evidence.
 
-Reusable, vendor- or interface-specific technical access patterns belong under
-`capabilities/`. A capability describes how to perform a technical interaction;
-it does not assign plant semantics and does not replace an environment-specific
-connector.
+A runtime read alone must not silently rewrite the hardware model. A
+`validated` runtime claim requires retained runtime-observation evidence. Keep
+input revisions and affected cross-document references consistent.
 
-When using or extending the capability library:
+## Connectors and capabilities
 
-- inspect the catalog and existing recipes before deriving an ad hoc vendor API
-  call; explore only when no suitable procedure exists or current evidence
-  shows that the existing procedure does not apply;
-- prefer `READ_ONLY` recipes and inspect the current state before acting;
-- never infer physical meaning or permission from filenames, PLC symbol names,
-  comments, or addresses alone;
-- when a validated functional request/acknowledgement interface exists, prefer
-  it over writing a mapped hardware output or internal command variable
-  directly; a direct primitive write must not be substituted silently for a
-  requested multi-step operation;
-- ensure that an approved bounded operation includes its hold, observation, and
-  restore behavior in the prepared operation and implementation, not only in a
-  narrative description;
-- supply concrete hosts, IP addresses, AMS NetIds, account details, installation
-  paths, and plant symbol names through ignored local configuration rather than
-  committing them as recipe defaults;
-- keep generic remote transport under `scripts/remote/`, local credentials and
-  endpoints under ignored `creds/`, and environment-specific adaptations under
-  `generated/connectors/<environment-id>/`;
-- use human-facing selectors under `scripts/capabilities/` for direct operator
-  workflows; read-only selectors must reject state-changing catalog entries,
-  and controlled selectors must require an operation-specific approval guard;
-- preserve relevant discovery output as case evidence and translate it into
-  canonical fragments before it enters matching or generation logic;
-- promote a procedure into `capabilities/` only after practical verification or
-  mark it explicitly as experimental;
-- record verification status, environment versions, evidence, limitations, and
-  remaining uncertainty without publishing local secrets or endpoints;
-- do not treat a `HumanApproved` parameter or similar technical switch as proof
-  of user authorization or plant safety.
+A connector owns transport, session handling, environment discovery, and
+environment-specific access. It does not assign plant semantics. Concrete
+hosts, addresses, accounts, credentials, installation paths, and plant locators
+belong in ignored local configuration or private case artifacts.
 
-State-changing recipes remain subject to the repository safety rules above.
-The agent must obtain explicit human approval for the exact operation and must
-not claim that applicable plant safety conditions have been verified unless
-that verification is supported by current evidence.
+Reusable technical interaction patterns belong under `capabilities/`. Inspect
+the catalog before deriving an ad hoc call. Prefer `READ_ONLY` recipes. Promote
+a procedure only after practical verification, or mark it experimental.
+Human-facing read selectors must reject state-changing entries; guarded write
+selectors must preserve the approval boundary.
 
-When no reliable procedure exists, the agent may explore available interfaces
-within the applicable safety boundary. It must preserve failures and evidence,
-avoid converting guesses into facts, and codify a successful path into a small,
-testable artifact for reuse. Deterministic generated code should be preferred
-for recurring control behavior once the approach has been validated.
+## Repository boundaries
 
-## Generated artifacts
-
-Generated vendor-specific integration code should be isolated from the generic core.
-
-Prefer a structure such as:
-
-```text
-generated/
-└── connectors/
-    └── <environment-id>/
-```
-
-Generated artifacts must record enough metadata to reproduce how they were created and how they were validated.
-
-## Development and operational case boundary
-
-Treat changes to `AGENTS.md`, `docs/`, `spec/`, `examples/`, `src/`, generic
-scripts, and generic tests as method-development work. A normal operational
-case run must not silently adapt the documented method, canonical schemas, or
-generic core to a manufacturer or engineering system.
+Method development belongs in `AGENTS.md`, `docs/`, `spec/`, `examples/`,
+`src/`, generic scripts, capabilities, and generic tests. An operational case
+must not silently change the generic method or schemas.
 
 Store concrete system work under `cases/<case-id>/`:
 
-- local source evidence under `raw/`,
-- agent-derived canonical fragments under `derived/`,
-- deterministic outputs under `results/`,
+- source and runtime evidence under ignored `raw/`;
+- agent-derived contracts under `derived/`;
+- deterministic case outputs under `results/`;
 - case-specific checks under `validation/`.
 
-The entire `raw/` subtree is private-by-default and ignored repository-wide.
-Do not commit source projects, exports, documents, recordings, or other raw
-plant evidence. If source material is intentionally publishable, create an
-explicitly sanitized or synthetic fixture under `examples/` or `tests/fixtures/`
-instead of making an exception inside a case `raw/` directory. Derived,
-result, and validation artifacts that expose concrete plant knowledge belong
-in an ignored `private/` subdirectory of their respective case area.
-
-Environment-specific extraction code belongs under
-`generated/connectors/<environment-id>/`. If a case exposes a genuinely generic
-gap, report it explicitly and handle the core change as development work with a
-general test.
-
-Treat local `raw/` as opaque, sensitive evidence. Do not require a particular
-set of evidence types, filenames, formats, or subdirectories, and do not infer
-semantics from its folder layout. Discover and cite what is actually available.
-The generic core must consume derived canonical fragments rather than reading
-`raw/` directly.
+Concrete plant knowledge in `derived/`, `results/`, or `validation/` belongs in
+an ignored `private/` subdirectory. Committed fixtures must be synthetic or
+explicitly sanitized. The generic core consumes derived contracts, never raw
+case evidence directly.
 
 ## Development rules
 
-- Prefer small, testable modules.
-- Prefer structured schemas over free-form LLM output.
-- Keep vendor names out of generic abstractions unless they are data values.
-- Do not add complexity before the active roadmap stage requires it.
-- Add tests for normalization, matching, and schema validation.
-- Preserve raw discovery output locally for debugging and provenance.
-- Make failures explicit rather than guessing.
-- Keep logic testable offline where possible, even when a stage also requires
-  explicit live validation against a physical or simulated environment.
+- Prefer small, testable modules and existing seams.
+- Keep failures and uncertainty explicit.
+- Keep generic behavior testable offline.
+- Add complexity only when the active acceptance target requires it.
+- Preserve unrelated worktree changes.
 
-## Project scope and roadmap
-
-Before implementation work, consult [docs/VISION.md](docs/VISION.md) for the
-long-term direction, [docs/ROADMAP.md](docs/ROADMAP.md) for the active development
-stage, and [docs/MVP.md](docs/MVP.md) for completed and formally bounded proof
-points. Do not duplicate their contents in this file.
+Before implementation work, consult `docs/VISION.md`, `docs/ROADMAP.md`, and
+`docs/MVP.md`. Historical proof points remain historical records.

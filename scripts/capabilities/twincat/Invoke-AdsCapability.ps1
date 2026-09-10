@@ -26,6 +26,11 @@ param(
     [ValidateRange(0, 1000000000)]
     [double]$NumericTolerance = 0,
 
+    [object[]]$Bindings,
+
+    [ValidateSet('Run')]
+    [string]$ExpectedAdsState,
+
     [string]$ConfigPath,
 
     [string]$StateFile
@@ -177,6 +182,16 @@ switch ($Capability) {
         $arguments.TimeoutSeconds = $TimeoutSeconds
         $arguments.PollIntervalMilliseconds = $PollIntervalMilliseconds
         $arguments.NumericTolerance = $NumericTolerance
+    }
+    'ReadBindingPreflight' {
+        if ($null -eq $Bindings -or $Bindings.Count -eq 0) {
+            throw 'ReadBindingPreflight requires -Bindings. Use Invoke-AdsBindingPreflight.ps1 for component work.'
+        }
+        if ([string]::IsNullOrWhiteSpace($ExpectedAdsState)) {
+            throw 'ReadBindingPreflight requires -ExpectedAdsState Run.'
+        }
+        $arguments.Bindings = $Bindings
+        $arguments.ExpectedAdsState = $ExpectedAdsState
     }
 }
 

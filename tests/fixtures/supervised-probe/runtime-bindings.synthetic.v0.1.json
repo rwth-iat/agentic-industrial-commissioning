@@ -1,0 +1,106 @@
+{
+  "schema_version": "0.1.0",
+  "environment": {
+    "id": "synthetic-ads-environment",
+    "platform": "TwinCAT",
+    "runtime": "PLC Runtime 1",
+    "connection_profile": "synthetic-ads"
+  },
+  "data_classification": "public_example",
+  "sources": [
+    {
+      "id": "synthetic-project",
+      "type": "engineering_project",
+      "description": "Synthetic source for supervised-probe offline tests."
+    }
+  ],
+  "bindings": [
+    {
+      "id": "mode-enter-request",
+      "asset_id": "asset-valve",
+      "role": "operation_mode_request",
+      "access": "read_write",
+      "locator": { "kind": "ads_symbol", "value": "Synthetic.Valve.EnterMode" },
+      "datatype": "BOOL",
+      "interaction": { "semantics": "request", "acknowledgement_binding_id": "mode-active" },
+      "status": "inferred",
+      "confidence": 0.8,
+      "source_refs": ["synthetic-project"]
+    },
+    {
+      "id": "mode-active",
+      "asset_id": "asset-valve",
+      "role": "operation_mode_active",
+      "access": "read",
+      "locator": { "kind": "ads_symbol", "value": "Synthetic.Valve.ModeActive" },
+      "datatype": "BOOL",
+      "interaction": { "semantics": "state" },
+      "feedback_kind": "logical",
+      "status": "inferred",
+      "confidence": 0.8,
+      "source_refs": ["synthetic-project"]
+    },
+    {
+      "id": "activate-request",
+      "asset_id": "asset-valve",
+      "role": "command_request",
+      "access": "read_write",
+      "locator": { "kind": "ads_symbol", "value": "Synthetic.Valve.Activate" },
+      "datatype": "BOOL",
+      "interaction": { "semantics": "request", "acknowledgement_binding_id": "active-state" },
+      "status": "inferred",
+      "confidence": 0.8,
+      "source_refs": ["synthetic-project"]
+    },
+    {
+      "id": "active-state",
+      "asset_id": "asset-valve",
+      "role": "command_state",
+      "access": "read",
+      "locator": { "kind": "ads_symbol", "value": "Synthetic.Valve.Active" },
+      "datatype": "BOOL",
+      "interaction": { "semantics": "state" },
+      "feedback_kind": "logical",
+      "status": "inferred",
+      "confidence": 0.8,
+      "source_refs": ["synthetic-project"]
+    },
+    {
+      "id": "deactivate-request",
+      "asset_id": "asset-valve",
+      "role": "command_request",
+      "access": "read_write",
+      "locator": { "kind": "ads_symbol", "value": "Synthetic.Valve.Deactivate" },
+      "datatype": "BOOL",
+      "interaction": { "semantics": "request", "acknowledgement_binding_id": "active-state" },
+      "status": "inferred",
+      "confidence": 0.8,
+      "source_refs": ["synthetic-project"]
+    },
+    {
+      "id": "mode-exit-request",
+      "asset_id": "asset-valve",
+      "role": "operation_mode_request",
+      "access": "read_write",
+      "locator": { "kind": "ads_symbol", "value": "Synthetic.Valve.ExitMode" },
+      "datatype": "BOOL",
+      "interaction": { "semantics": "request", "acknowledgement_binding_id": "mode-active" },
+      "status": "inferred",
+      "confidence": 0.8,
+      "source_refs": ["synthetic-project"]
+    },
+    {
+      "id": "permit",
+      "asset_id": "asset-valve",
+      "role": "permit",
+      "access": "read",
+      "locator": { "kind": "ads_symbol", "value": "Synthetic.Valve.Permit" },
+      "datatype": "BOOL",
+      "interaction": { "semantics": "state" },
+      "feedback_kind": "logical",
+      "status": "inferred",
+      "confidence": 0.8,
+      "source_refs": ["synthetic-project"]
+    }
+  ]
+}

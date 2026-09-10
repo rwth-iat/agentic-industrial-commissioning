@@ -41,9 +41,11 @@ is not proof of absence. Canonical asset identities must be preserved when known
 | Generic core | Validate and assemble derived contracts, resolve references, expose component knowledge and dependencies, and report conflicts and incompleteness. |
 | Evaluator | Compare retained outputs against independently reviewed evidence and expected outcomes. |
 
-Retain separate hardware, software, implementation-link, runtime-binding, and
-controlled-operation contracts. Design the two new contracts from evidence-backed
-requirements; do not extend the hardware schema with PLC implementation details.
+The plan originally retained separate hardware, software, implementation-link,
+runtime-binding, and controlled-operation contracts. The controlled-operation
+contract was later retired from the active architecture. The two contracts new
+to this historical plan were designed from evidence-backed requirements rather
+than by extending the hardware schema with PLC implementation details.
 Static qualified names identify engineering objects, not validated runtime locators.
 Conditions need explicit polarity, logical composition, and operating context.
 An expected outcome must express the requested effect, including setpoint-relative
@@ -258,8 +260,8 @@ do not make generic reasoning scan `raw/`.
 
 The planned implementation and initial acceptance are offline. PLC changes,
 deployment, runtime writes, actuation, and real-time control are outside this plan.
-Later Stage-2 live validation remains a separate operation under existing safety
-and evidence rules. This plan does not mark Stage 2 complete.
-That later component-scoped evidence and versioning loop is now documented in
-[STAGE2_RUNBOOK.md](../STAGE2_RUNBOOK.md); it
-does not change this static plan's WP4 acceptance status.
+Later live validation remains a separate operation under current safety and
+evidence rules. This historical plan does not mark Stage 2 complete. The active
+component-scoped evidence and versioning loop is documented in
+[COMMISSIONING_RUNBOOK.md](../COMMISSIONING_RUNBOOK.md); it does not change this
+static plan's WP4 acceptance status.

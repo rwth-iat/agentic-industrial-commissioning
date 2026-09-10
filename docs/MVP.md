@@ -219,11 +219,13 @@ authorization.
   report successful bounded interaction using Terra at medium and low reasoning
   effort, including recovery from incorrect Boolean polarity and an unsuitable
   project-specific postcondition.
-- `spec/runtime-binding.schema.json` and
-  `spec/controlled-operation.schema.json` define the separate contracts for
-  runtime meaning and bounded multi-step behavior.
-- The generic bounded request-actuation wrapper and its operation-bound approval
-  plan pass offline checks under both Windows PowerShell 5.1 and PowerShell 7.
+- `spec/runtime-binding.schema.json` defined runtime meaning. The former
+  `controlled-operation` contract represented bounded multi-step behavior as a
+  proof of concept at milestone completion; it was later retired from the
+  active architecture without changing this historical result.
+- At milestone completion, the generic bounded request-actuation wrapper and
+  its operation-bound approval plan passed offline checks under both Windows
+  PowerShell 5.1 and PowerShell 7.
 
 ### Known limitations and non-goals
 

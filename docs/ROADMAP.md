@@ -50,15 +50,18 @@ The bounded completion record is maintained as MVP 1 in
 
 ### Objective
 
-Let the agent use high-level requests to inspect and interact with a complete,
-already operational engineering project and controller runtime.
+Let the agent use a high-level component request to inspect and commission a
+complete, already operational engineering project and controller runtime, then
+codify the validated semantic access path as a deterministic component adapter.
 
-The component-scoped read-only validation, evidence retention, artifact
-versioning, and later controlled-operation transition are defined in
-[STAGE2_RUNBOOK.md](STAGE2_RUNBOOK.md).
-Focused component packages are sufficient inputs; a project-wide aggregate is
-not a prerequisite when required dependencies are included.
-The same runbook contains the generic small-model prompt sequence.
+The target architecture is defined in
+[COMMISSIONING_ARCHITECTURE.md](COMMISSIONING_ARCHITECTURE.md). A run consumes
+the relevant slice of the system-wide hardware model plus that component's
+software model, implementation links, and runtime bindings. A project-wide
+software aggregate is not required.
+
+The operational sequence is defined in
+[COMMISSIONING_RUNBOOK.md](COMMISSIONING_RUNBOOK.md).
 
 ### Foundation already established
 
@@ -72,8 +75,9 @@ The same runbook contains the generic small-model prompt sequence.
 - guarded Config-to-Run and Run-to-Config mechanisms are represented as
   state-changing recipes, with explicit verification status.
 - generic guarded-write and request/acknowledgement recipes, a separate
-  approval-oriented dispatcher, and runtime-binding/controlled-operation
-  contracts are covered by offline checks;
+  approval-oriented dispatcher, and runtime-binding contract are covered by
+  offline checks; the former operation-plan contract was a proof of concept and
+  has since been retired from the active architecture;
 - a supervised, time-bounded binary-actuator sequence has validated the
   repository request/acknowledgement path, read-only observation, exact-symbol
   resolution, human approval boundary, and logical restore in one environment.
@@ -84,7 +88,13 @@ The same runbook contains the generic small-model prompt sequence.
 - a generic bounded request-actuation wrapper now represents enter, activate,
   monitored hold, deactivate, and restore as one approval-bound operation; its
   implementation is covered offline and remains experimental pending its own
-  supervised live run.
+  supervised live run;
+- a compact commissioning-record contract, deterministic path-aware writer,
+  semantic validator, and offline tests cover the run manifest, read-only
+  preflight, and optional execution record without adding another plant model.
+- a runtime-binding-aware ADS preflight, supervised-probe dispatcher, direct
+  executor event capture, verified restore record, and adapter completion gate
+  are connected through synthetic offline tests; live Y20 use remains pending.
 
 The bounded supervised live-interaction proof is retained as completed MVP 2 in
 [MVP.md](MVP.md#mvp-2--supervised-live-discovery-and-bounded-runtime-interaction).
@@ -110,31 +120,31 @@ below retain their scope.
 
 ### Remaining proof points
 
-- preserve successful reads of concrete process values and their datatype,
-  engineering unit, timestamp, and source;
-- connect live PLC symbols and runtime observations to assets and interfaces in
-  the canonical model without relying on names alone;
-- answer high-level read requests by selecting and validating the correct
-  runtime symbol;
-- live-verify the separate guarded level-write path with suitable bounds and a
-  reversible target;
-- complete and preserve the final Run-to-Config readback verification;
-- record live observations as case evidence and feed derived findings back into
-  the canonical representation;
-- systematically preserve and regression-test recovery from unavailable routes,
-  wrong datatypes, stale symbols, invalid signal interpretations, and failed
-  operations;
-- classify and place successful exploratory findings as private case evidence
-  or environment-specific generated artifacts instead of leaving them only in
-  a session or storing engineering knowledge under `creds/`.
+- resolve one requested component from the system hardware model and its
+  component-specific software, implementation-link, and runtime-binding files;
+- perform a separately bounded read-only preflight and preserve its concrete
+  runtime observations;
+- compute `hard_blocked`, `ready_for_supervised_probe`, or
+  `validated_interface` for the requested interaction and current revisions;
+- execute one explicitly approved, reversible, time-bounded component probe
+  with observation, abort, and restoration behavior;
+- live-verify the executor-to-record path during the first vertical component
+  slice;
+- update only component knowledge contradicted or strengthened by live
+  evidence, retaining provenance and prior revisions;
+- generate and offline-test a deterministic semantic component adapter from a
+  successful probe;
+- invalidate or reassess that adapter when relevant project, runtime, binding,
+  hardware, or behavior evidence changes;
+- add focused offline checks for approval, bounds, observation, abort, restore,
+  evidence retention, and invalidation in the slimmer supervised-probe path.
 
 ### Exit condition
 
-The stage is complete when the agent can receive a high-level read or bounded
-interaction request for an existing project, discover or select the required
-technical path, execute it safely, and return a verified semantic result with
-structured provenance and a correctly placed reusable artifact where the
-exploration produced durable engineering knowledge.
+The stage is complete when the agent can receive a high-level component
+interaction request, resolve the four relevant offline contract inputs, verify
+the live path, safely explore a bounded uncertainty with exact approval, and
+produce a verified reusable component adapter with structured evidence.
 
 ## Stage 3 — Engineering modification of an existing PLC project
 

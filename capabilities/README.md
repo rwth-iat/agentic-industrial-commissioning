@@ -69,10 +69,12 @@ rather than assemble low-level recipe arguments manually. A read-only selector
 must not expose state-changing entries; state changes require a separate,
 approval-oriented workflow.
 
-The controlled selector prepares an exact operation and derives an
-operation-bound approval phrase before it can invoke a state-changing recipe.
-That phrase is a defensive guard only: it does not prove that a human approved
-the operation or that the plant is safe.
+The supervised-probe dispatcher resolves component runtime-binding IDs,
+prepares an exact operation, and derives an operation-bound approval phrase
+before it can invoke the bounded state-changing recipe. The low-level recipe
+receives concrete locators only after that resolution. The phrase is a
+defensive guard only: it does not prove that a human approved the operation or
+that the plant is safe.
 
 For controlled actuator behavior, prefer a discovered functional interface
 with request and acknowledgement semantics over a direct hardware-output
