@@ -169,7 +169,7 @@ $record = [ordered]@{
         evidence_refs = @()
     })
     assessment = $assessment
-    blockers = $blockers
+    blockers = @($blockers)
     writes_observed = $false
 }
 
