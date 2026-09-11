@@ -101,8 +101,9 @@ part of its proof.
   contract used by the pipeline.
 - `src/commissioning_core/` implements assembly, evidence reconciliation, and
   electrical compatibility matching without vendor-specific branches.
-- `cases/hc10/` and `cases/hc10_v02/` retain representative engineering
-  evidence and case artifacts.
+- Private operational case workspaces retained the representative engineering
+  evidence and case artifacts used for the proof point; they are intentionally
+  absent from the public repository.
 - Schema fixtures cover valid documents, missing interfaces, missing evidence,
   schema-version errors, duplicate IDs, dangling references, and reversed
   ranges.
@@ -110,10 +111,10 @@ part of its proof.
   evidence, duplicate claims, and unresolved endpoints.
 - `tests/test-offline-core.ps1` passes all schema and core checks.
 
-The current privacy policy treats every case `raw/` directory as ignored local
-evidence. Raw HC10 files already tracked when this milestone was completed are
-a legacy migration concern; removing them from tracking and repository history
-is intentionally separate from this completion record.
+The publication process removed raw plant files and case-specific artifacts
+from Git history. The current privacy policy keeps every case `raw/` directory
+and plant-specific `private/` artifact local and ignored. This changes the
+public evidence boundary, not the historical completion claim.
 
 ### Historical non-goals
 

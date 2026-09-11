@@ -331,7 +331,7 @@ function Invoke-CapabilityStep {
     })
     $eventKind = if ($Restore) { 'restore' } elseif ([string]$definition.Safety -eq 'STATE_CHANGING') { 'write' } else { 'read' }
     $eventBindings = if ($Restore) { @($CurrentStep.write_bindings.Values) } elseif ($eventKind -eq 'write') { @($CurrentStep.write_bindings.Values) } else { @($CurrentStep.read_bindings.Values) }
-    if ($eventBindings.Count -eq 0) {
+    if (@($eventBindings).Count -eq 0) {
         Add-ExecutionEvent -Kind $eventKind -Outcome $(if ($succeeded) { 'succeeded' } else { 'failed' }) `
             -Detail "Capability '$($CurrentStep.capability)' step '$($CurrentStep.name)'." -Timestamp $finishedAt
     }

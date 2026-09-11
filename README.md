@@ -2,6 +2,25 @@
 
 A research prototype for **vendor-independent, agentic commissioning of industrial automation systems**.
 
+> [!CAUTION]
+> This is research software, not a certified safety or real-time control system.
+> Read-only access does not authorize writes, deployment, controller-state
+> changes, interlock bypasses, or physical actuation. Every consequential action
+> requires a separately bounded safety assessment and exact human approval.
+
+## Current scope
+
+The active implementation targets brownfield commissioning with an existing
+PLC application and a reconstructed offline baseline. That baseline keeps four
+contracts separate: a system-scoped hardware model plus component-scoped
+software models, implementation links, and runtime bindings. The agent uses
+them for read-only preflight, bounded supervised exploration, evidence capture,
+and generation of deterministic component adapters.
+
+Static reconstruction, modification of existing projects, greenfield
+generation, and goal-driven autonomy remain visible in the roadmap without
+expanding the current runtime path beyond its demonstrated scope.
+
 The core idea is to let a coding/engineering agent inspect an industrial automation environment, discover available programmatic interfaces, derive or generate the required connector, normalize discovered hardware into a canonical model, and support commissioning with as little manual engineering as possible.
 
 ## Vision
@@ -83,8 +102,7 @@ agentic-industrial-commissioning/
 ├── docs/                         # architecture and method documentation
 ├── capabilities/                 # curated technical recipes and catalogs
 │   └── twincat/ads/
-├── examples/
-│   └── runtime-bindings/          # synthetic binding contract example
+├── examples/                      # synthetic public examples for all contracts
 ├── spec/
 │   ├── hardware-model.schema.v0.2-proposal.json
 │   ├── software-model.schema.json
@@ -114,12 +132,11 @@ agentic-industrial-commissioning/
 │   ├── core/
 │   └── schema/
 ├── cases/
-│   └── hc10/
+│   └── <case-id>/
 │       ├── raw/                  # local, ignored source evidence
-│       ├── derived/              # agent-derived canonical fragments
-│       ├── results/              # deterministic pipeline results
-│       ├── validation/           # HC10-specific checks
-│       └── run.ps1
+│       ├── derived/private/      # local plant-specific contracts
+│       ├── results/private/      # local deterministic outputs and records
+│       └── validation/private/   # local case-specific checks and evidence
 └── creds/                         # ignored local configuration and secrets
 ```
 
@@ -147,26 +164,11 @@ fragments belong under `derived/private/`; committed examples must be synthetic
 or explicitly sanitized. The generic runner merges all supplied fragments
 without assigning them fixed roles such as BOM, topology, or wiring.
 
-For HC10, the current fragment names describe how that particular case was
-organized. They are examples, not a required input taxonomy for another case.
-
-After an operational run has created the local case evidence, fragments, and
-runner, execute the reproducible HC10 pipeline (including canonical-schema
-validation) with:
+Clone the repository and run the offline schema and core checks:
 
 ```powershell
-./cases/hc10/run.ps1
-```
-
-It creates `cases/hc10/results/canonical-hardware-model.v0.2.json` and
-`cases/hc10/results/matching-report.json`. Compatible declared or observed
-connections are retained with their original status and suppress free candidate
-generation when they identify one unopposed target. Only physical or functional
-validation changes a connection to `validated`.
-
-Run the offline schema and core checks:
-
-```powershell
+git clone https://github.com/rwth-iat/agentic-industrial-commissioning.git
+Set-Location agentic-industrial-commissioning
 ./tests/test-offline-core.ps1
 ```
 
@@ -193,10 +195,20 @@ Concrete endpoints, AMS NetIds, installation paths, RDP profiles, and
 credentials belong in the ignored `creds/` directory. Tracked example
 configuration files contain placeholders only.
 
-Start the human-controlled remote bridge in one terminal:
+Create ignored local configuration from the public templates:
 
 ```powershell
-.\creds\Start-AgentRemoteBridge.ps1
+New-Item -ItemType Directory -Force .\creds | Out-Null
+Copy-Item .\scripts\remote\config.example.psd1 .\creds\remote.local.psd1
+Copy-Item .\capabilities\twincat\ads\config.example.psd1 .\creds\twincat-ads.local.psd1
+```
+
+Fill in only your own environment values, then start the human-controlled
+remote bridge in one terminal:
+
+```powershell
+.\scripts\remote\Start-AgentRemoteBridge.ps1 `
+    -ConfigPath .\creds\remote.local.psd1
 ```
 
 In another terminal, list the available read-only operations:
@@ -235,3 +247,16 @@ in [docs/REMOTE_ENGINEERING.md](docs/REMOTE_ENGINEERING.md). Sanitized records
 of the real read-only integration check and the first supervised, bounded
 request/acknowledgement actuation are kept under
 `capabilities/twincat/ads/verification/`.
+
+## Publication and private data
+
+The public repository contains the method, schemas, generic tools, synthetic
+examples, tests, and sanitized verification summaries. Credentials, endpoints,
+network details, raw engineering projects, plant-specific runtime bindings,
+operational procedures, and runtime observations stay in ignored local paths.
+See [docs/PUBLICATION.md](docs/PUBLICATION.md) before adding case material or
+publishing a fork.
+
+## License
+
+Licensed under the [Apache License 2.0](LICENSE).

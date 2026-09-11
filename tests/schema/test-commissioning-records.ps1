@@ -211,7 +211,7 @@ try {
         -AssetId 'asset-y20' `
         -RequestedInterface 'open' `
         -ConnectionProfile 'synthetic_ads' `
-        -HardwareModelPath (Join-Path $repositoryRoot 'examples/hc10/hc10-mvp-example.v0.2.json') `
+        -HardwareModelPath (Join-Path $repositoryRoot 'examples/hardware-models/process-cell-ambiguous.synthetic.v0.2.json') `
         -SoftwareModelPath (Join-Path $repositoryRoot 'examples/software-models/process-cell.synthetic.v0.1.json') `
         -ImplementationLinksPath (Join-Path $repositoryRoot 'examples/implementation-links/process-cell.synthetic.v0.1.json') `
         -RuntimeBindingsPath (Join-Path $repositoryRoot 'examples/runtime-bindings/twincat-ads.synthetic.v0.1.json') 2>&1)

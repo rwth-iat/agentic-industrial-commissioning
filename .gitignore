@@ -4,6 +4,14 @@ creds/
 SETUP_CODEX.md
 tmp/
 .agent-remote-bridge.json
+.env
+.env.*
+*.key
+*.p12
+*.pem
+*.pfx
+*.rdp
+*.ovpn
 docs/private/
 cases/**/raw/
 cases/**/private/

@@ -10,15 +10,15 @@ $powerShell = (Get-Process -Id $PID).Path
 
 $cases = @(
     @{
-        Path = 'examples/hc10/hc10-mvp-example.v0.2.json'
+        Path = 'examples/hardware-models/process-cell-ambiguous.synthetic.v0.2.json'
         ExpectedExitCode = 0
     },
     @{
-        Path = 'examples/hc10/hc10-mvp-unambiguous.v0.2.json'
+        Path = 'examples/hardware-models/process-cell-unambiguous.synthetic.v0.2.json'
         ExpectedExitCode = 0
     },
     @{
-        Path = 'examples/hc10/hc10-mvp-incompatible.v0.2.json'
+        Path = 'examples/hardware-models/process-cell-incompatible.synthetic.v0.2.json'
         ExpectedExitCode = 0
     },
     @{

@@ -62,6 +62,15 @@ supply PLC symbols. Optional ownership, permit, protection, or other
 preconditions are passed as binding-ID expectations derived from the component
 contracts.
 
+Preflight expectations describe conditions that must hold before the first
+approved state change. A state that the supervised probe is intended to reach
+must not be required as an initial preflight condition.
+
+An inactive prerequisite state is not `hard_blocked` when the transition into
+and out of that state can be bounded, observed, and restored. Include that
+transition in the supervised probe; use `hard_blocked` only when the transition
+or its risk cannot be bounded sufficiently.
+
 A request for `current`, `now`, `again`, or equivalent wording requires a fresh
 acquisition after that request. If it fails, report the timestamped last-known
 value as such.

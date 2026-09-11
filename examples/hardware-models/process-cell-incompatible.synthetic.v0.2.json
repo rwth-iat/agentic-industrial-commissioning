@@ -1,0 +1,100 @@
+{
+  "schema_version": "0.2.0",
+  "system": {
+    "id": "process-cell-incompatible",
+    "name": "Synthetic process-cell incompatible matching fixture"
+  },
+  "sources": [
+    {
+      "id": "src-device",
+      "type": "datasheet",
+      "title": "Flowmeter electrical output"
+    },
+    {
+      "id": "src-topology",
+      "type": "scan",
+      "title": "Simulated voltage-input topology"
+    }
+  ],
+  "assets": [
+    {
+      "id": "flowmeter-1",
+      "name": "Flowmeter",
+      "asset_kind": "instance",
+      "role": "sensor",
+      "identification": {
+        "manufacturer_name": "Example Manufacturer",
+        "manufacturer_product_designation": "Example Flowmeter",
+        "manufacturer_product_code": "EXAMPLE-FLOW-4-20MA",
+        "source_refs": [
+          "src-device"
+        ]
+      },
+      "ports": [
+        {
+          "id": "measurement-output",
+          "role": "signal",
+          "direction": "output",
+          "interface": {
+            "kind": "analog_current",
+            "signal_range": {
+              "min": 4,
+              "max": 20,
+              "unit": {
+                "symbol": "mA"
+              }
+            }
+          },
+          "source_refs": [
+            "src-device"
+          ],
+          "status": "declared"
+        }
+      ],
+      "source_refs": [
+        "src-device"
+      ],
+      "status": "declared"
+    },
+    {
+      "id": "io-module-1",
+      "name": "Voltage input module",
+      "asset_kind": "instance",
+      "role": "io_module",
+      "identification": {
+        "manufacturer_name": "Example I/O Manufacturer",
+        "manufacturer_product_designation": "Voltage input module",
+        "manufacturer_product_code": "EXAMPLE-AI-0-10V",
+        "source_refs": [
+          "src-topology"
+        ]
+      },
+      "ports": [
+        {
+          "id": "voltage-input",
+          "role": "signal",
+          "direction": "input",
+          "interface": {
+            "kind": "analog_voltage",
+            "signal_range": {
+              "min": 0,
+              "max": 10,
+              "unit": {
+                "symbol": "V"
+              }
+            }
+          },
+          "source_refs": [
+            "src-topology"
+          ],
+          "status": "observed"
+        }
+      ],
+      "source_refs": [
+        "src-topology"
+      ],
+      "status": "observed"
+    }
+  ],
+  "physical_connections": []
+}

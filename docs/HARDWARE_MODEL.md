@@ -44,7 +44,10 @@ baseline does not require them and must never invent external identifiers.
 
 The `identification` object is deliberately a small subset rather than an implementation of the complete IDTA Digital Nameplate. At least one identification `source_ref` is mandatory so that a human can cross-check the identity claim. `manufacturer_name` and `manufacturer_product_code` must be preserved when a cited source provides them, but may be omitted for partially identified brownfield assets. Their absence means unknown, not absent, and must never be filled with invented placeholders. Product designation, serial number, global asset ID, and specific asset IDs remain optional.
 
-The main HC10 example uses source-backed product codes from the BOM and TwinCAT capture. Additional synthetic matching scenarios use visibly synthetic `EXAMPLE-*` product codes. Real normalized models must copy actual OEM product or order codes from their cited BOM, datasheet, nameplate, or engineering source and must never invent a plausible code.
+The public matching examples use visibly synthetic `EXAMPLE-*` product codes.
+Real normalized models must copy actual OEM product or order codes from their
+cited BOM, datasheet, nameplate, or engineering source and must never invent a
+plausible code.
 
 ## Evidence reconciliation
 
@@ -84,6 +87,6 @@ Run all schema and semantic validation tests with:
 
 ## Examples
 
-- [`../examples/hc10/hc10-mvp-example.v0.2.json`](../examples/hc10/hc10-mvp-example.v0.2.json): two electrically compatible candidates remain ambiguous;
-- [`../examples/hc10/hc10-mvp-unambiguous.v0.2.json`](../examples/hc10/hc10-mvp-unambiguous.v0.2.json): exactly one electrically compatible candidate remains;
-- [`../examples/hc10/hc10-mvp-incompatible.v0.2.json`](../examples/hc10/hc10-mvp-incompatible.v0.2.json): no compatible candidate remains.
+- [`../examples/hardware-models/process-cell-ambiguous.synthetic.v0.2.json`](../examples/hardware-models/process-cell-ambiguous.synthetic.v0.2.json): two electrically compatible candidates remain ambiguous;
+- [`../examples/hardware-models/process-cell-unambiguous.synthetic.v0.2.json`](../examples/hardware-models/process-cell-unambiguous.synthetic.v0.2.json): exactly one electrically compatible candidate remains;
+- [`../examples/hardware-models/process-cell-incompatible.synthetic.v0.2.json`](../examples/hardware-models/process-cell-incompatible.synthetic.v0.2.json): no compatible candidate remains.

@@ -17,7 +17,14 @@ function Get-AicPropertyValue {
 function Get-AicRepositoryRelativePath {
     param([Parameter(Mandatory)][string]$Path)
 
-    $resolved = [IO.Path]::GetFullPath((Resolve-Path -LiteralPath $Path).Path)
+    # Probe evidence is referenced before its first write. Resolve existing
+    # paths for canonicalization, but permit a normalized future file path.
+    if (Test-Path -LiteralPath $Path) {
+        $resolved = [IO.Path]::GetFullPath((Resolve-Path -LiteralPath $Path).Path)
+    }
+    else {
+        $resolved = [IO.Path]::GetFullPath($Path)
+    }
     $prefix = $script:AicRepositoryRoot
     if (-not $prefix.EndsWith([string][IO.Path]::DirectorySeparatorChar)) {
         $prefix += [IO.Path]::DirectorySeparatorChar
