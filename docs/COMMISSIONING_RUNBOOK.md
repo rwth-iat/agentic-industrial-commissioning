@@ -114,11 +114,13 @@ Do not improvise an alternative write or automatically retry after a mismatch.
 If restoration cannot be verified, report it immediately and invalidate the
 interaction assessment.
 
-For the current bounded Boolean ADS path, prepare the locator-free approval
-view through `scripts/capabilities/twincat/Invoke-AdsSupervisedProbe.ps1`.
-Execute the same prepared operation only after exact current approval. The
-executor rechecks the binding preconditions, emits actual timestamped events,
-and preserves normalized execution facts under the run's raw evidence path.
+For the current ADS path, prepare the locator-free approval view through
+`scripts/capabilities/twincat/Invoke-AdsSupervisedProbe.ps1`. The agent selects
+finite main and restore lists from catalogued capabilities and maps their
+parameters to runtime-binding IDs. Execute the same fingerprinted operation
+only after exact current approval. The runner rechecks initial conditions and
+preserves capability results and normalized facts under the run's raw evidence
+path.
 
 ### 6. Record, refine, and codify
 

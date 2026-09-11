@@ -168,7 +168,7 @@ foreach ($verifiedCapability in @('ReadSymbol', 'WaitSymbolCondition', 'PulseBoo
         Add-Failure "$verifiedCapability must remain verified after the preserved supervised live run."
     }
 }
-foreach ($experimentalCapability in @('WriteSymbolGuarded', 'SystemRunToConfig', 'BoundedBooleanRequestActuation')) {
+foreach ($experimentalCapability in @('WriteSymbolGuarded', 'SystemRunToConfig')) {
     if ($catalog.Capabilities[$experimentalCapability].Verification -ne 'experimental') {
         Add-Failure "$experimentalCapability must remain experimental until its own live verification is preserved."
     }
@@ -259,24 +259,6 @@ catch {
 }
 if (-not $stateChangeBlocked) {
     Add-Failure 'ADS capability selector did not reject a state-changing catalog entry.'
-}
-
-$boundedRecipePath = Join-Path $stateChangingRoot 'bounded-boolean-request-actuation.ps1'
-$boundedRecipeSource = Get-Content -LiteralPath $boundedRecipePath -Raw
-foreach ($requiredPattern in @(
-    'Invoke-BooleanRequestTransition',
-    'Active acknowledgement',
-    'finally\s*\{',
-    'Invoke-VerifiedRestore',
-    'if \(\$writeOccurred\)',
-    'Test-NoWriteFinalState',
-    "Add-ProbeEvent -Kind 'write'",
-    "Add-ProbeEvent -Kind 'timeout'",
-    "Add-ProbeEvent -Kind 'restore'"
-)) {
-    if ($boundedRecipeSource -notmatch $requiredPattern) {
-        Add-Failure "Bounded request-actuation recipe is missing required behavior: $requiredPattern"
-    }
 }
 
 if ($failures.Count -gt 0) {

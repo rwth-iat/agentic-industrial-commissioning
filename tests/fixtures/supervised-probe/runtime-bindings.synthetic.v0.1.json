@@ -72,7 +72,7 @@
       "access": "read_write",
       "locator": { "kind": "ads_symbol", "value": "Synthetic.Valve.Deactivate" },
       "datatype": "BOOL",
-      "interaction": { "semantics": "request", "acknowledgement_binding_id": "active-state" },
+      "interaction": { "semantics": "request", "acknowledgement_binding_id": "close-state" },
       "status": "inferred",
       "confidence": 0.8,
       "source_refs": ["synthetic-project"]
@@ -84,7 +84,33 @@
       "access": "read_write",
       "locator": { "kind": "ads_symbol", "value": "Synthetic.Valve.ExitMode" },
       "datatype": "BOOL",
-      "interaction": { "semantics": "request", "acknowledgement_binding_id": "mode-active" },
+      "interaction": { "semantics": "request", "acknowledgement_binding_id": "mode-off" },
+      "status": "inferred",
+      "confidence": 0.8,
+      "source_refs": ["synthetic-project"]
+    },
+    {
+      "id": "close-state",
+      "asset_id": "asset-valve",
+      "role": "command_state",
+      "access": "read",
+      "locator": { "kind": "ads_symbol", "value": "Synthetic.Valve.Closed" },
+      "datatype": "BOOL",
+      "interaction": { "semantics": "state" },
+      "feedback_kind": "logical",
+      "status": "inferred",
+      "confidence": 0.8,
+      "source_refs": ["synthetic-project"]
+    },
+    {
+      "id": "mode-off",
+      "asset_id": "asset-valve",
+      "role": "operation_mode_active",
+      "access": "read",
+      "locator": { "kind": "ads_symbol", "value": "Synthetic.Valve.ModeOff" },
+      "datatype": "BOOL",
+      "interaction": { "semantics": "state" },
+      "feedback_kind": "logical",
       "status": "inferred",
       "confidence": 0.8,
       "source_refs": ["synthetic-project"]

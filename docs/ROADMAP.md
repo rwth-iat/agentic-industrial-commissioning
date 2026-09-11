@@ -85,10 +85,10 @@ The operational sequence is defined in
   and restoration with Terra at medium and low reasoning effort, including
   correction of an inverted Boolean interpretation and an unsuitable
   project-specific postcondition;
-- a generic bounded request-actuation wrapper now represents enter, activate,
-  monitored hold, deactivate, and restore as one approval-bound operation; its
-  implementation is covered offline and remains experimental pending its own
-  supervised live run;
+- a capability-neutral supervised runner now composes finite main and restore
+  sequences from catalogued recipes through runtime-binding IDs; Boolean,
+  analog, and future action semantics remain inside capabilities rather than
+  the runner;
 - a compact commissioning-record contract, deterministic path-aware writer,
   semantic validator, and offline tests cover the run manifest, read-only
   preflight, and optional execution record without adding another plant model.

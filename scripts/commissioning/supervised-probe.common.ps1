@@ -6,6 +6,9 @@ function Get-AicPropertyValue {
     param([AllowNull()][object]$Object, [Parameter(Mandatory)][string]$Name)
 
     if ($null -eq $Object) { return $null }
+    if ($Object -is [System.Collections.IDictionary] -and $Object.Contains($Name)) {
+        return $Object[$Name]
+    }
     $property = $Object.PSObject.Properties[$Name]
     if ($null -eq $property) { return $null }
     return $property.Value
@@ -74,11 +77,8 @@ function Get-AicProbeContext {
     param(
         [Parameter(Mandatory)][string]$ManifestPath,
         [Parameter(Mandatory)][string]$RuntimeBindingsPath,
-        [Parameter(Mandatory)][string]$EnterModeRequestBindingId,
-        [Parameter(Mandatory)][string]$ActivateRequestBindingId,
-        [Parameter(Mandatory)][string]$DeactivateRequestBindingId,
-        [Parameter(Mandatory)][string]$ExitModeRequestBindingId,
-        [string[]]$AdditionalBindingId = @()
+        [Parameter(Mandatory)][ValidateNotNullOrEmpty()][string[]]$BindingId,
+        [string[]]$WritableBindingId = @()
     )
 
     $manifestValidator = Join-Path $script:AicRepositoryRoot 'scripts/validate-commissioning-record.ps1'
@@ -115,7 +115,7 @@ function Get-AicProbeContext {
     }
 
     function Resolve-Binding {
-        param([Parameter(Mandatory)][string]$Id, [switch]$WritableRequest)
+        param([Parameter(Mandatory)][string]$Id, [switch]$Writable)
 
         if (-not $bindingsById.ContainsKey($Id)) { throw "Runtime binding '$Id' was not found." }
         $binding = $bindingsById[$Id]
@@ -132,12 +132,9 @@ function Get-AicProbeContext {
             throw "Runtime binding '$Id' has no runtime locator."
         }
         [void](ConvertTo-AicPowerShellType -RuntimeType ([string]$binding.datatype))
-        if ($WritableRequest) {
+        if ($Writable) {
             if ([string]$binding.access -ne 'read_write') {
-                throw "Request binding '$Id' must be readable and writable for preflight and execution."
-            }
-            if ([string]$binding.interaction.semantics -ne 'request') {
-                throw "Request binding '$Id' must declare request interaction semantics."
+                throw "Write binding '$Id' must be readable and writable for guarded execution."
             }
         }
         elseif ([string]$binding.access -notin @('read', 'read_write')) {
@@ -146,56 +143,31 @@ function Get-AicProbeContext {
         return $binding
     }
 
-    $enterMode = Resolve-Binding -Id $EnterModeRequestBindingId -WritableRequest
-    $activate = Resolve-Binding -Id $ActivateRequestBindingId -WritableRequest
-    $deactivate = Resolve-Binding -Id $DeactivateRequestBindingId -WritableRequest
-    $exitMode = Resolve-Binding -Id $ExitModeRequestBindingId -WritableRequest
-
-    $modeAcknowledgementId = [string](Get-AicPropertyValue -Object $enterMode.interaction -Name 'acknowledgement_binding_id')
-    $activeAcknowledgementId = [string](Get-AicPropertyValue -Object $activate.interaction -Name 'acknowledgement_binding_id')
-    if ([string]::IsNullOrWhiteSpace($modeAcknowledgementId) -or
-        [string]::IsNullOrWhiteSpace($activeAcknowledgementId)) {
-        throw 'Enter-mode and activate request bindings require acknowledgement_binding_id.'
+    $requestedIds = @($BindingId | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+    if ($requestedIds.Count -ne @($requestedIds | Select-Object -Unique).Count) {
+        throw 'BindingId must not contain duplicates.'
     }
-    if ([string](Get-AicPropertyValue -Object $exitMode.interaction -Name 'acknowledgement_binding_id') -ne $modeAcknowledgementId) {
-        throw 'Exit-mode request must reference the same mode acknowledgement as enter-mode request.'
-    }
-    if ([string](Get-AicPropertyValue -Object $deactivate.interaction -Name 'acknowledgement_binding_id') -ne $activeAcknowledgementId) {
-        throw 'Deactivate request must reference the same active acknowledgement as activate request.'
+    $writableIds = @($WritableBindingId | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Select-Object -Unique)
+    foreach ($id in $writableIds) {
+        if ($id -notin $requestedIds) { throw "Writable request binding '$id' is not present in BindingId." }
     }
 
-    $modeAcknowledgement = Resolve-Binding -Id $modeAcknowledgementId
-    $activeAcknowledgement = Resolve-Binding -Id $activeAcknowledgementId
-    foreach ($booleanBinding in @($enterMode, $modeAcknowledgement, $activate, $activeAcknowledgement, $deactivate, $exitMode)) {
-        if ((ConvertTo-AicPowerShellType -RuntimeType ([string]$booleanBinding.datatype)) -ne 'Boolean') {
-            throw "Bounded Boolean probe binding '$($booleanBinding.id)' must have Boolean datatype."
-        }
+    $resolvedBindings = [ordered]@{}
+    foreach ($id in $requestedIds) {
+        $binding = Resolve-Binding -Id $id -Writable:($id -in $writableIds)
+        $resolvedBindings[$id] = $binding
     }
 
-    $slots = [ordered]@{
-        EnterModeRequest    = $enterMode
-        ModeAcknowledgement = $modeAcknowledgement
-        ActivateRequest     = $activate
-        ActiveAcknowledgement = $activeAcknowledgement
-        DeactivateRequest   = $deactivate
-        ExitModeRequest     = $exitMode
-    }
-    $locators = @($slots.Values | ForEach-Object { [string]$_.locator.value })
-    if (@($locators | Select-Object -Unique).Count -ne 6) {
-        throw 'The bounded probe requires six distinct request and acknowledgement locators.'
-    }
-
-    $additional = @()
-    foreach ($id in @($AdditionalBindingId | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Select-Object -Unique)) {
-        $additional += Resolve-Binding -Id $id
+    $locators = @($resolvedBindings.Values | ForEach-Object { [string]$_.locator.value })
+    if (@($locators | Select-Object -Unique).Count -ne $locators.Count) {
+        throw 'Requested runtime bindings must resolve to distinct ADS locators.'
     }
 
     return [PSCustomObject]@{
         RepositoryRoot = $script:AicRepositoryRoot
         Manifest = $manifest
         RuntimeBindings = $runtimeDocument
-        Slots = $slots
-        AdditionalBindings = $additional
+        Bindings = $resolvedBindings
     }
 }
 

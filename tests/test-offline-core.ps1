@@ -22,6 +22,12 @@ if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 & (Join-Path $PSScriptRoot 'test-case-privacy.ps1')
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
+& (Join-Path $PSScriptRoot 'capabilities/twincat/ads/test-recipes.ps1')
+if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+& (Join-Path $PSScriptRoot 'capabilities/twincat/ads/test-supervised-probe.ps1')
+if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
 & (Join-Path $PSScriptRoot 'connectors/test-static-project-extractor.ps1')
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 

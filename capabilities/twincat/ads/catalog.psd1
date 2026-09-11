@@ -123,15 +123,5 @@
             UserParameters   = @('HumanApproved', 'RequestSymbol', 'AcknowledgementSymbol', 'AcknowledgementType', 'ExpectedInitialAcknowledgement', 'ExpectedFinalAcknowledgement', 'ExpectedAdsState', 'PulseMilliseconds', 'AcknowledgementTimeoutSeconds', 'PollIntervalMilliseconds', 'NumericTolerance')
         }
 
-        BoundedBooleanRequestActuation = @{
-            Order            = 230
-            Label            = 'Bounded Boolean request actuation'
-            Description      = 'Preferred high-level path for a bounded actuator command: enter mode, activate, hold with feedback monitoring, deactivate, and restore the initial mode through request/acknowledgement handshakes.'
-            Recipe           = 'recipes/state-changing/bounded-boolean-request-actuation.ps1'
-            PortConfigKey    = 'PlcPort'
-            Safety           = 'STATE_CHANGING'
-            Verification     = 'experimental'
-            UserParameters   = @('HumanApproved', 'EnterModeRequestSymbol', 'ModeAcknowledgementSymbol', 'ActivateRequestSymbol', 'ActiveAcknowledgementSymbol', 'DeactivateRequestSymbol', 'ExitModeRequestSymbol', 'ExpectedAdsState', 'HoldSeconds', 'PulseMilliseconds', 'AcknowledgementTimeoutSeconds', 'PollIntervalMilliseconds', 'Preconditions')
-        }
     }
 }

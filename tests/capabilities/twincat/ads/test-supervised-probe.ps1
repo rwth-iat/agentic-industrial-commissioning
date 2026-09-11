@@ -52,17 +52,93 @@ try {
         assessment = 'ready_for_supervised_probe'; blockers = @(); writes_observed = $false
     } | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $preflightPath -Encoding utf8
 
-    $bindingArguments = @{
+    $initialExpectations = @(
+        [PSCustomObject]@{ binding_id = 'mode-enter-request'; expected_value = 'False' }
+        [PSCustomObject]@{ binding_id = 'mode-active'; expected_value = 'False' }
+        [PSCustomObject]@{ binding_id = 'activate-request'; expected_value = 'False' }
+        [PSCustomObject]@{ binding_id = 'active-state'; expected_value = 'False' }
+        [PSCustomObject]@{ binding_id = 'deactivate-request'; expected_value = 'False' }
+        [PSCustomObject]@{ binding_id = 'mode-exit-request'; expected_value = 'False' }
+        [PSCustomObject]@{ binding_id = 'close-state'; expected_value = 'True' }
+        [PSCustomObject]@{ binding_id = 'mode-off'; expected_value = 'True' }
+        [PSCustomObject]@{ binding_id = 'permit'; expected_value = 'True' }
+    )
+    $steps = @(
+        [PSCustomObject]@{
+            name = 'enter-mode'; capability = 'PulseBooleanRequest'
+            read_bindings = @{ AcknowledgementSymbol = 'mode-active' }
+            write_bindings = @{ RequestSymbol = 'mode-enter-request' }
+            arguments = @{
+                AcknowledgementType = 'Boolean'; ExpectedInitialAcknowledgement = 'False'
+                ExpectedFinalAcknowledgement = 'True'; ExpectedAdsState = 'Run'
+                PulseMilliseconds = 100; AcknowledgementTimeoutSeconds = 5
+                PollIntervalMilliseconds = 100; NumericTolerance = 0
+            }
+        }
+        [PSCustomObject]@{
+            name = 'activate'; capability = 'PulseBooleanRequest'
+            read_bindings = @{ AcknowledgementSymbol = 'active-state' }
+            write_bindings = @{ RequestSymbol = 'activate-request' }
+            arguments = @{
+                AcknowledgementType = 'Boolean'; ExpectedInitialAcknowledgement = 'False'
+                ExpectedFinalAcknowledgement = 'True'; ExpectedAdsState = 'Run'
+                PulseMilliseconds = 100; AcknowledgementTimeoutSeconds = 5
+                PollIntervalMilliseconds = 100; NumericTolerance = 0
+            }
+        }
+        [PSCustomObject]@{
+            name = 'confirm-permit'; capability = 'WaitSymbolCondition'
+            read_bindings = @{ Symbol = 'permit' }; write_bindings = @{}
+            arguments = @{
+                Type = 'Boolean'; ExpectedValue = 'True'; TimeoutSeconds = 1
+                PollIntervalMilliseconds = 100; NumericTolerance = 0
+            }
+        }
+    )
+    $restoreSteps = @(
+        [PSCustomObject]@{
+            name = 'deactivate'; capability = 'PulseBooleanRequest'
+            read_bindings = @{ AcknowledgementSymbol = 'close-state' }
+            write_bindings = @{ RequestSymbol = 'deactivate-request' }
+            arguments = @{
+                AcknowledgementType = 'Boolean'; ExpectedInitialAcknowledgement = 'False'
+                ExpectedFinalAcknowledgement = 'True'; ExpectedAdsState = 'Run'
+                PulseMilliseconds = 100; AcknowledgementTimeoutSeconds = 5
+                PollIntervalMilliseconds = 100; NumericTolerance = 0
+            }
+        }
+        [PSCustomObject]@{
+            name = 'exit-mode'; capability = 'PulseBooleanRequest'
+            read_bindings = @{ AcknowledgementSymbol = 'mode-off' }
+            write_bindings = @{ RequestSymbol = 'mode-exit-request' }
+            arguments = @{
+                AcknowledgementType = 'Boolean'; ExpectedInitialAcknowledgement = 'False'
+                ExpectedFinalAcknowledgement = 'True'; ExpectedAdsState = 'Run'
+                PulseMilliseconds = 100; AcknowledgementTimeoutSeconds = 5
+                PollIntervalMilliseconds = 100; NumericTolerance = 0
+            }
+        }
+    )
+    $finalExpectations = @(
+        [PSCustomObject]@{ binding_id = 'close-state'; expected_value = 'True' }
+        [PSCustomObject]@{ binding_id = 'mode-off'; expected_value = 'True' }
+    )
+    $preflightArguments = @{
         ManifestPath = $manifestPath
         RuntimeBindingsPath = $runtimePath
-        EnterModeRequestBindingId = 'mode-enter-request'
-        ActivateRequestBindingId = 'activate-request'
-        DeactivateRequestBindingId = 'deactivate-request'
-        ExitModeRequestBindingId = 'mode-exit-request'
-        ExpectedBindingValue = @{ permit = 'True' }
+        BindingExpectation = $initialExpectations
+    }
+    $probeArguments = @{
+        ManifestPath = $manifestPath
+        RuntimeBindingsPath = $runtimePath
+        InitialExpectation = $initialExpectations
+        Step = $steps
+        RestoreStep = $restoreSteps
+        FinalExpectation = $finalExpectations
+        HumanObservationRequirement = 'Operator observes the synthetic valve movement.'
     }
     try {
-        $preflightPlan = & $preflightScript @bindingArguments
+        $preflightPlan = & $preflightScript @preflightArguments
         $serializedPlan = $preflightPlan | ConvertTo-Json -Depth 20
         if ($preflightPlan.Safety -ne 'READ_ONLY' -or $preflightPlan.WritesAuthorized -ne $false) {
             Add-Failure 'Preflight preparation did not preserve the read-only boundary.'
@@ -70,14 +146,14 @@ try {
         if ($serializedPlan -match 'Synthetic\.Valve') {
             Add-Failure 'Preflight plan exposed concrete PLC locators instead of binding IDs.'
         }
-        if (@($preflightPlan.BindingExpectations).Count -ne 7) {
-            Add-Failure 'Preflight plan did not include six core bindings and the additional permit.'
+        if (@($preflightPlan.BindingExpectations).Count -ne 9) {
+            Add-Failure 'Preflight plan did not preserve all independently selected binding expectations.'
         }
     }
     catch { Add-Failure "Preflight preparation failed: $($_.Exception.Message)" }
 
     try {
-        $probePlan = & $probeScript @bindingArguments -PreflightPath $preflightPath -HoldSeconds 5
+        $probePlan = & $probeScript @probeArguments -PreflightPath $preflightPath
         $serializedProbe = $probePlan | ConvertTo-Json -Depth 30
         if ($probePlan.RequiredApproval -notmatch '^APPROVE SUPERVISED_PROBE [A-F0-9]{12}$') {
             Add-Failure 'Probe preparation did not create an operation-specific approval phrase.'
@@ -85,9 +161,29 @@ try {
         if ($serializedProbe -match 'Synthetic\.Valve') {
             Add-Failure 'Probe plan exposed concrete PLC locators instead of binding IDs.'
         }
+        if (@($probePlan.Operation.steps).Count -ne 3 -or
+            [string]$probePlan.Operation.steps[2].capability -ne 'WaitSymbolCondition') {
+            Add-Failure 'Probe plan did not accept an additional catalogued capability step.'
+        }
+        if ([string]$probePlan.Operation.restore_steps[0].read_bindings.AcknowledgementSymbol -ne 'close-state' -or
+            [string]$probePlan.Operation.restore_steps[1].read_bindings.AcknowledgementSymbol -ne 'mode-off') {
+            Add-Failure 'Probe plan did not preserve independent close and mode-off feedback bindings.'
+        }
+        $changedPlan = & $probeScript @probeArguments -PreflightPath $preflightPath -MaximumDurationSeconds 29
+        if ($changedPlan.OperationId -eq $probePlan.OperationId) {
+            Add-Failure 'Changing an approved execution bound did not change the operation fingerprint.'
+        }
+        $changedApprovalBlocked = $false
+        try {
+            & $probeScript @probeArguments -PreflightPath $preflightPath -MaximumDurationSeconds 29 `
+                -Execute -Approval $probePlan.RequiredApproval -ApprovedAt ([DateTimeOffset]::UtcNow.ToString('o')) `
+                -ApprovalSourceRef 'conversation:synthetic' 2>&1 | Out-Null
+        }
+        catch { $changedApprovalBlocked = $_.Exception.Message -match 'Execution blocked' }
+        if (-not $changedApprovalBlocked) { Add-Failure 'Approval remained valid after the operation changed.' }
         $blocked = $false
         try {
-            & $probeScript @bindingArguments -PreflightPath $preflightPath -HoldSeconds 5 `
+            & $probeScript @probeArguments -PreflightPath $preflightPath `
                 -Execute -Approval 'wrong' -ApprovedAt '2026-09-10T12:00:06Z' `
                 -ApprovalSourceRef 'conversation:synthetic' 2>&1 | Out-Null
         }
@@ -101,7 +197,7 @@ try {
     $runtimeContract.revision = 'sha256:stale'
     $manifestDocument | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $manifestPath -Encoding utf8
     $staleBlocked = $false
-    try { & $preflightScript @bindingArguments 2>&1 | Out-Null }
+    try { & $preflightScript @preflightArguments 2>&1 | Out-Null }
     catch { $staleBlocked = $_.Exception.Message -match 'do not match the path and revision' }
     if (-not $staleBlocked) { Add-Failure 'Changed runtime-binding revision did not invalidate preflight preparation.' }
 
@@ -112,12 +208,28 @@ try {
     $runtimeContract.path = $invalidRuntimePath.Substring($repositoryRoot.Length + 1).Replace('\', '/')
     $runtimeContract.revision = "sha256:$((Get-FileHash -LiteralPath $invalidRuntimePath -Algorithm SHA256).Hash.ToLowerInvariant())"
     $manifestDocument | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $manifestPath -Encoding utf8
-    $wrongTypeArguments = $bindingArguments.Clone()
-    $wrongTypeArguments.RuntimeBindingsPath = $invalidRuntimePath
-    $wrongTypeBlocked = $false
-    try { & $preflightScript @wrongTypeArguments 2>&1 | Out-Null }
-    catch { $wrongTypeBlocked = $_.Exception.Message -match 'must have Boolean datatype' }
-    if (-not $wrongTypeBlocked) { Add-Failure 'Non-Boolean bounded-probe binding did not block preflight preparation.' }
+    $analogArguments = $probeArguments.Clone()
+    $analogArguments.RuntimeBindingsPath = $invalidRuntimePath
+    $analogArguments.Step = @([PSCustomObject]@{
+        name = 'set-analog'; capability = 'WriteSymbolGuarded'; read_bindings = @{}
+        write_bindings = @{ Symbol = 'activate-request' }
+        arguments = @{
+            Type = 'Single'; ExpectedValue = '0'; Value = '25'; ExpectedAdsState = 'Run'
+            MinimumValue = '0'; MaximumValue = '100'; ReadbackTimeoutSeconds = 5
+            PollIntervalMilliseconds = 100; NumericTolerance = 0
+        }
+    })
+    $analogArguments.RestoreStep = @([PSCustomObject]@{
+        name = 'restore-analog'; capability = 'WriteSymbolGuarded'; read_bindings = @{}
+        write_bindings = @{ Symbol = 'activate-request' }
+        arguments = @{
+            Type = 'Single'; ExpectedValue = '25'; Value = '0'; ExpectedAdsState = 'Run'
+            MinimumValue = '0'; MaximumValue = '100'; ReadbackTimeoutSeconds = 5
+            PollIntervalMilliseconds = 100; NumericTolerance = 0
+        }
+    })
+    try { $null = & $probeScript @analogArguments -PreflightPath $preflightPath }
+    catch { Add-Failure "Capability-neutral probe rejected an analog guarded-write plan: $($_.Exception.Message)" }
 
     $runtimeContract.path = $runtimeRelative
     $runtimeContract.revision = $runtimeRevision
@@ -185,6 +297,18 @@ try {
     $probeSource = Get-Content -LiteralPath $probeScript -Raw
     if ($probeSource -match '\[string\]\$(?:Symbol|RequestSymbol|AcknowledgementSymbol)') {
         Add-Failure 'Supervised-probe dispatcher exposes free PLC-symbol parameters.'
+    }
+    foreach ($requiredGuard in @(
+        '$operationDeadline',
+        "throw 'Supervised sequence exceeded its operation deadline.'",
+        'finally {',
+        'if ($stateChangeAttempted)',
+        'foreach ($currentStep in $restoreSteps)',
+        'Invoke-ExpectationCheck -Expectations $final'
+    )) {
+        if (-not $probeSource.Contains($requiredGuard)) {
+            Add-Failure "Supervised-probe dispatcher lost its timeout/abort/restore guard: $requiredGuard"
+        }
     }
     if (Test-Path -LiteralPath (Join-Path $repositoryRoot 'scripts/capabilities/twincat/Invoke-AdsControlledAction.ps1')) {
         Add-Failure 'Retired controlled-action dispatcher still exists.'

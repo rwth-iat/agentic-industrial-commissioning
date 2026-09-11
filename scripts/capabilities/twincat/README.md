@@ -29,10 +29,8 @@ The selector rejects every state-changing catalog entry.
 ## Component preflight
 
 `Invoke-AdsBindingPreflight.ps1` receives a persisted run manifest, one
-component runtime-binding document, and four functional request binding IDs.
-It derives both acknowledgement bindings from the contract. Optional permit,
-ownership, protection, or other conditions are supplied as additional binding
-ID/value expectations.
+component runtime-binding document, and a finite list of binding-ID/value
+expectations selected for the requested interaction.
 
 Without `-Execute`, it prepares a locator-free read plan. With `-Execute`, it
 uses only the `READ_ONLY` binding-preflight capability, preserves raw output,
@@ -42,9 +40,11 @@ and writes `preflight.json`. Failed or unavailable checks produce
 
 ## Supervised bounded probe
 
-`Invoke-AdsSupervisedProbe.ps1` uses the same binding IDs plus the persisted
-manifest and preflight. Its default mode prepares the exact operation and
-returns an operation-specific approval phrase without loading credentials or
+`Invoke-AdsSupervisedProbe.ps1` receives the persisted manifest and preflight,
+initial and final binding expectations, and finite main and restore lists of
+catalogued capability calls. Each call maps recipe parameters to read or write
+runtime-binding IDs. Its default mode prepares the exact operation and returns
+an operation-specific approval phrase without loading credentials or
 contacting the runtime.
 
 Execution requires all of the following:
@@ -52,13 +52,14 @@ Execution requires all of the following:
 - the preflight assessment is `ready_for_supervised_probe`;
 - the runtime-binding path and SHA-256 revision match the manifest;
 - the exact approval phrase is supplied with current approval provenance;
-- the hold is at most five seconds;
-- every precondition is re-read immediately before the first write.
+- execution and restore have explicit time bounds;
+- every initial condition is re-read immediately before the first write.
 
-The ADS recipe records actual reads, writes, timeout, abort, and verified
-restore events. The dispatcher translates private PLC locators back to binding
-IDs and stores immutable raw execution facts. It never writes a mapped hardware
-output directly.
+The runner records capability invocations, read-only state checks, timeout,
+abort, and verified restore evidence. Plans and normalized facts contain
+binding IDs rather than private PLC locators. The runner accepts no arbitrary
+script or free symbol; action semantics and technical guards remain in the
+selected catalogued capabilities.
 
 After human observation and adapter generation, finalize the execution record
 with `scripts/complete-supervised-probe.ps1`. The finalizer consumes executor

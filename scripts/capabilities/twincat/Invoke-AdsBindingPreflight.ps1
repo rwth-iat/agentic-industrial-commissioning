@@ -2,11 +2,7 @@
 param(
     [Parameter(Mandatory)][string]$ManifestPath,
     [Parameter(Mandatory)][string]$RuntimeBindingsPath,
-    [Parameter(Mandatory)][string]$EnterModeRequestBindingId,
-    [Parameter(Mandatory)][string]$ActivateRequestBindingId,
-    [Parameter(Mandatory)][string]$DeactivateRequestBindingId,
-    [Parameter(Mandatory)][string]$ExitModeRequestBindingId,
-    [hashtable]$ExpectedBindingValue = @{},
+    [Parameter(Mandatory)][ValidateNotNullOrEmpty()][object[]]$BindingExpectation,
     [switch]$Execute,
     [string]$ConfigPath,
     [string]$StateFile
@@ -18,37 +14,24 @@ $ErrorActionPreference = 'Stop'
 $repositoryRoot = Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $PSScriptRoot))
 . (Join-Path $repositoryRoot 'scripts/commissioning/supervised-probe.common.ps1')
 
-$additionalIds = @($ExpectedBindingValue.Keys | ForEach-Object { [string]$_ })
+$expectations = [ordered]@{}
+foreach ($item in $BindingExpectation) {
+    $id = [string](Get-AicPropertyValue -Object $item -Name 'binding_id')
+    $expected = [string](Get-AicPropertyValue -Object $item -Name 'expected_value')
+    if ([string]::IsNullOrWhiteSpace($id)) { throw 'Every BindingExpectation requires binding_id.' }
+    if ([string]::IsNullOrWhiteSpace($expected)) { throw "BindingExpectation '$id' requires expected_value." }
+    if ($expectations.Contains($id)) { throw "Duplicate BindingExpectation for '$id'." }
+    $expectations[$id] = $expected
+}
 $context = Get-AicProbeContext `
     -ManifestPath $ManifestPath `
     -RuntimeBindingsPath $RuntimeBindingsPath `
-    -EnterModeRequestBindingId $EnterModeRequestBindingId `
-    -ActivateRequestBindingId $ActivateRequestBindingId `
-    -DeactivateRequestBindingId $DeactivateRequestBindingId `
-    -ExitModeRequestBindingId $ExitModeRequestBindingId `
-    -AdditionalBindingId $additionalIds
-
-$expectations = [ordered]@{}
-foreach ($entry in $context.Slots.GetEnumerator()) {
-    $expectations[[string]$entry.Value.id] = [PSCustomObject]@{
-        Binding = $entry.Value
-        ExpectedValue = 'False'
-    }
-}
-foreach ($binding in $context.AdditionalBindings) {
-    $id = [string]$binding.id
-    $expected = [string]$ExpectedBindingValue[$id]
-    if ([string]::IsNullOrWhiteSpace($expected)) { throw "Expected value for additional binding '$id' is empty." }
-    if ($expectations.Contains($id) -and $expected -ne 'False') {
-        throw "Core probe binding '$id' must be inactive during preflight."
-    }
-    $expectations[$id] = [PSCustomObject]@{ Binding = $binding; ExpectedValue = $expected }
-}
+    -BindingId @($expectations.Keys)
 
 $bindingPlan = @($expectations.GetEnumerator() | ForEach-Object {
     [PSCustomObject]@{
         binding_id = [string]$_.Key
-        expected_value = [string]$_.Value.ExpectedValue
+        expected_value = [string]$_.Value
     }
 })
 $plan = [PSCustomObject]@{
@@ -74,13 +57,13 @@ if (-not (Test-Path -LiteralPath $ConfigPath -PathType Leaf)) {
 }
 
 $recipeBindings = @($expectations.GetEnumerator() | ForEach-Object {
-    $binding = $_.Value.Binding
+    $binding = $context.Bindings[[string]$_.Key]
     [PSCustomObject]@{
         BindingId = [string]$binding.id
         Symbol = [string]$binding.locator.value
         Type = ConvertTo-AicPowerShellType -RuntimeType ([string]$binding.datatype)
         RuntimeType = [string]$binding.datatype
-        ExpectedValue = [string]$_.Value.ExpectedValue
+        ExpectedValue = [string]$_.Value
     }
 })
 
