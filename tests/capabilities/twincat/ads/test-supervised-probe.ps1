@@ -237,9 +237,70 @@ try {
 
     $adapterDirectory = Split-Path -Parent (Join-Path $repositoryRoot $adapterRelative)
     $null = New-Item -ItemType Directory -Path $adapterDirectory -Force
-    Set-Content -LiteralPath (Join-Path $adapterDirectory 'Invoke-Synthetic.ps1') -Value 'param()' -Encoding utf8
+    $adapterEntrypoint = Join-Path $adapterDirectory 'Invoke-Synthetic.ps1'
+    $validAdapterSource = @'
+[CmdletBinding()]
+param(
+    [switch]$Describe,
+    [ValidateSet('get-state', 'open', 'close')][string]$Action
+)
+
+if ($Describe) {
+    [PSCustomObject]@{
+        adapter_kind = 'component_actions'
+        actions = @(
+            [PSCustomObject]@{ id = 'get-state'; safety = 'READ_ONLY' }
+            [PSCustomObject]@{ id = 'open'; safety = 'STATE_CHANGING' }
+            [PSCustomObject]@{ id = 'close'; safety = 'STATE_CHANGING' }
+        )
+    }
+    return
+}
+if ([string]::IsNullOrWhiteSpace($Action)) { throw 'Use -Describe or -Action.' }
+
+switch ($Action) {
+    'get-state' {
+        [PSCustomObject]@{
+            action = 'get-state'; safety = 'READ_ONLY'; steps = @(
+                [PSCustomObject]@{
+                    role = 'observation'; semantic_action = 'get-state'; capability = 'ReadSymbol'
+                    read_bindings = @{ Symbol = 'active-state' }; write_bindings = @{}
+                }
+            )
+        }
+    }
+    'open' {
+        [PSCustomObject]@{
+            action = 'open'; safety = 'STATE_CHANGING'; steps = @(
+                [PSCustomObject]@{
+                    role = 'prerequisite'; semantic_action = ''; capability = 'PulseBooleanRequest'
+                    read_bindings = @{ AcknowledgementSymbol = 'mode-active' }
+                    write_bindings = @{ RequestSymbol = 'mode-enter-request' }
+                }
+                [PSCustomObject]@{
+                    role = 'effect'; semantic_action = 'open'; capability = 'PulseBooleanRequest'
+                    read_bindings = @{ AcknowledgementSymbol = 'active-state' }
+                    write_bindings = @{ RequestSymbol = 'activate-request' }
+                }
+            )
+        }
+    }
+    'close' {
+        [PSCustomObject]@{
+            action = 'close'; safety = 'STATE_CHANGING'; steps = @(
+                [PSCustomObject]@{
+                    role = 'effect'; semantic_action = 'close'; capability = 'PulseBooleanRequest'
+                    read_bindings = @{ AcknowledgementSymbol = 'close-state' }
+                    write_bindings = @{ RequestSymbol = 'deactivate-request' }
+                }
+            )
+        }
+    }
+}
+'@
+    Set-Content -LiteralPath $adapterEntrypoint -Value $validAdapterSource -Encoding utf8
     [ordered]@{
-        schema_version = '0.1.0'; asset_id = 'asset-valve'; supported_interfaces = @('open')
+        schema_version = '0.1.0'; asset_id = 'asset-valve'; supported_interfaces = @('get-state', 'open', 'close')
         entrypoint = 'Invoke-Synthetic.ps1'; verification_status = 'verified'
         input_revisions = $revisions; evidence_refs = @("cases/$caseId/raw/runtime/$runId/execution-facts.json")
     } | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath (Join-Path $repositoryRoot $adapterRelative) -Encoding utf8
@@ -279,6 +340,24 @@ try {
 
     $verificationPath = Join-Path $repositoryRoot $adapterRelative
     $verification = Get-Content -LiteralPath $verificationPath -Raw | ConvertFrom-Json
+
+    Set-Content -LiteralPath $adapterEntrypoint -Value 'param()' -Encoding utf8
+    $validationOutput = @(& $powerShell -NoProfile -File $validator -RecordPath $executionPath 2>&1)
+    if ($LASTEXITCODE -eq 0 -or ($validationOutput -join ' ') -notmatch 'must support side-effect-free -Describe and -Action planning') {
+        Add-Failure 'Commissioning validator accepted a monolithic adapter without independent action planning.'
+    }
+
+    $compositeAdapterSource = $validAdapterSource.Replace(
+        "role = 'effect'; semantic_action = 'open'; capability = 'PulseBooleanRequest'",
+        "role = 'effect'; semantic_action = 'close'; capability = 'PulseBooleanRequest'"
+    )
+    Set-Content -LiteralPath $adapterEntrypoint -Value $compositeAdapterSource -Encoding utf8
+    $validationOutput = @(& $powerShell -NoProfile -File $validator -RecordPath $executionPath 2>&1)
+    if ($LASTEXITCODE -eq 0 -or ($validationOutput -join ' ') -notmatch "plan contains another semantic effect 'close'") {
+        Add-Failure 'Commissioning validator accepted an adapter action containing another semantic effect.'
+    }
+    Set-Content -LiteralPath $adapterEntrypoint -Value $validAdapterSource -Encoding utf8
+
     $verification.verification_status = 'experimental'
     $verification | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $verificationPath -Encoding utf8
     $validationOutput = @(& $powerShell -NoProfile -File $validator -RecordPath $executionPath 2>&1)

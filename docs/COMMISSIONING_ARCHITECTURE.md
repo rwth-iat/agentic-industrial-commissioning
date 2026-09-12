@@ -83,13 +83,23 @@ than stored as a permanent component property.
 - Capabilities provide reusable low-level technical reads and guarded writes.
 - The agent combines available knowledge and capabilities during exploration.
 - A generated component adapter exposes the validated semantic interface, for
-  example `GetState`, `Open`, `Close`, or `OpenFor`, using binding identifiers
-  instead of duplicating concrete runtime locators.
+  example `GetState`, `Open`, `Close`, or another component-specific action,
+  using binding identifiers instead of duplicating concrete runtime locators.
+- Adapter actions remain independently invocable. An action may contain
+  technical prerequisites intrinsic to that action, such as a required mode
+  request, but the adapter must not preserve the original probe, a run-specific
+  duration, or a user workflow as its only reusable operation.
 - A deterministic multi-component procedure is generated only when a recurring
   sequence is actually required. It composes component adapters.
 
 The component adapter is the durable result of successful exploration. The
-exploratory sequence itself need not become another static knowledge contract.
+exploratory sequence is run-scoped and retained as execution evidence; it must
+not become another static knowledge contract or the component adapter itself.
+If a later request is not covered by the adapter, the agent returns to
+supervised exploration and composes a new run-scoped interaction from available
+adapter actions and capabilities. A missing prevalidated end-to-end sequence is
+not itself a blocker when the new interaction can be bounded, observed, and
+restored.
 
 ## Safety and evidence
 

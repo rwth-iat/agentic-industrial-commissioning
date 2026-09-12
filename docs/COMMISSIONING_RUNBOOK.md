@@ -169,9 +169,28 @@ The adapter uses binding IDs and the connector/capability boundary. It does not
 duplicate credentials or hard-code a new plant-wide control layer. Record its
 input revisions, evidence references, verification state, and limitations.
 
+Persist independently invocable semantic component actions, not the successful
+probe as a fixed macro. An action may contain technical prerequisites intrinsic
+to that action, such as a required mode request. Do not make the original probe
+sequence, its run-specific ordering or duration, its approval scope, or its
+restore scenario the adapter's only invocation. Keep those details in the
+current supervised plan and retained run evidence.
+
+Generated component adapters may be intentionally untracked or ignored local
+artifacts. During reuse, inspect the conventional adapter directory directly,
+including ignored files. A Git-index-based search or default `rg --files`
+result is not evidence that no adapter exists.
+
 Reassess the interface after relevant project, binding, connector,
 configuration, hardware, or observed-behavior changes. If a validated adapter
 still applies, reuse it instead of exploring again.
+
+If the adapter does not cover the requested interaction, do not require an
+already verified end-to-end sequence. When the interaction can be bounded,
+observed, and restored, return to read-only preflight and prepare a new
+run-scoped supervised probe from independent adapter actions and available
+capabilities. Request exact approval for that probe. Use `hard_blocked` only
+when the interaction or its risk cannot be bounded sufficiently.
 
 ### 7. Completion boundary
 

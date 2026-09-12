@@ -68,6 +68,17 @@
             UserParameters   = @('Symbol', 'Type', 'ExpectedValue', 'TimeoutSeconds', 'PollIntervalMilliseconds', 'NumericTolerance')
         }
 
+        ObserveSymbolDuration = @{
+            Order            = 65
+            Label            = 'Observe primitive PLC symbol duration'
+            Description      = 'Verify that a primitive PLC symbol continuously remains at an expected value for a bounded duration.'
+            Recipe           = 'recipes/read-only/observe-symbol-duration.ps1'
+            PortConfigKey    = 'PlcPort'
+            Safety           = 'READ_ONLY'
+            Verification     = 'experimental'
+            UserParameters   = @('Symbol', 'Type', 'ExpectedValue', 'DurationSeconds', 'PollIntervalMilliseconds', 'NumericTolerance')
+        }
+
         ReadBindingPreflight = @{
             Order            = 70
             Label            = 'Commissioning binding preflight'

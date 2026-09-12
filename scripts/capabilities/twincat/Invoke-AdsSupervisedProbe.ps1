@@ -390,6 +390,13 @@ finally {
 
 $executionStatus = if ($mainSucceeded -and $restoreStatus -eq 'verified') { 'succeeded' } elseif ($timeoutTriggered) { 'aborted' } else { 'failed' }
 $finishedAt = [DateTimeOffset]::UtcNow
+$latestEventAt = $null
+foreach ($event in @($events)) {
+    try { $eventAt = [DateTimeOffset]::Parse([string]$event.timestamp) }
+    catch { continue }
+    if ($null -eq $latestEventAt -or $eventAt -gt $latestEventAt) { $latestEventAt = $eventAt }
+}
+if ($null -ne $latestEventAt -and $latestEventAt -gt $finishedAt) { $finishedAt = $latestEventAt }
 $facts = [ordered]@{
     schema_version = '0.1.0'; kind = 'normalized_supervised_probe_facts'
     run_id = [string]$context.Manifest.run_id; case_id = [string]$context.Manifest.case_id

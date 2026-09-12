@@ -14,7 +14,8 @@ $powerShell = (Get-Process -Id $PID).Path
 
 $validationOutput = @(& $powerShell -NoProfile -File $validator -RecordPath $resolvedInputPath -SkipPlacement 2>&1)
 if ($LASTEXITCODE -ne 0) {
-    throw "Commissioning record is invalid: $($validationOutput -join '; ')"
+    $validationDetail = ($validationOutput | ForEach-Object { $_ | Out-String -Width 4096 }).Trim() -join [Environment]::NewLine
+    throw "Commissioning record is invalid:`n$validationDetail"
 }
 
 $document = Get-Content -Raw -LiteralPath $resolvedInputPath | ConvertFrom-Json

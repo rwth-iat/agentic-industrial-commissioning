@@ -102,6 +102,173 @@ function Test-AllowedProperties {
     }
 }
 
+function Get-AdapterBindingValues {
+    param([AllowNull()][object]$Mapping)
+
+    if ($null -eq $Mapping) { return @() }
+    if ($Mapping -is [System.Collections.IDictionary]) {
+        return @($Mapping.Values | ForEach-Object { [string]$_ })
+    }
+    return @($Mapping.PSObject.Properties | ForEach-Object { [string]$_.Value })
+}
+
+function Get-RuntimeBindingIds {
+    param(
+        [AllowNull()][object]$Revisions,
+        [System.Collections.Generic.List[string]]$Errors
+    )
+
+    if ($null -eq $Revisions) { return @() }
+    $runtimeRevision = @(@($Revisions) | Where-Object {
+        [string](Get-PropertyValue -Object $_ -Name 'kind') -eq 'runtime_bindings'
+    })
+    if ($runtimeRevision.Count -ne 1) { return @() }
+
+    $relativePath = [string](Get-PropertyValue -Object $runtimeRevision[0] -Name 'path')
+    if ([string]::IsNullOrWhiteSpace($relativePath) -or [IO.Path]::IsPathRooted($relativePath)) {
+        Add-RecordError -Errors $Errors -Path '$.adapter_ref.input_revisions' -Message 'runtime-binding path must be repository-relative'
+        return @()
+    }
+    $runtimePath = [IO.Path]::GetFullPath((Join-Path $repositoryRoot $relativePath))
+    $repositoryPrefix = $repositoryRoot
+    if (-not $repositoryPrefix.EndsWith([string][IO.Path]::DirectorySeparatorChar)) {
+        $repositoryPrefix += [IO.Path]::DirectorySeparatorChar
+    }
+    if (-not $runtimePath.StartsWith($repositoryPrefix, [StringComparison]::OrdinalIgnoreCase) -or
+        -not (Test-Path -LiteralPath $runtimePath -PathType Leaf)) {
+        Add-RecordError -Errors $Errors -Path '$.adapter_ref.input_revisions' -Message 'runtime-binding file does not exist inside the repository'
+        return @()
+    }
+    try { $runtimeBindings = Get-Content -LiteralPath $runtimePath -Raw | ConvertFrom-Json }
+    catch {
+        Add-RecordError -Errors $Errors -Path '$.adapter_ref.input_revisions' -Message "runtime-binding file is not valid JSON: $($_.Exception.Message)"
+        return @()
+    }
+    return @(@($runtimeBindings.bindings) | ForEach-Object { [string]$_.id })
+}
+
+function Test-AdapterActionContract {
+    param(
+        [object]$Verification,
+        [string]$EntrypointPath,
+        [AllowNull()][object]$Revisions,
+        [System.Collections.Generic.List[string]]$Errors
+    )
+
+    if ([IO.Path]::GetExtension($EntrypointPath) -ne '.ps1') {
+        Add-RecordError -Errors $Errors -Path '$.adapter_ref.entrypoint' -Message 'current completion gate supports PowerShell component adapters only'
+        return
+    }
+
+    try { $command = Get-Command -Name $EntrypointPath -ErrorAction Stop }
+    catch {
+        Add-RecordError -Errors $Errors -Path '$.adapter_ref.entrypoint' -Message "could not inspect adapter entrypoint: $($_.Exception.Message)"
+        return
+    }
+    if (-not $command.Parameters.ContainsKey('Describe') -or -not $command.Parameters.ContainsKey('Action')) {
+        Add-RecordError -Errors $Errors -Path '$.adapter_ref.entrypoint' -Message 'component adapter must support side-effect-free -Describe and -Action planning'
+        return
+    }
+
+    try { $descriptionOutput = @(& $EntrypointPath -Describe) }
+    catch {
+        Add-RecordError -Errors $Errors -Path '$.adapter_ref.entrypoint' -Message "adapter -Describe failed: $($_.Exception.Message)"
+        return
+    }
+    if ($descriptionOutput.Count -ne 1) {
+        Add-RecordError -Errors $Errors -Path '$.adapter_ref.entrypoint' -Message 'adapter -Describe must return exactly one descriptor'
+        return
+    }
+
+    $description = $descriptionOutput[0]
+    if ([string](Get-PropertyValue -Object $description -Name 'adapter_kind') -ne 'component_actions') {
+        Add-RecordError -Errors $Errors -Path '$.adapter_ref.entrypoint' -Message "adapter -Describe must declare adapter_kind 'component_actions'"
+    }
+    $actions = @(@((Get-PropertyValue -Object $description -Name 'actions')) | Where-Object { $null -ne $_ })
+    if ($actions.Count -eq 0) {
+        Add-RecordError -Errors $Errors -Path '$.adapter_ref.entrypoint' -Message 'adapter -Describe must expose at least one semantic action'
+        return
+    }
+
+    $actionIds = @($actions | ForEach-Object { [string](Get-PropertyValue -Object $_ -Name 'id') })
+    $supportedInterfaces = @((Get-PropertyValue -Object $Verification -Name 'supported_interfaces') | ForEach-Object { [string]$_ })
+    if (@($actionIds | Where-Object { [string]::IsNullOrWhiteSpace($_) }).Count -gt 0 -or
+        @($actionIds | Sort-Object -Unique).Count -ne $actionIds.Count) {
+        Add-RecordError -Errors $Errors -Path '$.adapter_ref.entrypoint' -Message 'adapter action IDs must be non-empty and unique'
+        return
+    }
+    $actionSignature = @($actionIds | Sort-Object) -join "`n"
+    $interfaceSignature = @($supportedInterfaces | Sort-Object) -join "`n"
+    if ($actionSignature -ne $interfaceSignature) {
+        Add-RecordError -Errors $Errors -Path '$.adapter_ref.supported_interfaces' -Message 'must exactly match independently exposed adapter actions'
+    }
+
+    $runtimeBindingIds = @(Get-RuntimeBindingIds -Revisions $Revisions -Errors $Errors)
+    foreach ($action in $actions) {
+        $actionId = [string](Get-PropertyValue -Object $action -Name 'id')
+        $safety = [string](Get-PropertyValue -Object $action -Name 'safety')
+        if ($safety -notin @('READ_ONLY', 'STATE_CHANGING')) {
+            Add-RecordError -Errors $Errors -Path '$.adapter_ref.entrypoint' -Message "adapter action '$actionId' has unsupported safety '$safety'"
+            continue
+        }
+
+        try { $planOutput = @(& $EntrypointPath -Action $actionId) }
+        catch {
+            Add-RecordError -Errors $Errors -Path '$.adapter_ref.entrypoint' -Message "adapter action '$actionId' cannot be planned independently: $($_.Exception.Message)"
+            continue
+        }
+        if ($planOutput.Count -ne 1) {
+            Add-RecordError -Errors $Errors -Path '$.adapter_ref.entrypoint' -Message "adapter action '$actionId' planning must return exactly one plan"
+            continue
+        }
+
+        $plan = $planOutput[0]
+        if ([string](Get-PropertyValue -Object $plan -Name 'action') -ne $actionId -or
+            [string](Get-PropertyValue -Object $plan -Name 'safety') -ne $safety) {
+            Add-RecordError -Errors $Errors -Path '$.adapter_ref.entrypoint' -Message "adapter action '$actionId' plan identity or safety does not match -Describe"
+        }
+        $steps = @(@((Get-PropertyValue -Object $plan -Name 'steps')) | Where-Object { $null -ne $_ })
+        if ($steps.Count -eq 0) {
+            Add-RecordError -Errors $Errors -Path '$.adapter_ref.entrypoint' -Message "adapter action '$actionId' plan must contain at least one step"
+            continue
+        }
+
+        $effectCount = 0
+        foreach ($step in $steps) {
+            $role = [string](Get-PropertyValue -Object $step -Name 'role')
+            $semanticAction = [string](Get-PropertyValue -Object $step -Name 'semantic_action')
+            if ($role -notin @('prerequisite', 'effect', 'observation')) {
+                Add-RecordError -Errors $Errors -Path '$.adapter_ref.entrypoint' -Message "adapter action '$actionId' step has unsupported role '$role'"
+            }
+            if ($role -eq 'effect') {
+                $effectCount++
+                if ($semanticAction -ne $actionId) {
+                    Add-RecordError -Errors $Errors -Path '$.adapter_ref.entrypoint' -Message "adapter action '$actionId' plan contains another semantic effect '$semanticAction'"
+                }
+            }
+            elseif (-not [string]::IsNullOrWhiteSpace($semanticAction) -and $semanticAction -ne $actionId) {
+                Add-RecordError -Errors $Errors -Path '$.adapter_ref.entrypoint' -Message "adapter action '$actionId' plan contains another semantic action '$semanticAction'"
+            }
+
+            $readBindings = @(Get-AdapterBindingValues -Mapping (Get-PropertyValue -Object $step -Name 'read_bindings'))
+            $writeBindings = @(Get-AdapterBindingValues -Mapping (Get-PropertyValue -Object $step -Name 'write_bindings'))
+            if ($safety -eq 'READ_ONLY' -and $writeBindings.Count -gt 0) {
+                Add-RecordError -Errors $Errors -Path '$.adapter_ref.entrypoint' -Message "read-only adapter action '$actionId' declares write bindings"
+            }
+            if ($runtimeBindingIds.Count -gt 0) {
+                foreach ($bindingId in @($readBindings + $writeBindings)) {
+                    if ($bindingId -notin $runtimeBindingIds) {
+                        Add-RecordError -Errors $Errors -Path '$.adapter_ref.entrypoint' -Message "adapter action '$actionId' uses unknown binding ID '$bindingId'"
+                    }
+                }
+            }
+        }
+        if ($safety -eq 'STATE_CHANGING' -and $effectCount -eq 0) {
+            Add-RecordError -Errors $Errors -Path '$.adapter_ref.entrypoint' -Message "state-changing adapter action '$actionId' has no semantic effect step"
+        }
+    }
+}
+
 function Test-AdapterReference {
     param(
         [object]$Document,
@@ -162,6 +329,9 @@ function Test-AdapterReference {
         if (-not $entrypointPath.StartsWith($adapterPrefix, [StringComparison]::OrdinalIgnoreCase) -or
             -not (Test-Path -LiteralPath $entrypointPath -PathType Leaf)) {
             Add-RecordError -Errors $Errors -Path '$.adapter_ref' -Message 'adapter entrypoint does not exist inside the adapter directory'
+        }
+        else {
+            Test-AdapterActionContract -Verification $verification -EntrypointPath $entrypointPath -Revisions $Revisions -Errors $Errors
         }
     }
 

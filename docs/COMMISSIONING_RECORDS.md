@@ -74,6 +74,15 @@ and its four input revisions match the commissioning run. The current
 supervised actuator path additionally requires a retained human observation and
 a confirmed interaction hypothesis. A non-empty string alone is not sufficient.
 
+For PowerShell component adapters, the completion gate invokes the entrypoint
+only in side-effect-free discovery and planning modes: `-Describe` lists the
+independently callable semantic actions, and `-Action <id>` returns the plan for
+one action without executing it. The listed actions must match
+`supported_interfaces`; plans must use runtime-binding IDs, keep read-only
+actions free of writes, and may not contain the semantic effect of another
+action. Run-specific ordering, timing, approval, and restoration remain in the
+commissioning run rather than becoming a stored adapter macro.
+
 The small generated verification file has this shape:
 
 ```json
