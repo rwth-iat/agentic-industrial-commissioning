@@ -72,7 +72,8 @@ objects completely.
 
 ## Safety boundary
 
-Publishing a connector or capability does not authorize its use against a
-controller or plant. Read-only preflight, exact approval, bounded execution,
-observation, abort, and restoration requirements remain in force for every
-live run. See [COMMISSIONING_RUNBOOK.md](COMMISSIONING_RUNBOOK.md).
+Publishing runtime code does not authorize its use against a controller or
+plant. READ remains the default. Every WRITE requires exact approval for the
+current component, effect, bounds, runtime context, relevant observation,
+abort condition, and restoration path where applicable. Technical writability
+is not evidence of authorization or plant safety.

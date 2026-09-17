@@ -7,7 +7,7 @@
     "connection_profile": "twincat-ads-default"
   },
   "canonical_model": {
-    "system_id": "synthetic-system"
+    "system_id": "synthetic-process-cell"
   },
   "data_classification": "public_example",
   "sources": [
@@ -20,7 +20,8 @@
   "bindings": [
     {
       "id": "demo-valve-operation-request",
-      "asset_id": "demo-valve",
+      "asset_id": "demo-control-valve",
+      "interface_id": "demo-control-valve-interface",
       "role": "operation_mode_request",
       "access": "read_write",
       "locator": {
@@ -33,6 +34,10 @@
         "acknowledgement_binding_id": "demo-valve-operation-active",
         "auto_reset_expected": true
       },
+      "write_semantics": {
+        "type": "pulse",
+        "duration_ms": 100
+      },
       "status": "validated",
       "confidence": 1,
       "source_refs": [
@@ -41,7 +46,8 @@
     },
     {
       "id": "demo-valve-operation-active",
-      "asset_id": "demo-valve",
+      "asset_id": "demo-control-valve",
+      "interface_id": "demo-control-valve-interface",
       "role": "operation_mode_active",
       "access": "read",
       "locator": {
@@ -60,29 +66,9 @@
       ]
     },
     {
-      "id": "demo-valve-offline-request",
-      "asset_id": "demo-valve",
-      "role": "operation_mode_request",
-      "access": "read_write",
-      "locator": {
-        "kind": "ads_symbol",
-        "value": "GVL_Demo.Valve.StateOfflineRequest"
-      },
-      "datatype": "BOOL",
-      "interaction": {
-        "semantics": "request",
-        "acknowledgement_binding_id": "demo-valve-operation-active",
-        "auto_reset_expected": true
-      },
-      "status": "validated",
-      "confidence": 1,
-      "source_refs": [
-        "synthetic-runtime-observation"
-      ]
-    },
-    {
       "id": "demo-flow-process-value",
       "asset_id": "demo-flow-sensor",
+      "interface_id": "demo-flow-sensor-interface",
       "role": "process_value",
       "access": "read",
       "locator": {
@@ -105,7 +91,8 @@
     },
     {
       "id": "demo-valve-manual-setpoint",
-      "asset_id": "demo-valve",
+      "asset_id": "demo-control-valve",
+      "interface_id": "demo-control-valve-interface",
       "role": "manual_setpoint",
       "access": "read_write",
       "locator": {
@@ -119,9 +106,31 @@
       "interaction": {
         "semantics": "setpoint"
       },
+      "write_semantics": {
+        "type": "level"
+      },
       "write_constraints": {
         "minimum": 0,
         "maximum": 100
+      },
+      "status": "validated",
+      "confidence": 1,
+      "source_refs": [
+        "synthetic-runtime-observation"
+      ]
+    },
+    {
+      "id": "demo-io-diagnostic-counter",
+      "asset_id": "demo-io-module",
+      "role": "other",
+      "access": "read",
+      "locator": {
+        "kind": "ads_symbol",
+        "value": "GVL_Demo.Diagnostics.IoCycleCounter"
+      },
+      "datatype": "UDINT",
+      "interaction": {
+        "semantics": "state"
       },
       "status": "validated",
       "confidence": 1,

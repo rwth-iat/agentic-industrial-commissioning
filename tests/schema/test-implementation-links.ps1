@@ -5,7 +5,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 $repositoryRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
-$validator = Join-Path $repositoryRoot 'scripts/validate-implementation-links.ps1'
+$validator = Join-Path $repositoryRoot 'spec/validation/validate-implementation-links.ps1'
 $baseLinkPath = Join-Path $repositoryRoot 'examples/implementation-links/process-cell.synthetic.v0.1.json'
 $baseSoftwarePath = Join-Path $repositoryRoot 'examples/software-models/process-cell.synthetic.v0.1.json'
 $baseHardwarePath = Join-Path $repositoryRoot 'examples/hardware-models/process-cell.synthetic.v0.2.json'

@@ -35,7 +35,7 @@ independently of any automation vendor or physical testbed.
 - an arbitrary set of static, offline evidence artifacts available for a case;
 - one or more agent- or connector-derived canonical fragments;
 - the active
-  [canonical hardware-model v0.2 proposal](../spec/hardware-model.schema.v0.2-proposal.json).
+  [canonical hardware-model v0.2 contract](../spec/hardware-model.schema.json).
 
 The method does not require particular raw categories such as a BOM, datasheet,
 wiring plan, or engineering export. Those are possible evidence types, not a
@@ -97,7 +97,7 @@ part of its proof.
 
 ### Completion evidence
 
-- `spec/hardware-model.schema.v0.2-proposal.json` defines the validated canonical
+- `spec/hardware-model.schema.json` defines the validated canonical v0.2
   contract used by the pipeline.
 - `src/commissioning_core/` implements assembly, evidence reconciliation, and
   electrical compatibility matching without vendor-specific branches.

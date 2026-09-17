@@ -6,9 +6,11 @@ The Canonical Hardware Model is the vendor-independent contract between discover
 
 The model is a lean Commissioning Intermediate Representation (IR). It is not intended to replace an Asset Administration Shell (AAS), AutomationML, ECLASS, OPC UA information models, or a complete digital twin.
 
-## Active schema proposal
+## Active schema
 
-The active schema is [`../spec/hardware-model.schema.v0.2-proposal.json`](../spec/hardware-model.schema.v0.2-proposal.json). The earlier [`../spec/hardware-model.schema.json`](../spec/hardware-model.schema.json) remains available as the original baseline while the proposal is evaluated.
+The active schema is [`../spec/hardware-model.schema.json`](../spec/hardware-model.schema.json).
+It is the validated version 0.2 contract. The superseded baseline and the
+temporary proposal filename remain available only through Git history.
 
 Version 0.2 uses three central abstractions:
 
@@ -69,7 +71,7 @@ Potentially inferred assets, ports, properties, and connections retain an episte
 
 ## Validation
 
-JSON Schema validates document structure. Cross-object constraints require the semantic validator in [`../scripts/validate-hardware-model.ps1`](../scripts/validate-hardware-model.ps1), including:
+JSON Schema validates document structure. Cross-object constraints require the semantic validator in [`../spec/validation/validate-hardware-model.ps1`](../spec/validation/validate-hardware-model.ps1), including:
 
 - uniqueness of source, asset, port, and connection IDs;
 - resolution of source, parent-asset, asset, and port references;
@@ -85,8 +87,8 @@ Run all schema and semantic validation tests with:
 ./tests/schema/test-hardware-model.ps1
 ```
 
-## Examples
+## Example
 
-- [`../examples/hardware-models/process-cell-ambiguous.synthetic.v0.2.json`](../examples/hardware-models/process-cell-ambiguous.synthetic.v0.2.json): two electrically compatible candidates remain ambiguous;
-- [`../examples/hardware-models/process-cell-unambiguous.synthetic.v0.2.json`](../examples/hardware-models/process-cell-unambiguous.synthetic.v0.2.json): exactly one electrically compatible candidate remains;
-- [`../examples/hardware-models/process-cell-incompatible.synthetic.v0.2.json`](../examples/hardware-models/process-cell-incompatible.synthetic.v0.2.json): no compatible candidate remains.
+[`../examples/hardware-models/process-cell.synthetic.v0.2.json`](../examples/hardware-models/process-cell.synthetic.v0.2.json)
+is the hardware slice of the single compact synthetic TwinCAT case. Negative
+and edge cases belong under `tests/schema/fixtures/`, not in the public example.

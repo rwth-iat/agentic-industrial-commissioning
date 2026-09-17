@@ -27,6 +27,10 @@
         "semantics": "request",
         "acknowledgement_binding_id": "asset-two-state"
       },
+      "write_semantics": {
+        "type": "pulse",
+        "duration_ms": 100
+      },
       "status": "validated",
       "confidence": 1,
       "source_refs": ["source-1"]

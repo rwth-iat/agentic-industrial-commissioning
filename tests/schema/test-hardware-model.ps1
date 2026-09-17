@@ -5,20 +5,12 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 $repositoryRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
-$validator = Join-Path $repositoryRoot 'scripts/validate-hardware-model.ps1'
+$validator = Join-Path $repositoryRoot 'spec/validation/validate-hardware-model.ps1'
 $powerShell = (Get-Process -Id $PID).Path
 
 $cases = @(
     @{
-        Path = 'examples/hardware-models/process-cell-ambiguous.synthetic.v0.2.json'
-        ExpectedExitCode = 0
-    },
-    @{
-        Path = 'examples/hardware-models/process-cell-unambiguous.synthetic.v0.2.json'
-        ExpectedExitCode = 0
-    },
-    @{
-        Path = 'examples/hardware-models/process-cell-incompatible.synthetic.v0.2.json'
+        Path = 'examples/hardware-models/process-cell.synthetic.v0.2.json'
         ExpectedExitCode = 0
     },
     @{

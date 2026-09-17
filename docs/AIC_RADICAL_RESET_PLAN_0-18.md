@@ -301,7 +301,9 @@ Read-Binding `
 Write-Binding `
     -RuntimeBindingsPath <path> `
     -BindingId <vom LLM ausgewählte ID> `
-    -Value <vom LLM ausgewählter Wert>
+    -Value <vom LLM ausgewählter Wert> `
+    -Mode <vom LLM ausgewähltes level oder pulse> `
+    -PulseDurationMilliseconds <bei pulse vom LLM ausgewählte Dauer>
 ```
 
 Diese Signaturen sind interne Tool-Parameter.
@@ -333,7 +335,7 @@ WRITE darf ausschließlich harte technische Grenzen prüfen:
 4. Wert ist konvertierbar.
 5. technische Grenzwerte werden eingehalten.
 6. erlaubte Wertemengen werden eingehalten.
-7. Schreibsemantik ist technisch bekannt.
+7. der ausdrücklich gewählte Schreibmodus ist technisch zulässig.
 8. ADS-Ziel existiert.
 9. tatsächlicher Endwert wird gelesen.
 10. technische Fehler bleiben sichtbar.
@@ -344,9 +346,14 @@ Diese Entscheidung bleibt beim LLM.
 
 ---
 
-# 7. Minimale Schreibsemantik
+# 7. Minimale Schreibausführung
 
 Es werden zunächst nur zwei technische Schreibarten benötigt.
+
+Das LLM wählt die Schreibart bei jedem WRITE ausdrücklich. Bei einem Pulse
+wählt es zusätzlich die begrenzte Pulsdauer. Optionale `write_semantics` im
+Binding dürfen das Reasoning informieren, sind aber weder Ausführungsparameter
+noch Voraussetzung für einen technisch gültigen WRITE.
 
 ## 7.1 Level Write
 
@@ -358,17 +365,16 @@ Für:
 
 Beispiel:
 
-```json
-{
-  "write_semantics": {
-    "type": "level"
-  },
-  "write_constraints": {
-    "minimum": 0,
-    "maximum": 100
-  }
-}
+```powershell
+Write-Binding `
+    -RuntimeBindingsPath <path> `
+    -BindingId <vom LLM ausgewählte ID> `
+    -Value 50 `
+    -Mode level
 ```
+
+Harte Grenzen wie `minimum`, `maximum` oder `allowed_values` verbleiben im
+Binding und werden von WRITE geprüft.
 
 ## 7.2 Pulse Write
 
@@ -382,13 +388,13 @@ Für:
 
 Beispiel:
 
-```json
-{
-  "write_semantics": {
-    "type": "pulse",
-    "duration_ms": 100
-  }
-}
+```powershell
+Write-Binding `
+    -RuntimeBindingsPath <path> `
+    -BindingId <vom LLM ausgewählte ID> `
+    -Value $true `
+    -Mode pulse `
+    -PulseDurationMilliseconds 100
 ```
 
 WRITE führt einen Pulse technisch atomar aus:
@@ -780,9 +786,22 @@ Historische Beschreibungen in `MVP.md` und `docs/archive/` sind erlaubt.
 
 ---
 
-# Phase 2: Private Daten sauber trennen
+# Phase 2: Private Daten inventarisieren und Konfiguration additiv konsolidieren
 
-## Anlagenwissen
+## Ziel
+
+Phase 2 ordnet die privaten Dateien und führt die nicht geheimen
+Verbindungsparameter in einem lokalen Umgebungsprofil zusammen. Sie räumt
+`creds/` noch nicht destruktiv auf. Bestehende Zugangsdaten, Skripte,
+Betriebsdokumente, Protokolle und Legacy-Kopien bleiben erhalten, bis Phase 3
+einen funktionierenden Ersatzpfad nachgewiesen hat.
+
+Ein frischer Agent darf Phase 2 nicht als Auftrag verstehen, alle Dateien zu
+löschen, die nicht der späteren Zielstruktur entsprechen.
+
+## Private Datenklassen
+
+### Anlagenwissen
 
 ```text
 cases/<case-id>/derived/private/
@@ -796,32 +815,25 @@ Enthält reale:
 - Runtime Bindings,
 - Symbolpfade.
 
-## Verbindungskonfiguration
+### Verbindungskonfiguration
 
 ```text
 creds/
 ```
 
-Enthält:
+Enthält heute unter anderem:
 
 - Engineering-Host,
 - Authentifizierungsart,
 - AMS Net ID,
 - ADS-Port,
 - ADS-DLL-Pfad,
-- optionale RDP-Dateien.
+- Zugangsinformationen,
+- optionale RDP-Dateien,
+- ausführbare Remote-Skripte,
+- Betriebsdokumente und Legacy-Kopien.
 
-## Credentials
-
-Credentials werden nicht dauerhaft als Klartext gespeichert.
-
-Der Mensch authentifiziert sich interaktiv über:
-
-```text
-Get-Credential
-```
-
-## Runtime-Beobachtungen
+### Runtime-Beobachtungen
 
 ```text
 cases/<case-id>/raw/runtime/
@@ -829,13 +841,60 @@ cases/<case-id>/raw/runtime/
 
 Enthält echte technische Laufzeitdaten.
 
-## Lokales Profil
+## Was in diesem Plan mit Produktcode gemeint ist
 
-Die bisher getrennten Konfigurationen werden konzeptionell zu einem Profil zusammengeführt:
+Produktcode sind ausführbare Dateien, die Verhalten implementieren, zum
+Beispiel:
+
+```text
+Start-AgentRemoteBridge.ps1
+Invoke-AgentRemote.ps1
+```
+
+Keine Produktcode-Dateien sind:
+
+```text
+creds.txt
+*.local.psd1
+*.rdp
+Betriebsdokumentation
+```
+
+Die Einordnung als Produktcode bedeutet nicht, dass die Datei sofort gelöscht
+wird. Sie bedeutet nur, dass ihre spätere kanonische Heimat unter
+`capabilities/twincat/` und nicht unter `creds/` liegt.
+
+## Lokales Umgebungsprofil
+
+Die bisher getrennten Konfigurationen werden additiv zu einem Profil
+zusammengeführt:
 
 ```text
 creds/hc10-twincat.local.psd1
 ```
+
+Das Profil konsolidiert ausschließlich die für Remote- und ADS-Zugriff
+benötigten lokalen Verbindungsparameter, beispielsweise:
+
+```powershell
+@{
+    Remote = @{
+        ComputerName   = '<ENGINEERING-HOST>'
+        Authentication = 'Negotiate'
+    }
+
+    Ads = @{
+        NetId  = '<AMS-NET-ID>'
+        Port   = 851
+        AdsDll = '<PATH-TO-TWINCAT.ADS.DLL>'
+    }
+}
+```
+
+Während Phase 2 bleiben die bisherigen Konfigurationsdateien als
+Rückfallmöglichkeit bestehen. Erst nachdem Phase 3 den neuen Pfad erfolgreich
+verifiziert hat, dürfen nachweislich redundante Konfigurationskopien entfernt
+werden.
 
 Das Runtime-Binding-Dokument referenziert lediglich:
 
@@ -854,41 +913,62 @@ hc10-twincat
 → creds/hc10-twincat.local.psd1
 ```
 
-## Bereinigung von `creds/`
+## Umgang mit `creds.txt`
 
-Behalten:
+`creds.txt` enthält weiterhin benötigte Zugangsinformationen und wird in Phase
+2 weder gelöscht noch automatisch verändert, ausgelesen oder in Ausgaben
+kopiert.
 
-```text
-*.local.psd1
-*.rdp
-```
+Für den aktuellen Reset gilt:
 
-Produktcode aus `creds/` entfernen.
+- `creds.txt` bleibt lokal erhalten;
+- die Datei bleibt Git-ignoriert;
+- ihr Inhalt wird nicht in Runtime Bindings, öffentliche Beispiele oder
+  verfolgte Konfigurationsdateien übernommen;
+- der Mensch verwendet die benötigten Zugangsdaten bei der interaktiven
+  Anmeldung über `Get-Credential`;
+- eine spätere Migration in einen Secret Store ist ein separates Vorhaben und
+  keine Voraussetzung dieses Resets;
+- eine Löschung erfolgt nur nach ausdrücklicher Benutzeranweisung und erst nach
+  nachgewiesen funktionierender Alternative.
 
-`creds.txt` nicht automatisch löschen.
+## Vorgehen in Phase 2
 
-Vorgehen:
-
-1. Benutzer prüft Inhalt.
-2. Noch benötigte Infrastrukturinformationen migrieren.
-3. Passwörter nicht übernehmen.
-4. Datei erst nach bewusster Freigabe löschen.
+1. Inhalte unter `creds/` nach Zugangsdaten, Konfiguration, RDP-Dateien,
+   ausführbarem Code, Betriebsdokumenten und Legacy-Kopien klassifizieren.
+2. Keine geheimen Inhalte in Tool-Ausgaben oder öffentliche Dateien kopieren.
+3. `hc10-twincat.local.psd1` aus den nicht geheimen Parametern der vorhandenen
+   lokalen Konfigurationen erstellen.
+4. `creds.txt`, RDP-Dateien, Remote-Skripte, Betriebsdokumente und Legacy-Kopien
+   unverändert als Rückfallmöglichkeit behalten.
+5. Noch keine ausführbare Datei verschieben oder löschen.
+6. Noch keinen bestehenden Remote- oder ADS-Aufrufpfad ändern.
+7. Die geplante Zielposition jedes ausführbaren Skripts für Phase 3 notieren.
 
 ## Abnahme
 
-- `creds/` enthält keinen Produktcode.
-- Kein Passwort befindet sich in Runtime Bindings.
-- Kein Passwort befindet sich im Repository.
+- `creds/hc10-twincat.local.psd1` enthält die konsolidierten lokalen Remote-
+  und ADS-Verbindungsparameter.
+- Die bisherigen Konfigurations- und Zugriffspfade funktionieren unverändert
+  weiter.
+- `creds.txt` und alle benötigten privaten Zugangsinformationen sind erhalten.
+- Produktcode unter `creds/` ist klassifiziert, aber noch nicht voreilig
+  entfernt.
+- Kein Passwort wurde in eine von Git verfolgte Datei, ein Runtime Binding oder
+  ein öffentliches Beispiel übernommen.
 - Private Dateien bleiben Git-ignoriert.
 - Öffentliche Beispiele enthalten nur synthetische Werte.
 
 ---
 
-# Phase 3: Remote Bridge als Infrastruktur konsolidieren
+# Phase 3: Remote Bridge verifiziert migrieren und konsolidieren
 
 ## Ziel
 
-Die vorhandene Remote Bridge wird wiederverwendet, nicht neu erfunden.
+Die vorhandene Remote Bridge wird wiederverwendet und an ihre kanonische
+Zielposition verschoben, ohne den funktionierenden Zugangspfad zu verlieren.
+Phase 3 ist eine Migration mit Vorher-Nachher-Nachweis, keine Neuimplementierung
+und keine pauschale Löschaktion.
 
 Ziel:
 
@@ -896,17 +976,74 @@ Ziel:
 capabilities/twincat/Start-RemoteBridge.ps1
 ```
 
-Der bisherige Client-Aufruf wird intern in `Runtime.psm1` integriert.
+Der bestehende Client-Aufruf bleibt während dieser Phase funktionsfähig. Seine
+spätere interne Integration in `Runtime.psm1` erfolgt in Phase 4 gemeinsam mit
+der READ/WRITE-Runtime. Phase 3 greift dieser Runtime-Implementierung nicht vor.
 
-## Betriebsablauf
+## Ausgangsmaterial erhalten und vergleichen
+
+Vor der Migration werden die vorhandenen Bridge- und Client-Kopien unter
+`scripts/remote/`, `creds/` und gegebenenfalls privaten Legacy-Verzeichnissen
+verglichen.
+
+Dabei gilt:
+
+- die aktuell verwendete und verifizierte Implementierung wird zur kanonischen
+  Grundlage;
+- eindeutige Betriebsinformationen aus privaten Dokumenten und Protokollen
+  bleiben erhalten;
+- keine Datei wird allein wegen ihres Namens oder Speicherorts gelöscht;
+- Legacy-Kopien bleiben bestehen, bis ihre Redundanz nachgewiesen ist.
+
+## Migration
+
+1. Die aktuelle funktionierende Bridge-Implementierung bestimmen.
+2. Diese Implementierung nach
+   `capabilities/twincat/Start-RemoteBridge.ps1` überführen.
+3. Das in Phase 2 erstellte
+   `creds/hc10-twincat.local.psd1` als lokale Konfiguration anbinden.
+4. Das bestehende Session-Protokoll mit Loopback-Adresse, temporärem Port,
+   Sitzungstoken und ignorierter State-Datei erhalten.
+5. Den bisherigen Client-Aufruf für den Migrationsnachweis weiterverwenden.
+6. Bridge starten und die interaktive Anmeldung über `Get-Credential` prüfen.
+7. Einen harmlosen Remote-Aufruf über den neuen Bridge-Pfad ausführen.
+8. Bridge beenden und prüfen, dass Sitzung und temporäre State-Datei sauber
+   entfernt werden.
+9. Ergebnis mit dem vorherigen funktionierenden Pfad vergleichen.
+10. Erst danach nachweislich identische, nicht mehr verwendete Kopien unter
+    `creds/` oder `scripts/remote/` entfernen.
+
+## Verhältnis zu ADS und Phase 4
+
+Phase 3 konsolidiert den Remote-Transport und seine Session-State-Datei. Sie
+konsolidiert noch nicht die gesamte ADS-Implementierung.
+
+Die vorhandenen ADS-Rezepte und ADS-Zugriffe bleiben während Phase 3 bestehen.
+In Phase 4 werden der Remote-Client und die benötigten ADS-Bausteine unter der
+minimalen Runtime mit genau zwei öffentlichen Operationen zusammengeführt:
+
+```text
+READ
+WRITE
+```
+
+Damit bleibt die Verantwortungsgrenze klar:
+
+```text
+Phase 2: private Konfiguration additiv ordnen
+Phase 3: Remote Bridge verifiziert migrieren
+Phase 4: Remote-Client und benötigten ADS-Zugriff in Runtime.psm1 integrieren
+```
+
+## Betriebsablauf nach erfolgreicher Migration
 
 1. Betreiber startet `Start-RemoteBridge.ps1`.
 2. Script lädt das lokale Connection Profile.
 3. Betreiber authentifiziert sich mit `Get-Credential`.
 4. Bridge öffnet eine PowerShell-Remotesitzung.
-5. Bridge erzeugt eine temporäre Session-Datei.
-6. READ und WRITE verwenden die bestehende Sitzung.
-7. Beim Beenden wird die Session-Datei entfernt.
+5. Bridge erzeugt eine temporäre, Git-ignorierte Session-State-Datei.
+6. Ab Phase 4 verwenden READ und WRITE diese bestehende Sitzung intern.
+7. Beim Beenden werden Sitzung und State-Datei entfernt.
 
 ## Der Agent sieht nicht
 
@@ -916,7 +1053,8 @@ Der bisherige Client-Aufruf wird intern in `Runtime.psm1` integriert.
 - `execute remote script`,
 - `close bridge`.
 
-Bei fehlender Bridge erhält er einen technischen Fehler.
+Bei fehlender Bridge erhält er einen konkreten technischen Fehler. Der Agent
+orchestriert den Bridge-Lebenszyklus nicht.
 
 ## Nicht bauen
 
@@ -929,7 +1067,15 @@ Bei fehlender Bridge erhält er einen technischen Fehler.
 
 ## Abnahme
 
-- Remote-Pfad funktioniert weiterhin.
+- Der neue Bridge-Pfad unter `capabilities/twincat/` funktioniert mindestens
+  genauso wie der vorherige Pfad.
+- Interaktive Authentifizierung funktioniert weiterhin, ohne Credentials in
+  verfolgte Dateien zu übernehmen.
+- Session-Token und State-Datei werden weiterhin sicher und temporär behandelt.
+- Benötigte Betriebsdokumente und Protokolle sind erhalten oder nachvollziehbar
+  an einen privaten Dokumentationsort verschoben.
+- Nur verifizierte redundante Codekopien wurden entfernt.
+- Die vorhandenen ADS-Zugriffe wurden nicht voreilig gelöscht.
 - Bridge bleibt Infrastruktur.
 - Agent orchestriert die Bridge nicht.
 
@@ -1042,6 +1188,8 @@ Vor WRITE entscheidet das LLM:
 - welche fachliche Wirkung gewünscht ist,
 - welches Binding diese Wirkung repräsentiert,
 - welcher Wert erforderlich ist,
+- ob `level` oder `pulse` technisch ausgeführt werden soll,
+- welche begrenzte Dauer bei einem Pulse erforderlich ist,
 - welche aktuellen Zustände vorher relevant sind,
 - ob die Aktion mehrdeutig ist,
 - welches Feedback danach beobachtet werden sollte.
@@ -1058,7 +1206,7 @@ WRITE prüft ausschließlich harte technische Grenzen:
 4. Wert ist konvertierbar.
 5. Minimum/Maximum werden eingehalten.
 6. erlaubte Wertemenge wird eingehalten.
-7. Schreibsemantik ist technisch bekannt.
+7. der ausdrücklich gewählte Schreibmodus und gegebenenfalls die Pulsdauer sind technisch zulässig.
 8. ADS-Ziel existiert.
 9. tatsächlicher Endzustand wird gelesen.
 10. technische Fehler bleiben sichtbar.
@@ -1078,6 +1226,11 @@ Die Freigabe liegt zwischen Mensch und LLM.
 ---
 
 # Phase 7: Schreibsemantik minimal modellieren
+
+Das LLM übergibt `level` oder `pulse` ausdrücklich an WRITE und wählt bei
+`pulse` die begrenzte Dauer. Optionale `write_semantics` im Binding sind nur
+Reasoning-Hinweise und dürfen einen ausdrücklich gewählten, technisch gültigen
+WRITE nicht blockieren.
 
 ## Level Write
 
@@ -1403,6 +1556,12 @@ Er soll bestehen, weil er den Modellzusammenhang versteht.
 ---
 
 # Phase 15: Alte Commissioning-Architektur entfernen
+
+> **Reihenfolgeänderung:** Nach dem erfolgreichen technischen READ-/WRITE-Pfad
+> wird Phase 15 vor den pausierten Phasen 13 und 14 ausgeführt. Danach folgen
+> Phase 16 und 17; die agentischen Beweise aus Phase 13 und 14 werden erst auf
+> dem bereinigten Minimalbaum wiederholt. Inhalt und Abnahmegrenzen der Phasen
+> bleiben unverändert.
 
 Erst nach bestandenem minimalem Runtime-Pfad entfernen:
 

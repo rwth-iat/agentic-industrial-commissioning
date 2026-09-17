@@ -2,163 +2,144 @@
 
 ## Purpose and active focus
 
-This repository develops a generic, vendor-independent method for agentic
-industrial commissioning.
+This repository investigates the smallest useful agentic core for industrial
+commissioning. The active brownfield MVP assumes an existing PLC application
+and an already reconstructed offline knowledge baseline.
 
-The active focus is brownfield commissioning with an existing PLC application
-and an already reconstructed offline knowledge baseline. Static reconstruction,
-greenfield generation, and broader operation remain documented in the roadmap,
-but must not add complexity to the current commissioning path.
+The active architecture is deliberately limited to:
 
-## Architecture boundary
+```text
+four models + LLM + READ + WRITE
+```
 
-Keep the generic core independent of vendor, PLC platform, fieldbus,
-engineering suite, and device manufacturer. Vendor-specific technical access
-belongs in capabilities or environment-specific generated connectors.
+Static reconstruction, project modification, greenfield generation, and
+broader operation remain long-term research topics. They must not add
+complexity to this commissioning path.
 
-Commissioning uses four contract types:
+## User interaction and agent responsibility
 
-1. The hardware model is normally case- or system-scoped.
-2. Software models are component-scoped.
-3. Implementation links are component-scoped.
-4. Runtime bindings are component-scoped.
+The user states a domain goal in natural language, for example "Open Y20" or
+"What is the current flow?" The user does not need to know a binding ID, PLC
+symbol, datatype, or action sequence.
 
-The last three contract types may occur repeatedly below component-specific
-case directories. A run uses the requested component package and only the
-relevant hardware-model slice. It must not require a merged project-wide
-software, link, or binding document.
+The agent must:
 
-Do not mix their responsibilities:
+1. interpret the goal from the four models;
+2. identify the relevant physical component and controller semantics;
+3. follow implementation links to plausible runtime bindings;
+4. choose the required binding itself;
+5. read relevant state before and after a change when needed;
+6. expose ambiguity instead of choosing arbitrarily; and
+7. evaluate whether the observed result satisfies the goal.
 
-- hardware models describe physical systems, devices, interfaces, signals,
-  connections, uncertainty, and provenance;
-- software models describe component-facing controller semantics;
-- implementation links trace hardware identities to software semantics;
-- runtime bindings describe concrete runtime access and interaction semantics.
+There is no deterministic planner, binding selector, runner, component adapter,
+or fixed commissioning workflow between the user goal and READ or WRITE. Do
+not add one. New abstractions require a concrete, experimentally demonstrated
+technical need.
 
-Passing a schema proves structure, not runtime truth or authorization.
+## The four knowledge contracts
 
-## Commissioning workflow
+Keep the contracts separate:
 
-For component work, follow
-[`docs/COMMISSIONING_RUNBOOK.md`](docs/COMMISSIONING_RUNBOOK.md). The architecture
-and responsibility split are defined in
-[`docs/COMMISSIONING_ARCHITECTURE.md`](docs/COMMISSIONING_ARCHITECTURE.md).
+1. The hardware model describes physical systems, devices, interfaces,
+   signals, connections, uncertainty, and provenance. It is normally
+   case- or system-scoped.
+2. Software models describe component-facing controller elements and
+   semantics.
+3. Implementation links trace physical identities to software semantics.
+4. Runtime bindings describe concrete runtime locators, access, datatypes,
+   technical write constraints, and optional technical write semantics.
 
-Every live run begins with a separately bounded read-only preflight. Read-only
-access does not authorize later writes. Assess readiness for the requested
-interaction from current evidence; do not treat readiness as a permanent
-component property.
+Software models, implementation links, and runtime bindings are normally
+component-scoped and may occur repeatedly below component-specific case
+directories. The models describe the world; they do not prescribe an action
+sequence. Passing a schema proves structure, not runtime truth, semantic
+correctness, authorization, or plant safety.
 
-Persist run records through `scripts/write-commissioning-record.ps1` and
-validate them with `scripts/validate-commissioning-record.ps1`. Their contract
-and placement are defined in `docs/COMMISSIONING_RECORDS.md`. Execution events
-must come from the technical executor; do not reconstruct reads, writes, or
-timestamps from narrative.
+## Runtime boundary
 
-After successful exploration, generate or update a small deterministic
-component adapter under
-`generated/connectors/<environment-id>/components/<component-id>/`. Recurring
-multi-component behavior may compose validated component adapters. Do not add a
-fifth static knowledge model merely to preserve the exploratory sequence.
+The agent has exactly two runtime capabilities: READ and WRITE.
 
-A high-level state-changing commissioning request remains incomplete after a
-successful probe. Continue through adapter generation and offline verification
-without requiring a second user instruction. Claim `validated_interface` only
-when the adapter verification references the current four input revisions and
-retained evidence. Pause only for exact state-change approval, required human
-observation, unresolved ambiguity, or a concrete blocker.
+The LLM owns goal interpretation, semantic binding selection, action choice,
+sequencing, and result evaluation. The deterministic runtime layer only:
 
-## Safety
+- resolves the exact binding ID selected by the LLM;
+- checks access, datatype, conversion, technical limits, allowed values, and
+  whether the explicitly selected level or pulse execution is technically
+  valid;
+- loads private connection configuration;
+- performs the remote TwinCAT ADS operation; and
+- returns actual values and technical errors without semantic reinterpretation.
 
-Safety takes priority over autonomy.
+Runtime code must never choose a binding from the user's goal or encode
+component-specific plant behavior. Technical protection limits constrain what
+may be executed; they do not constrain or replace the agent's reasoning.
+The LLM selects WRITE mode and pulse duration explicitly. Optional
+`write_semantics` metadata may inform that choice but its absence must not
+block an otherwise valid explicit WRITE.
 
-Unless the exact task is explicitly approved:
+Remote transport, authentication, session handling, and ADS invocation are
+internal infrastructure. The human starts and authenticates the remote bridge.
+The agent does not manage bridge lifecycle and does not receive passwords.
 
-- remain read-only;
-- do not activate physical outputs;
-- do not change controller state;
-- do not activate configuration;
-- do not download or deploy PLC code;
-- do not start machinery;
-- do not bypass interlocks or safety functions.
+## Safety and authorization
 
-A state-changing probe requires exact human approval for the current component,
-effect, bounds, duration, runtime context, observation, abort, and restoration
-path. Recheck preconditions immediately before execution. Approval does not
-carry over to another run or changed context. A technical `HumanApproved`
-parameter is not proof of authorization or plant safety.
+Safety takes priority over autonomy. Unless the exact state change is approved,
+remain read-only. Do not activate physical outputs, change controller state,
+activate configuration, deploy PLC code, start machinery, or bypass interlocks
+or safety functions.
 
-Prefer a validated controller-managed functional request interface over direct
-writes to mapped outputs or internal variables. Never silently substitute a
-primitive write for a requested semantic action.
+Every WRITE requires concrete human approval for the current component,
+intended effect, value or bounds, runtime context, relevant observation, abort
+condition, and restoration path where applicable. Recheck relevant conditions
+immediately before execution. Approval does not carry over to another action,
+run, or changed context. A technical `HumanApproved` flag is not proof of
+authorization or plant safety.
 
-The PLC or another deterministic controller retains hard real-time control,
-interlocks, and safety functions. The agent performs commissioning,
-exploration, validation, and supervisory orchestration around that boundary.
+Prefer a controller-managed functional request over direct writes to mapped
+outputs or internal variables. Never silently substitute a primitive write for
+a requested semantic action. The PLC or another deterministic controller
+retains hard real-time control, interlocks, and safety functions.
 
 ## Evidence and uncertainty
 
 Never turn an inference into a fact silently. Preserve status, confidence,
 evidence, provenance, contradictions, and rejected candidates. If multiple
-identities or mappings remain plausible, present candidates instead of choosing
-arbitrarily.
+identities or bindings remain plausible, present the candidates or stop.
 
-Preserve raw live output privately under
-`cases/<case-id>/raw/runtime/<run-id>/` before promoting a claim. A request for
-the current value requires a new acquisition after that request; otherwise
-label any reused value as last known with its timestamp.
+A request for a current value requires a new READ after that request; otherwise
+label a reused observation as last known with its timestamp. Actual READ and
+WRITE results may be retained unchanged under
+`cases/<case-id>/raw/runtime/<timestamp>/`, minimally as `events.jsonl`. These
+events are evidence, not a commissioning record, manifest, workflow, or run
+state machine.
 
-Treat the offline documents as the run's versioned input baseline. Do not
-overwrite them. Create a new version only for the contract whose claim changed:
+Do not overwrite the offline input baseline. Update only the contract whose
+claim changed, preserve prior evidence and revisions, and do not use a runtime
+read alone to rewrite a physical hardware claim.
 
-- locator, datatype, access, or runtime semantics update runtime bindings;
-- controller behavior or signal meaning may update the software model;
-- changed hardware-to-software trace may update implementation links;
-- physical hardware claims require physical or hardware evidence.
+## Private data and repository boundaries
 
-A runtime read alone must not silently rewrite the hardware model. A
-`validated` runtime claim requires retained runtime-observation evidence. Keep
-input revisions and affected cross-document references consistent.
+Concrete plant knowledge belongs under `cases/<case-id>/derived/private/`.
+Runtime observations belong under `cases/<case-id>/raw/runtime/`. Connection
+profiles and optional RDP files belong under ignored `creds/`. Do not store
+passwords in the repository or runtime bindings. Public examples and fixtures
+must be synthetic or explicitly sanitized.
 
-## Connectors and capabilities
+The generic models and reasoning remain vendor-independent. Vendor- and
+environment-specific technical access belongs in the minimal runtime
+capability, not in the models or agent reasoning.
 
-A connector owns transport, session handling, environment discovery, and
-environment-specific access. It does not assign plant semantics. Concrete
-hosts, addresses, accounts, credentials, installation paths, and plant locators
-belong in ignored local configuration or private case artifacts.
-
-Reusable technical interaction patterns belong under `capabilities/`. Inspect
-the catalog before deriving an ad hoc call. Prefer `READ_ONLY` recipes. Promote
-a procedure only after practical verification, or mark it experimental.
-Human-facing read selectors must reject state-changing entries; guarded write
-selectors must preserve the approval boundary.
-
-## Repository boundaries
-
-Method development belongs in `AGENTS.md`, `docs/`, `spec/`, `examples/`,
-`src/`, generic scripts, capabilities, and generic tests. An operational case
-must not silently change the generic method or schemas.
-
-Store concrete system work under `cases/<case-id>/`:
-
-- source and runtime evidence under ignored `raw/`;
-- agent-derived contracts under `derived/`;
-- deterministic case outputs under `results/`;
-- case-specific checks under `validation/`.
-
-Concrete plant knowledge in `derived/`, `results/`, or `validation/` belongs in
-an ignored `private/` subdirectory. Committed fixtures must be synthetic or
-explicitly sanitized. The generic core consumes derived contracts, never raw
-case evidence directly.
+Historical proof points remain in `docs/MVP.md`, `docs/archive/`, and Git
+history. Historical artifacts are not active architectural requirements.
 
 ## Development rules
 
-- Prefer small, testable modules and existing seams.
+- Prefer the smallest testable change that serves the active acceptance target.
 - Keep failures and uncertainty explicit.
 - Keep generic behavior testable offline.
-- Add complexity only when the active acceptance target requires it.
+- Do not add planners, runners, adapters, workflow DSLs, registries, transport
+  frameworks, or compatibility layers without demonstrated need.
 - Preserve unrelated worktree changes.
-
-Before implementation work, consult `docs/VISION.md`, `docs/ROADMAP.md`, and
-`docs/MVP.md`. Historical proof points remain historical records.
+- Before implementation work, consult `docs/VISION.md`, `docs/ROADMAP.md`, and
+  `docs/MVP.md`.
