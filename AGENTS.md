@@ -89,12 +89,21 @@ remain read-only. Do not activate physical outputs, change controller state,
 activate configuration, deploy PLC code, start machinery, or bypass interlocks
 or safety functions.
 
-Every WRITE requires concrete human approval for the current component,
-intended effect, value or bounds, runtime context, relevant observation, abort
-condition, and restoration path where applicable. Recheck relevant conditions
-immediately before execution. Approval does not carry over to another action,
-run, or changed context. A technical `HumanApproved` flag is not proof of
-authorization or plant safety.
+Every WRITE must be covered by concrete human approval for the current
+component, intended effect, value or bounds, runtime context, relevant
+observation, abort condition, and restoration path where applicable. One
+approval may cover a finite sequence of explicitly described WRITEs as one
+bounded operation. It remains valid across the expected intermediate states
+of that operation. Recheck the conditions relevant to each step, but do not
+request repeated approval for steps already covered by the bounded approval.
+
+Approval becomes invalid when an action falls outside the approved sequence,
+a value exceeds the approved bounds, an abort condition occurs, an observation
+contradicts the expected intermediate state, or relevant external context
+changes unexpectedly. Within a valid bounded approval, continue autonomously
+until the goal is satisfied, restoration is complete, or an abort condition is
+reached. Approval does not carry over to a different operation or run. A
+technical `HumanApproved` flag is not proof of authorization or plant safety.
 
 Prefer a controller-managed functional request over direct writes to mapped
 outputs or internal variables. Never silently substitute a primitive write for
@@ -106,6 +115,20 @@ retains hard real-time control, interlocks, and safety functions.
 Never turn an inference into a fact silently. Preserve status, confidence,
 evidence, provenance, contradictions, and rejected candidates. If multiple
 identities or bindings remain plausible, present the candidates or stop.
+
+Treat operator-provided plant or controller knowledge as attributed evidence,
+not as automatically proven fact and not as something to dismiss merely
+because the static models are incomplete. When operator evidence contradicts
+the current interpretation, formulate the smallest testable hypothesis.
+Prefer a bounded, reversible experiment through a functional controller
+request and live observations. If the experiment is covered by the current
+approval, perform it without another confirmation.
+
+Uncertainty is not automatically a stop condition. Stop when ambiguity
+prevents selection of a bounded safe action or when an observation crosses an
+approved abort condition. Re-read only volatile conditions relevant to the
+next action, abort decision, or outcome evaluation; do not repeatedly read
+unchanged constants or unrelated diagnostics.
 
 A request for a current value requires a new READ after that request; otherwise
 label a reused observation as last known with its timestamp. Actual READ and

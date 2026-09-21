@@ -112,8 +112,11 @@ where applicable.
 
 The agent must not guess through unresolved ambiguity, treat technical
 writability as permission, bypass independent safety measures, or silently
-replace a controller-managed request with a primitive output write. Approval
-for one action does not authorize another action or changed context.
+replace a controller-managed request with a primitive output write. One
+approval may cover a finite, explicitly described sequence as a bounded
+operation, including its checks, abort conditions, and restoration. It does
+not authorize actions outside that sequence or continuation after an
+unexpected context change.
 
 ## Active success criterion
 

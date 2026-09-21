@@ -212,6 +212,14 @@ Phase-14 hardcoding variant under `tests/fixtures/` and finally Phase 18.
 - The agent relates all four models and selects the binding itself.
 - The agent distinguishes request from feedback and reads relevant state.
 - The agent requests concrete human approval before WRITE.
+- A bounded approval can cover a finite multi-WRITE operation without repeated
+  approval for its already described steps.
+- The agent treats operator corrections as attributed hypotheses and tests
+  them through bounded reversible interaction when possible.
+- The agent rereads only volatile state relevant to the next action, abort
+  decision, or outcome evaluation.
+- The agent continues until goal completion, verified restoration, or an
+  explicit abort condition.
 - The agent exposes ambiguity and revises contradicted hypotheses.
 - The behavior survives changed identifiers and irrelevant bindings.
 
