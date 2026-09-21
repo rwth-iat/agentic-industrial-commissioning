@@ -49,11 +49,11 @@ closes the remote session and removes `.agent-remote-bridge.json`.
 
 Phase 4 integrated the needed client behavior as a private helper in
 `Runtime.psm1`; Phases 5 and 6 use it for READ and WRITE. Both implementations
-are verified offline with a synthetic loopback bridge. Live plant READ and
-separately approved WRITE proofs remain the Phase-11 and Phase-12 proof points.
-The previous
-`scripts/remote/Invoke-AgentRemote.ps1` remains a migration fallback until READ
-and WRITE prove the replacement path; it is not an agent-facing capability.
+are verified offline with a synthetic loopback bridge. Phase 11 and Phase 12
+provide the live plant READ and separately approved WRITE proof points. The
+previous `scripts/remote/Invoke-AgentRemote.ps1` is retained only as generic
+maintenance fallback infrastructure; it is not an agent-facing capability or
+part of the active commissioning architecture.
 
 Phase 15 removed the former ADS catalog, selector, recipe runner, binding
 preflight, supervised probe, guarded writes, and Config/Run transition recipes.

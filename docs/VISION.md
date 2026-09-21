@@ -136,6 +136,11 @@ goal and the four model types, then:
 The technical READ and WRITE path must also preserve actual values, explicit
 errors, write bounds, and guaranteed reset of pulse writes.
 
+The initial fresh-agent proof established items 1 through 7. The changed-ID
+and changed-symbol robustness experiment in item 8 was intentionally not
+performed during the reset closeout. That robustness claim therefore remains
+an explicit evidence gap and is not treated as passed.
+
 ## Longer-term direction
 
 Static reconstruction, modification of existing PLC projects, greenfield

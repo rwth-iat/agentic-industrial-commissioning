@@ -14,5 +14,6 @@ one pulse-write hint, and an unrelated diagnostic binding. They provide
 context only. They do not prescribe a binding choice, action sequence,
 approval decision, or expected agent response.
 
-Hardcoding variants belong under `tests/fixtures/` when Phase 14 defines them;
+The Phase-14 hardcoding variant was intentionally not performed. If that
+evidence gap is addressed later, its variants belong under `tests/fixtures/`;
 they are test inputs, not additional public architecture examples.

@@ -253,5 +253,54 @@ correction, and restoration were achieved.
 
 ## Subsequent milestones
 
-Future milestones are appended rather than replacing MVP 1 or MVP 2. Their
-development direction is maintained in [ROADMAP.md](ROADMAP.md).
+### MVP 3 — Minimal agentic commissioning core
+
+**Status:** `COMPLETED`
+
+**Completed:** 2026-09-21
+
+#### Objective
+
+Demonstrate and close the reduced brownfield commissioning architecture:
+
+```text
+four models + LLM + READ + WRITE
+```
+
+The user supplies a natural-language goal. The LLM relates the four models,
+selects bindings, sequences observations and approved changes, and evaluates
+the result. The runtime remains a technical READ/WRITE boundary and the PLC
+retains deterministic control and safety functions.
+
+#### Completion evidence
+
+- The active model layer contains exactly the hardware, software,
+  implementation-link, and runtime-binding contracts.
+- `capabilities/twincat/Runtime.psm1` exports exactly `Read-Binding` and
+  `Write-Binding`.
+- Phase 11 and 12 established the human-controlled remote TwinCAT ADS READ and
+  bounded WRITE path.
+- Phase 13 established the fresh-agent behavior for natural-language intent,
+  autonomous binding selection, relevant reads, concrete approval, bounded
+  WRITE, and logical result evaluation.
+- The Phase-18 model, Runtime, and privacy suites passed under PowerShell 7 and
+  Windows PowerShell 5.1. The raw JSONL evidence writer also passed separately
+  in both environments.
+- The reduced tree has no active `src/` or `generated/` directory and no active
+  deterministic planner, binding selector, commissioning runner, workflow, or
+  component adapter.
+
+#### Accepted evidence gap
+
+Phase 14 was intentionally not performed. Robustness against changed component
+IDs, binding IDs, symbols, ordering, polarity, and irrelevant bindings is
+therefore `WAIVED`, not passed. This limitation does not invalidate the
+narrower Phase-13 proof and must remain visible in future claims.
+
+#### Stop condition
+
+The reset ends with this milestone. No additional abstraction is introduced
+without a concrete experimentally demonstrated need.
+
+Future milestones, if any, are appended rather than replacing MVP 1, MVP 2, or
+MVP 3. Their development direction is maintained in [ROADMAP.md](ROADMAP.md).

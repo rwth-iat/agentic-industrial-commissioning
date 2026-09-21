@@ -76,16 +76,17 @@ record, or generated component adapter.
 
 ### Agentic proof on the reduced tree
 
-- Phase 13 — give a fresh agent only a natural-language objective and the four
-  models; require it to derive the relevant reads, exact write, and feedback
-  observation.
-- Phase 14 — repeat with changed IDs, symbols, ordering, polarity, and
-  irrelevant bindings to detect hardcoding and unsafe guessing.
+- Phase 13 — completed: a fresh agent received only a natural-language
+  objective and the four models, then derived the relevant reads, exact write,
+  and feedback observation.
+- Phase 14 — intentionally not performed by scope decision. Robustness against
+  changed IDs, symbols, ordering, polarity, and irrelevant bindings therefore
+  remains an explicit evidence gap rather than a passed gate.
 
 ### Closeout
 
-- Phase 18 — verify the architecture, runtime, privacy, agentic behavior, and
-  reduced repository as a whole, then stop.
+- Phase 18 — completed: the architecture, runtime, privacy, agentic behavior,
+  and reduced repository were verified as a whole; the reset then stopped.
 
 ## Current status
 
@@ -180,11 +181,25 @@ guarded write and Config/Run recipes, commissioning-record scripts and tests,
 and their active fixtures. Historical verification reports, archived design
 documents, Git history, and the completed milestones in `MVP.md` remain.
 
-Phases 13 and 14 are intentionally paused until the reduced tree is ready. The
-Phase-16 contraction is complete: the Stage-1 implementation, generated
+Phase 13 is complete. In the reduced test workspace, a fresh agent received the
+natural-language Y20 objective without a binding ID, symbol path, datatype,
+request value, feedback binding, action sequence, pulse duration, or adapter.
+It related the four models, selected the functional request binding, acquired
+fresh state, obtained concrete approval, executed the write, read the logical
+response, and distinguished calculated PLC feedback from physical movement.
+Observed opportunities to improve model semantics and timing behavior are
+follow-up work and do not invalidate this bounded proof.
+
+Phase 14 was intentionally not performed by explicit scope decision. No claim
+is therefore made that the agentic behavior survives changed component IDs,
+binding IDs, symbol names, ordering, polarity, or deliberately irrelevant
+bindings. This waived proof remains a documented evidence gap and must not be
+reported as passed during closeout.
+
+The Phase-16 contraction is complete: the Stage-1 implementation, generated
 connectors, reconstruction scripts, and their core and connector tests have
-been removed from the active tree. Their completed historical result remains in
-Git history and `MVP.md`.
+been removed from the active tree. Their completed historical result remains
+in Git history and `MVP.md`.
 
 Phase 17 is complete. The public examples now contain one compact synthetic
 TwinCAT process-cell case expressed through exactly the four active contracts.
@@ -193,8 +208,16 @@ readable and writable bindings, level and pulse write hints, and an unrelated
 diagnostic binding without prescribing an action sequence. Schema edge cases
 remain test fixtures rather than additional public examples.
 
-The next implementation boundary is the resumed Phase 13, followed by the
-Phase-14 hardcoding variant under `tests/fixtures/` and finally Phase 18.
+Phase 18 is complete. The minimal suites passed under PowerShell 7 and Windows
+PowerShell 5.1, the runtime-evidence writer passed separately in both
+environments, and the architecture, privacy, agentic, and repository gates
+were reviewed against the reduced tree. The completed Phase-11/12 live
+evidence and Phase-13 fresh-agent evidence were reused; no new live WRITE was
+required. Phase 14 remains explicitly waived and no changed-identifier
+robustness claim is made.
+
+The reset is closed. There is no automatic next implementation phase; further
+work starts only from a concrete observed need under the stop rule below.
 
 ## Acceptance gates
 
@@ -221,7 +244,8 @@ Phase-14 hardcoding variant under `tests/fixtures/` and finally Phase 18.
 - The agent continues until goal completion, verified restoration, or an
   explicit abort condition.
 - The agent exposes ambiguity and revises contradicted hypotheses.
-- The behavior survives changed identifiers and irrelevant bindings.
+- Robustness against changed identifiers and irrelevant bindings is not
+  established because Phase 14 was intentionally not performed.
 
 ### Safety and privacy gate
 

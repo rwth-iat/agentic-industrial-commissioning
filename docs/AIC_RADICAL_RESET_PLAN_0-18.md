@@ -1515,9 +1515,28 @@ Der Agent hat ohne vorgegebene Binding-ID
 die fachlich richtige technische Handlung hergeleitet.
 ```
 
+## Abschlussstatus
+
+**Abgeschlossen.** Ein frischer Agent erhielt ausschließlich das natürliche
+Y20-Ziel sowie die vier Modelle und die technischen READ-/WRITE-Fähigkeiten.
+Er identifizierte Y20, unterschied Request und Feedback, las den aktuellen
+Zustand, erklärte die konkrete Schreibwirkung, holte die Freigabe ein, wählte
+das funktionale Binding selbst, führte den WRITE aus und bewertete die danach
+gelesene logische Wirkung. Berechnete PLC-Rückmeldung wurde nicht als
+unabhängiger physischer Stellungsnachweis dargestellt.
+
 ---
 
 # Phase 14: Hardcoding-Test
+
+## Abschlussstatus
+
+**Bewusst nicht erbracht.** Diese Phase wurde durch ausdrückliche
+Scope-Entscheidung nicht durchgeführt. Damit ist nicht nachgewiesen, dass der
+Agent mit geänderten Komponenten- und Binding-IDs, Symbolnamen, Reihenfolgen,
+Polaritäten oder zusätzlichen irrelevanten Bindings dieselbe fachlich richtige
+Handlung herleitet. Die Phase gilt weder als bestanden noch als fehlgeschlagen;
+der fehlende Hardcoding-Nachweis bleibt eine bekannte Evidenzlücke.
 
 Ein einzelner Y20-Test genügt nicht.
 
@@ -1647,52 +1666,99 @@ Sie sind keine neue Architektur.
 
 # Phase 18: Abschlussprüfung
 
+## Abschlussstatus
+
+**Abgeschlossen am 2026-09-21.** Die reduzierte Architektur, die technische
+Runtime-Grenze, die Datenschutzregeln, der agentische Nachweis und der
+Repository-Zustand wurden gemeinsam geprüft. Die Phase-11/12-Nachweise für den
+tatsächlich benötigten Remote-READ/WRITE-Pfad und der Phase-13-Nachweis wurden
+wiederverwendet; es war kein neuer Anlagen-WRITE erforderlich. Zum Zeitpunkt
+der Abschlussprüfung war keine Remote Bridge aktiv.
+
+Die aktiven Minimaltests bestanden unter PowerShell 7 und Windows PowerShell
+5.1. Der separate Test für unveränderte JSONL-Runtime-Evidenz bestand ebenfalls
+in beiden Umgebungen. Das Runtime-Modul exportiert genau `Read-Binding` und
+`Write-Binding`, `spec/` enthält genau vier aktive Schemas, die öffentlichen
+Beispiele bestehen aus genau einem synthetischen Vier-Modell-Fall, und `src/`
+sowie `generated/` sind nicht vorhanden.
+
+## Abweichung vom ursprünglichen Nachweisumfang
+
+Phase 13 ist abgeschlossen. Phase 14 wurde bewusst nicht durchgeführt. Die
+Abschlussprüfung darf deshalb den Hardcoding-Nachweis mit geänderten IDs und
+Symbolnamen nicht als bestanden darstellen. Sie führt ihn als akzeptierte,
+explizite Evidenzlücke und prüft alle übrigen Architektur-, Runtime-,
+Privatheits-, Agentik- und Repository-Kriterien unverändert.
+
 ## Architektur
 
-- [ ] Vier Modelle sind die einzigen Wissensverträge.
-- [ ] Benutzer arbeitet ausschließlich mit natürlicher Sprache.
-- [ ] Benutzer muss keine Binding-ID kennen.
-- [ ] LLM wählt Bindings selbst.
-- [ ] Runtime wählt keine Bindings fachlich aus.
-- [ ] Agent hat nur READ und WRITE.
-- [ ] Kein Planner, Runner oder Workflow ist aktiv.
-- [ ] Keine Adaptergenerierung ist aktiv.
+- [x] Vier Modelle sind die einzigen Wissensverträge.
+- [x] Benutzer arbeitet ausschließlich mit natürlicher Sprache.
+- [x] Benutzer muss keine Binding-ID kennen.
+- [x] LLM wählt Bindings selbst.
+- [x] Runtime wählt keine Bindings fachlich aus.
+- [x] Agent hat nur READ und WRITE.
+- [x] Kein Planner, Runner oder Workflow ist aktiv.
+- [x] Keine Adaptergenerierung ist aktiv.
 
 ## Runtime
 
-- [ ] READ funktioniert über TwinCAT ADS.
-- [ ] WRITE funktioniert über TwinCAT ADS.
-- [ ] Pulse wird technisch zurückgesetzt.
-- [ ] Schreibgrenzen stammen aus Runtime Bindings.
-- [ ] Remote Bridge bleibt Infrastruktur.
-- [ ] Der tatsächlich benötigte Remote-Pfad funktioniert.
+- [x] READ funktioniert über TwinCAT ADS.
+- [x] WRITE funktioniert über TwinCAT ADS.
+- [x] Pulse wird technisch zurückgesetzt.
+- [x] Schreibgrenzen stammen aus Runtime Bindings.
+- [x] Remote Bridge bleibt Infrastruktur.
+- [x] Der tatsächlich benötigte Remote-Pfad funktioniert.
 
 ## Privatheit
 
-- [ ] `creds/` enthält nur lokale Konfiguration.
-- [ ] Passwörter werden interaktiv eingegeben.
-- [ ] Der Agent erhält keine Passwörter.
-- [ ] Cases und Runtime-Beobachtungen bleiben privat.
-- [ ] Öffentliche Beispiele sind synthetisch.
+- [x] `creds/` bleibt vollständig ignoriert und enthält nur lokale
+  Verbindungs-, Authentifizierungs- und Zugriffsinfrastruktur.
+- [x] Passwörter werden interaktiv eingegeben.
+- [x] Der Agent erhält keine Passwörter.
+- [x] Cases und Runtime-Beobachtungen bleiben privat.
+- [x] Öffentliche Beispiele sind synthetisch.
 
 ## Agentischer Nachweis
 
-- [ ] Testprompt enthält keine Binding-ID.
-- [ ] Testprompt enthält keinen Symbolpfad.
-- [ ] Testprompt enthält keine Aktionsfolge.
-- [ ] Agent verbindet die vier Modelle selbst.
-- [ ] Agent wählt das Binding selbst.
-- [ ] Agent erkennt Mehrdeutigkeit.
-- [ ] Agent beobachtet die Wirkung selbst.
-- [ ] Agent funktioniert auch mit geänderten IDs und Symbolnamen.
+- [x] Testprompt enthält keine Binding-ID.
+- [x] Testprompt enthält keinen Symbolpfad.
+- [x] Testprompt enthält keine Aktionsfolge.
+- [x] Agent verbindet die vier Modelle selbst.
+- [x] Agent wählt das Binding selbst.
+- [x] Agent erkennt Mehrdeutigkeit.
+- [x] Agent beobachtet die Wirkung selbst.
+- **WAIVED:** Funktion mit geänderten IDs und Symbolnamen wurde nicht geprüft;
+  Phase 14 wurde bewusst nicht durchgeführt.
 
 ## Repository
 
-- [ ] `scripts/` ist entfernt.
-- [ ] `src/` ist entfernt.
-- [ ] `generated/` ist entfernt.
-- [ ] Aktive Dokumentation beschreibt nur den Minimalansatz.
-- [ ] Minimale Tests bestehen.
+- [x] Obsolete Commissioning-, Workflow- und Runner-Skripte sind entfernt;
+  verbleibende Hilfsskripte sind keine aktive Agentenarchitektur.
+- [x] `src/` ist entfernt.
+- [x] `generated/` ist entfernt.
+- [x] Aktive Dokumentation beschreibt nur den Minimalansatz.
+- [x] Minimale Tests bestehen.
+
+## Abschlussnachweise
+
+- `pwsh -NoProfile -File ./tests/test-mvp.ps1`: bestanden.
+- `powershell.exe -NoProfile -ExecutionPolicy Bypass -File
+  ./tests/test-mvp.ps1`: bestanden.
+- `pwsh -NoProfile -File ./tests/test-runtime-evidence.ps1`: bestanden.
+- `powershell.exe -NoProfile -ExecutionPolicy Bypass -File
+  ./tests/test-runtime-evidence.ps1`: bestanden.
+- Runtime-Moduloberfläche: exakt `Read-Binding` und `Write-Binding`.
+- Aktive Wissensverträge: exakt vier JSON-Schemas.
+- Phase 11 und 12: dokumentierter technischer Live-READ/WRITE-Nachweis über
+  den human-kontrollierten Remote-TwinCAT-ADS-Pfad.
+- Phase 13: dokumentierter Fresh-Agent-Nachweis für die Kriterien 1 bis 7.
+- Phase 14: bewusst nicht durchgeführt und ausschließlich als `WAIVED`
+  geführt; es entsteht daraus keine Robustheitsbehauptung.
+
+Mit diesem Nachweis ist der Reset abgeschlossen. Gemäß Stop-Regel werden keine
+weiteren Planer, Adapter, Runner, Resolver, Registries oder Workflow-Verträge
+ergänzt.
 
 ---
 

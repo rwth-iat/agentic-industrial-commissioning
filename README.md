@@ -141,9 +141,10 @@ ignored `creds/`. Public examples must be synthetic. See
 
 ## Reset status and planning
 
-The repository is being reduced to this minimal architecture in controlled
-phases. Older implementation artifacts may remain until their removal phase;
-their presence does not make them part of the active design.
+The controlled reduction to this minimal architecture is complete. Phase 18
+closed the reset after the architecture, Runtime, privacy, agentic behavior,
+and reduced repository passed their applicable checks. The intentionally
+unperformed Phase-14 hardcoding variant remains an explicit evidence gap.
 
 - [Vision](docs/VISION.md) defines the research hypothesis and boundaries.
 - [Roadmap](docs/ROADMAP.md) identifies the active reset and its proof points.
@@ -165,9 +166,9 @@ The active offline checks mirror the minimal architecture:
 ./tests/privacy.tests.ps1
 ```
 
-Run all three through `./tests/test-mvp.ps1`. Historical broad suites may
-remain until their planned removal phases, but they are not dependencies of
-this active verification path.
+Run all three through `./tests/test-mvp.ps1`. The separate
+`./tests/test-runtime-evidence.ps1` check verifies unchanged JSONL evidence
+retention without adding a run-state contract.
 
 ## License
 
