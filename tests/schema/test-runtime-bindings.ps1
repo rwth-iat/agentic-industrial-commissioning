@@ -5,7 +5,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 $repositoryRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
-$validator = Join-Path $repositoryRoot 'scripts/validate-runtime-bindings.ps1'
+$validator = Join-Path $repositoryRoot 'spec/validation/validate-runtime-bindings.ps1'
 $powerShell = (Get-Process -Id $PID).Path
 
 $cases = @(
@@ -15,6 +15,10 @@ $cases = @(
     },
     @{
         Path = 'tests/schema/fixtures/runtime-bindings/valid-reported-success.v0.1.json'
+        ExpectedExitCode = 0
+    },
+    @{
+        Path = 'tests/schema/fixtures/runtime-bindings/valid-write-without-semantics.v0.1.json'
         ExpectedExitCode = 0
     },
     @{
@@ -35,6 +39,14 @@ $cases = @(
     },
     @{
         Path = 'tests/schema/fixtures/runtime-bindings/invalid-validated-without-runtime-observation.v0.1.json'
+        ExpectedExitCode = 1
+    },
+    @{
+        Path = 'tests/schema/fixtures/runtime-bindings/invalid-pulse-duration.v0.1.json'
+        ExpectedExitCode = 1
+    },
+    @{
+        Path = 'tests/schema/fixtures/runtime-bindings/invalid-pulse-datatype.v0.1.json'
         ExpectedExitCode = 1
     }
 )

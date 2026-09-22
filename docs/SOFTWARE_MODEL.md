@@ -25,39 +25,29 @@ The contracts remain separate:
 - implementation links connect canonical hardware identities to static
   component interfaces and signals;
 - runtime bindings map semantic interfaces to environment-specific runtime
-  locators;
-- bounded commissioning probes combine runtime bindings under the approval and
-  restoration rules of the commissioning runbook; validated recurring behavior
-  is codified in generated component adapters.
+  locators.
+
+The LLM uses these contracts together to choose relevant READ and WRITE
+bindings. The software model does not define an executable operation or fixed
+commissioning sequence.
 
 Static qualified names are engineering-project identifiers. They are not
 validated runtime locators and must not be copied into runtime bindings without
 separate discovery and evidence.
 
-## Component queries and reuse
+## Component selection and reuse
 
-`scripts/query-component.py` resolves a human selector such as a reference
-designation against canonical asset identities, then returns the corresponding
-component interface, software objects, implementation links, hardware endpoints,
-conditions, dependencies, evidence, and explicit gaps. The query reports one of
-`available`, `partial`, `missing`, `ambiguous`, `stale`, `rejected`, or
-`conflicting` and records whether existing knowledge can be reused or requires a
-targeted reconstruction scope.
+The LLM relates the requested component directly across the hardware model,
+software model, implementation links, and runtime bindings. It preserves
+missing, ambiguous, stale, rejected, and conflicting claims instead of hiding
+them behind a deterministic component-query or reconstruction tool.
 
-When a reconstruction manifest is supplied, source and derived revisions are
-checked before reuse. Facts matching a missing component selector are returned as
-bounded input for targeted reconstruction; they are not silently promoted to a
-canonical asset or semantic conclusion.
-
-The optional runtime-candidate output of `scripts/query-component.py` translates
-statically evidenced qualified software objects into the separate
-runtime-binding contract. Because that automatic translation cannot establish
-deployed symbol existence, access rights, or safe write semantics, its generated
-candidates are `inferred`, private, and read-only. A separately reconstructed
-functional request candidate may record `write` or `read_write` access when the
-static evidence supports that direction, but it remains unvalidated and grants
-no executable authorization. Static/runtime disagreements remain visible and
-prevent automatic reuse.
+Existing component contracts may be reused only when their identities,
+revisions, evidence, and known limitations fit the current task. Static
+qualified names do not establish deployed runtime symbols, access rights, or
+safe write behavior. Those claims remain in the runtime-binding contract with
+their own evidence and status; disagreements between static and runtime
+evidence remain explicit.
 
 ## Sources and revisions
 
@@ -115,9 +105,9 @@ Each predicate records:
 
 Command requests and manual setpoints require an expected effect. Effects may
 express a state, value, range, or a value relative to another semantic signal.
-This is still a static expectation. Probe timing, observation, failure, and
-restore behavior belong in the bounded execution record and generated adapter,
-not in the software model.
+This is still a static expectation. The LLM decides observation timing, failure
+handling, and any required restoration for the current approved action; those
+decisions do not belong in the software model.
 
 Signals classified as process values, command states, dynamic process values,
 or feedback must state whether the observation is physical, independent
@@ -129,7 +119,7 @@ not be presented as independent physical confirmation.
 Validate a document with:
 
 ```powershell
-./scripts/validate-software-model.ps1 `
+./spec/validation/validate-software-model.ps1 `
     -ModelPath <software-model.json>
 ```
 
@@ -155,5 +145,6 @@ reference the retained `runtime_observation` source.
 Do not create a new software-model version merely because an ADS symbol was
 read. Locator existence and access normally update the runtime-binding document.
 Only supported software-semantic findings belong here, and physical truth still
-belongs in the canonical hardware model. The complete feedback loop is defined
-in [COMMISSIONING_RUNBOOK.md](COMMISSIONING_RUNBOOK.md).
+belongs in the canonical hardware model. The agent decides which feedback to
+read and how it bears on the user's goal; the model does not encode that
+sequence.

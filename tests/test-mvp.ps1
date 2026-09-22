@@ -4,6 +4,14 @@ param()
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
-# Backward-compatible entry point. New documentation uses test-offline-core.ps1.
-& (Join-Path $PSScriptRoot 'test-offline-core.ps1')
-exit $LASTEXITCODE
+$activeSuites = @(
+    'models.tests.ps1'
+    'twincat-runtime.tests.ps1'
+    'privacy.tests.ps1'
+)
+foreach ($suite in $activeSuites) {
+    & (Join-Path $PSScriptRoot $suite)
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+}
+
+exit 0

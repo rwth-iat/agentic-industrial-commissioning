@@ -38,7 +38,7 @@ not accept dangling IDs as a representation of uncertainty.
 Validate links together with both referenced models:
 
 ```powershell
-./scripts/validate-implementation-links.ps1 `
+./spec/validation/validate-implementation-links.ps1 `
     -LinkPath <implementation-links.json> `
     -SoftwareModelPath <software-model.json> `
     -HardwareModelPath <hardware-model.json>
@@ -63,8 +63,8 @@ the underlying mapping. Independent agent acceptance remains necessary.
 
 Implementation links contain no ADS symbols, OPC UA NodeIds, hosts, accounts,
 credentials, write handshakes, or executable steps. Runtime locators belong in
-runtime bindings; bounded execution belongs in the commissioning run and its
-generated adapter. A static link neither grants runtime access nor authorizes a
+runtime bindings; the LLM selects among them and READ or WRITE performs the
+technical access. A static link neither grants runtime access nor authorizes a
 state change.
 
 Concrete plant link documents are ignored private case artifacts. The public
@@ -79,7 +79,6 @@ between the canonical component and its software signal or I/O endpoint. Live
 symbol existence alone validates a runtime locator, not the physical endpoint.
 
 When a link changes, update its software- and hardware-model references and
-hashes together, then run the cross-document validator. See
-[COMMISSIONING_RUNBOOK.md](COMMISSIONING_RUNBOOK.md) for
-the complete component loop.
+hashes together, then run the cross-document validator. The agent uses the
+updated link as model context; the link does not prescribe a runtime sequence.
 
