@@ -6,9 +6,11 @@ The Canonical Hardware Model is the vendor-independent contract between discover
 
 The model is a lean Commissioning Intermediate Representation (IR). It is not intended to replace an Asset Administration Shell (AAS), AutomationML, ECLASS, OPC UA information models, or a complete digital twin.
 
-## Active schema proposal
+## Active schema
 
-The active schema is [`../spec/hardware-model.schema.v0.2-proposal.json`](../spec/hardware-model.schema.v0.2-proposal.json). The earlier [`../spec/hardware-model.schema.json`](../spec/hardware-model.schema.json) remains available as the original baseline while the proposal is evaluated.
+The active schema is [`../spec/hardware-model.schema.json`](../spec/hardware-model.schema.json).
+It is the validated version 0.2 contract. The superseded baseline and the
+temporary proposal filename remain available only through Git history.
 
 Version 0.2 uses three central abstractions:
 
@@ -44,7 +46,10 @@ baseline does not require them and must never invent external identifiers.
 
 The `identification` object is deliberately a small subset rather than an implementation of the complete IDTA Digital Nameplate. At least one identification `source_ref` is mandatory so that a human can cross-check the identity claim. `manufacturer_name` and `manufacturer_product_code` must be preserved when a cited source provides them, but may be omitted for partially identified brownfield assets. Their absence means unknown, not absent, and must never be filled with invented placeholders. Product designation, serial number, global asset ID, and specific asset IDs remain optional.
 
-The main HC10 example uses source-backed product codes from the BOM and TwinCAT capture. Additional synthetic matching scenarios use visibly synthetic `EXAMPLE-*` product codes. Real normalized models must copy actual OEM product or order codes from their cited BOM, datasheet, nameplate, or engineering source and must never invent a plausible code.
+The public matching examples use visibly synthetic `EXAMPLE-*` product codes.
+Real normalized models must copy actual OEM product or order codes from their
+cited BOM, datasheet, nameplate, or engineering source and must never invent a
+plausible code.
 
 ## Evidence reconciliation
 
@@ -66,7 +71,7 @@ Potentially inferred assets, ports, properties, and connections retain an episte
 
 ## Validation
 
-JSON Schema validates document structure. Cross-object constraints require the semantic validator in [`../scripts/validate-hardware-model.ps1`](../scripts/validate-hardware-model.ps1), including:
+JSON Schema validates document structure. Cross-object constraints require the semantic validator in [`../spec/validation/validate-hardware-model.ps1`](../spec/validation/validate-hardware-model.ps1), including:
 
 - uniqueness of source, asset, port, and connection IDs;
 - resolution of source, parent-asset, asset, and port references;
@@ -82,8 +87,8 @@ Run all schema and semantic validation tests with:
 ./tests/schema/test-hardware-model.ps1
 ```
 
-## Examples
+## Example
 
-- [`../examples/hc10/hc10-mvp-example.v0.2.json`](../examples/hc10/hc10-mvp-example.v0.2.json): two electrically compatible candidates remain ambiguous;
-- [`../examples/hc10/hc10-mvp-unambiguous.v0.2.json`](../examples/hc10/hc10-mvp-unambiguous.v0.2.json): exactly one electrically compatible candidate remains;
-- [`../examples/hc10/hc10-mvp-incompatible.v0.2.json`](../examples/hc10/hc10-mvp-incompatible.v0.2.json): no compatible candidate remains.
+[`../examples/hardware-models/process-cell.synthetic.v0.2.json`](../examples/hardware-models/process-cell.synthetic.v0.2.json)
+is the hardware slice of the single compact synthetic TwinCAT case. Negative
+and edge cases belong under `tests/schema/fixtures/`, not in the public example.

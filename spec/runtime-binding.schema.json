@@ -197,6 +197,9 @@
         "interaction": {
           "$ref": "#/$defs/interaction"
         },
+        "write_semantics": {
+          "$ref": "#/$defs/writeSemantics"
+        },
         "write_constraints": {
           "$ref": "#/$defs/writeConstraints"
         },
@@ -295,6 +298,53 @@
         }
       },
       "additionalProperties": false
+    },
+    "writeSemantics": {
+      "type": "object",
+      "required": [
+        "type"
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "level",
+            "pulse"
+          ]
+        },
+        "duration_ms": {
+          "type": "integer",
+          "minimum": 10,
+          "maximum": 60000
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "pulse"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "required": [
+              "duration_ms"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "duration_ms"
+              ]
+            }
+          }
+        }
+      ]
     },
     "unit": {
       "type": "object",

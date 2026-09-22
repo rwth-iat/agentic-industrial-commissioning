@@ -38,7 +38,7 @@ not accept dangling IDs as a representation of uncertainty.
 Validate links together with both referenced models:
 
 ```powershell
-./scripts/validate-implementation-links.ps1 `
+./spec/validation/validate-implementation-links.ps1 `
     -LinkPath <implementation-links.json> `
     -SoftwareModelPath <software-model.json> `
     -HardwareModelPath <hardware-model.json>
@@ -62,11 +62,23 @@ the underlying mapping. Independent agent acceptance remains necessary.
 ## Runtime and execution boundary
 
 Implementation links contain no ADS symbols, OPC UA NodeIds, hosts, accounts,
-credentials, write handshakes, or executable steps. Those details belong in
-runtime bindings and controlled operations. A static link neither grants
-runtime access nor authorizes a state change.
+credentials, write handshakes, or executable steps. Runtime locators belong in
+runtime bindings; the LLM selects among them and READ or WRITE performs the
+technical access. A static link neither grants runtime access nor authorizes a
+state change.
 
 Concrete plant link documents are ignored private case artifacts. The public
 synthetic example is
 [`examples/implementation-links/process-cell.synthetic.v0.1.json`](../examples/implementation-links/process-cell.synthetic.v0.1.json).
+
+## Live feedback and versioning
+
+Preserve the implementation-link revision used as a commissioning input. Create a new
+version only when retained evidence strengthens, rejects, or changes the trace
+between the canonical component and its software signal or I/O endpoint. Live
+symbol existence alone validates a runtime locator, not the physical endpoint.
+
+When a link changes, update its software- and hardware-model references and
+hashes together, then run the cross-document validator. The agent uses the
+updated link as model context; the link does not prescribe a runtime sequence.
 

@@ -5,10 +5,10 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 $repositoryRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
-$validator = Join-Path $repositoryRoot 'scripts/validate-software-model.ps1'
+$validator = Join-Path $repositoryRoot 'spec/validation/validate-software-model.ps1'
 $basePath = Join-Path $repositoryRoot 'examples/software-models/process-cell.synthetic.v0.1.json'
 $casePath = Join-Path $repositoryRoot 'tests/schema/fixtures/software-models/cases.json'
-$powerShell = Join-Path $PSHOME 'pwsh.exe'
+$powerShell = (Get-Process -Id $PID).Path
 $tempRoot = Join-Path $repositoryRoot "tmp/software-model-schema-$([guid]::NewGuid().ToString('N'))"
 $privateCaseRoot = Join-Path $repositoryRoot "cases/privacy-contract-$([guid]::NewGuid().ToString('N'))"
 $privateTempRoot = Join-Path $privateCaseRoot 'derived/private'
@@ -17,7 +17,9 @@ $null = New-Item -ItemType Directory -Path $privateTempRoot -Force
 
 try {
     $baseRaw = Get-Content -Raw -LiteralPath $basePath
-    $cases = @(Get-Content -Raw -LiteralPath $casePath | ConvertFrom-Json)
+    $caseDocument = Get-Content -Raw -LiteralPath $casePath | ConvertFrom-Json
+    $cases = @()
+    foreach ($caseItem in $caseDocument) { $cases += $caseItem }
     $failed = $false
 
     foreach ($case in $cases) {

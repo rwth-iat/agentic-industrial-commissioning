@@ -5,12 +5,12 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 $repositoryRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
-$validator = Join-Path $repositoryRoot 'scripts/validate-implementation-links.ps1'
+$validator = Join-Path $repositoryRoot 'spec/validation/validate-implementation-links.ps1'
 $baseLinkPath = Join-Path $repositoryRoot 'examples/implementation-links/process-cell.synthetic.v0.1.json'
 $baseSoftwarePath = Join-Path $repositoryRoot 'examples/software-models/process-cell.synthetic.v0.1.json'
 $baseHardwarePath = Join-Path $repositoryRoot 'examples/hardware-models/process-cell.synthetic.v0.2.json'
 $casePath = Join-Path $repositoryRoot 'tests/schema/fixtures/implementation-links/cases.json'
-$powerShell = Join-Path $PSHOME 'pwsh.exe'
+$powerShell = (Get-Process -Id $PID).Path
 $tempRoot = Join-Path $repositoryRoot "tmp/implementation-link-schema-$([guid]::NewGuid().ToString('N'))"
 $privateCaseRoot = Join-Path $repositoryRoot "cases/privacy-contract-$([guid]::NewGuid().ToString('N'))"
 $privateTempRoot = Join-Path $privateCaseRoot 'derived/private'
@@ -20,7 +20,9 @@ $null = New-Item -ItemType Directory -Path $privateTempRoot -Force
 try {
     $baseLinkRaw = Get-Content -Raw -LiteralPath $baseLinkPath
     $baseHardwareRaw = Get-Content -Raw -LiteralPath $baseHardwarePath
-    $cases = @(Get-Content -Raw -LiteralPath $casePath | ConvertFrom-Json)
+    $caseDocument = Get-Content -Raw -LiteralPath $casePath | ConvertFrom-Json
+    $cases = @()
+    foreach ($caseItem in $caseDocument) { $cases += $caseItem }
     $failed = $false
 
     foreach ($case in $cases) {

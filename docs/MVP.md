@@ -35,7 +35,7 @@ independently of any automation vendor or physical testbed.
 - an arbitrary set of static, offline evidence artifacts available for a case;
 - one or more agent- or connector-derived canonical fragments;
 - the active
-  [canonical hardware-model v0.2 proposal](../spec/hardware-model.schema.v0.2-proposal.json).
+  [canonical hardware-model v0.2 contract](../spec/hardware-model.schema.json).
 
 The method does not require particular raw categories such as a BOM, datasheet,
 wiring plan, or engineering export. Those are possible evidence types, not a
@@ -97,12 +97,13 @@ part of its proof.
 
 ### Completion evidence
 
-- `spec/hardware-model.schema.v0.2-proposal.json` defines the validated canonical
+- `spec/hardware-model.schema.json` defines the validated canonical v0.2
   contract used by the pipeline.
 - `src/commissioning_core/` implements assembly, evidence reconciliation, and
   electrical compatibility matching without vendor-specific branches.
-- `cases/hc10/` and `cases/hc10_v02/` retain representative engineering
-  evidence and case artifacts.
+- Private operational case workspaces retained the representative engineering
+  evidence and case artifacts used for the proof point; they are intentionally
+  absent from the public repository.
 - Schema fixtures cover valid documents, missing interfaces, missing evidence,
   schema-version errors, duplicate IDs, dangling references, and reversed
   ranges.
@@ -110,10 +111,10 @@ part of its proof.
   evidence, duplicate claims, and unresolved endpoints.
 - `tests/test-offline-core.ps1` passes all schema and core checks.
 
-The current privacy policy treats every case `raw/` directory as ignored local
-evidence. Raw HC10 files already tracked when this milestone was completed are
-a legacy migration concern; removing them from tracking and repository history
-is intentionally separate from this completion record.
+The publication process removed raw plant files and case-specific artifacts
+from Git history. The current privacy policy keeps every case `raw/` directory
+and plant-specific `private/` artifact local and ignored. This changes the
+public evidence boundary, not the historical completion claim.
 
 ### Historical non-goals
 
@@ -219,11 +220,13 @@ authorization.
   report successful bounded interaction using Terra at medium and low reasoning
   effort, including recovery from incorrect Boolean polarity and an unsuitable
   project-specific postcondition.
-- `spec/runtime-binding.schema.json` and
-  `spec/controlled-operation.schema.json` define the separate contracts for
-  runtime meaning and bounded multi-step behavior.
-- The generic bounded request-actuation wrapper and its operation-bound approval
-  plan pass offline checks under both Windows PowerShell 5.1 and PowerShell 7.
+- `spec/runtime-binding.schema.json` defined runtime meaning. The former
+  `controlled-operation` contract represented bounded multi-step behavior as a
+  proof of concept at milestone completion; it was later retired from the
+  active architecture without changing this historical result.
+- At milestone completion, the generic bounded request-actuation wrapper and
+  its operation-bound approval plan passed offline checks under both Windows
+  PowerShell 5.1 and PowerShell 7.
 
 ### Known limitations and non-goals
 
@@ -250,5 +253,54 @@ correction, and restoration were achieved.
 
 ## Subsequent milestones
 
-Future milestones are appended rather than replacing MVP 1 or MVP 2. Their
-development direction is maintained in [ROADMAP.md](ROADMAP.md).
+### MVP 3 — Minimal agentic commissioning core
+
+**Status:** `COMPLETED`
+
+**Completed:** 2026-09-21
+
+#### Objective
+
+Demonstrate and close the reduced brownfield commissioning architecture:
+
+```text
+four models + LLM + READ + WRITE
+```
+
+The user supplies a natural-language goal. The LLM relates the four models,
+selects bindings, sequences observations and approved changes, and evaluates
+the result. The runtime remains a technical READ/WRITE boundary and the PLC
+retains deterministic control and safety functions.
+
+#### Completion evidence
+
+- The active model layer contains exactly the hardware, software,
+  implementation-link, and runtime-binding contracts.
+- `capabilities/twincat/Runtime.psm1` exports exactly `Read-Binding` and
+  `Write-Binding`.
+- Phase 11 and 12 established the human-controlled remote TwinCAT ADS READ and
+  bounded WRITE path.
+- Phase 13 established the fresh-agent behavior for natural-language intent,
+  autonomous binding selection, relevant reads, concrete approval, bounded
+  WRITE, and logical result evaluation.
+- The Phase-18 model, Runtime, and privacy suites passed under PowerShell 7 and
+  Windows PowerShell 5.1. The raw JSONL evidence writer also passed separately
+  in both environments.
+- The reduced tree has no active `src/` or `generated/` directory and no active
+  deterministic planner, binding selector, commissioning runner, workflow, or
+  component adapter.
+
+#### Accepted evidence gap
+
+Phase 14 was intentionally not performed. Robustness against changed component
+IDs, binding IDs, symbols, ordering, polarity, and irrelevant bindings is
+therefore `WAIVED`, not passed. This limitation does not invalidate the
+narrower Phase-13 proof and must remain visible in future claims.
+
+#### Stop condition
+
+The reset ends with this milestone. No additional abstraction is introduced
+without a concrete experimentally demonstrated need.
+
+Future milestones, if any, are appended rather than replacing MVP 1, MVP 2, or
+MVP 3. Their development direction is maintained in [ROADMAP.md](ROADMAP.md).

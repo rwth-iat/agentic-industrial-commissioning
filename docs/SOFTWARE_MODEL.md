@@ -25,35 +25,29 @@ The contracts remain separate:
 - implementation links connect canonical hardware identities to static
   component interfaces and signals;
 - runtime bindings map semantic interfaces to environment-specific runtime
-  locators;
-- controlled operations describe approval-bound multi-step behavior over
-  runtime-binding IDs.
+  locators.
+
+The LLM uses these contracts together to choose relevant READ and WRITE
+bindings. The software model does not define an executable operation or fixed
+commissioning sequence.
 
 Static qualified names are engineering-project identifiers. They are not
 validated runtime locators and must not be copied into runtime bindings without
 separate discovery and evidence.
 
-## Component queries and reuse
+## Component selection and reuse
 
-`scripts/query-component.py` resolves a human selector such as a reference
-designation against canonical asset identities, then returns the corresponding
-component interface, software objects, implementation links, hardware endpoints,
-conditions, dependencies, evidence, and explicit gaps. The query reports one of
-`available`, `partial`, `missing`, `ambiguous`, `stale`, `rejected`, or
-`conflicting` and records whether existing knowledge can be reused or requires a
-targeted reconstruction scope.
+The LLM relates the requested component directly across the hardware model,
+software model, implementation links, and runtime bindings. It preserves
+missing, ambiguous, stale, rejected, and conflicting claims instead of hiding
+them behind a deterministic component-query or reconstruction tool.
 
-When a reconstruction manifest is supplied, source and derived revisions are
-checked before reuse. Facts matching a missing component selector are returned as
-bounded input for targeted reconstruction; they are not silently promoted to a
-canonical asset or semantic conclusion.
-
-The optional runtime-candidate output translates statically evidenced qualified
-software objects into the separate runtime-binding contract. Because static
-evidence cannot establish deployed symbol existence or access rights, these
-candidates are `inferred`, private, and read-only. Static/runtime disagreements
-remain visible and prevent automatic reuse. Neither a query result nor a
-candidate grants executable authorization.
+Existing component contracts may be reused only when their identities,
+revisions, evidence, and known limitations fit the current task. Static
+qualified names do not establish deployed runtime symbols, access rights, or
+safe write behavior. Those claims remain in the runtime-binding contract with
+their own evidence and status; disagreements between static and runtime
+evidence remain explicit.
 
 ## Sources and revisions
 
@@ -111,8 +105,9 @@ Each predicate records:
 
 Command requests and manual setpoints require an expected effect. Effects may
 express a state, value, range, or a value relative to another semantic signal.
-This is still a static expectation. Timing, hold, observation, failure, and
-restore behavior belong in a controlled operation.
+This is still a static expectation. The LLM decides observation timing, failure
+handling, and any required restoration for the current approved action; those
+decisions do not belong in the software model.
 
 Signals classified as process values, command states, dynamic process values,
 or feedback must state whether the observation is physical, independent
@@ -124,7 +119,7 @@ not be presented as independent physical confirmation.
 Validate a document with:
 
 ```powershell
-./scripts/validate-software-model.ps1 `
+./spec/validation/validate-software-model.ps1 `
     -ModelPath <software-model.json>
 ```
 
@@ -138,3 +133,18 @@ Concrete plant models belong under
 Committed examples must be synthetic or explicitly sanitized. The public
 example is
 [`examples/software-models/process-cell.synthetic.v0.1.json`](../examples/software-models/process-cell.synthetic.v0.1.json).
+
+## Live feedback and versioning
+
+Commissioning runtime work starts from a frozen static software-model revision. A live
+observation does not authorize overwriting that baseline. When direct runtime
+evidence validates or contradicts a software relation, condition, expected
+effect, datatype, or feedback classification, create the next model version and
+reference the retained `runtime_observation` source.
+
+Do not create a new software-model version merely because an ADS symbol was
+read. Locator existence and access normally update the runtime-binding document.
+Only supported software-semantic findings belong here, and physical truth still
+belongs in the canonical hardware model. The agent decides which feedback to
+read and how it bears on the user's goal; the model does not encode that
+sequence.

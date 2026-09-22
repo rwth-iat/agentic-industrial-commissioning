@@ -9,31 +9,29 @@
   "sources": [
     {
       "id": "source-1",
-      "type": "runtime_observation"
+      "type": "engineering_project"
     }
   ],
   "bindings": [
     {
-      "id": "binding-1",
+      "id": "invalid-real-pulse",
       "asset_id": "asset-1",
       "role": "command_request",
       "access": "read_write",
       "locator": {
         "kind": "ads_symbol",
-        "value": "GVL_Demo.CommandRequest"
+        "value": "GVL_Demo.Request"
       },
-      "datatype": "BOOL",
+      "datatype": "REAL",
       "interaction": {
-        "semantics": "request",
-        "acknowledgement_binding_id": "missing-binding",
-        "auto_reset_expected": true
+        "semantics": "request"
       },
       "write_semantics": {
         "type": "pulse",
         "duration_ms": 100
       },
-      "status": "validated",
-      "confidence": 1,
+      "status": "inferred",
+      "confidence": 0.5,
       "source_refs": [
         "source-1"
       ]

@@ -46,7 +46,10 @@ $request = [PSCustomObject]@{
     code      = [Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes($code))
     arguments = $Arguments
 }
-$requestJson = $request | ConvertTo-Json -Compress
+# Capability arguments may contain structured binding plans.  Preserve their
+# object properties across the bridge instead of allowing ConvertTo-Json's
+# shallow default depth to stringify nested entries.
+$requestJson = $request | ConvertTo-Json -Depth 20 -Compress
 
 $client = New-Object System.Net.Sockets.TcpClient
 $reader = $null

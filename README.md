@@ -1,216 +1,175 @@
 # Agentic Industrial Commissioning
 
-A research prototype for **vendor-independent, agentic commissioning of industrial automation systems**.
+A research prototype for vendor-independent, agentic commissioning of
+industrial automation systems.
 
-The core idea is to let a coding/engineering agent inspect an industrial automation environment, discover available programmatic interfaces, derive or generate the required connector, normalize discovered hardware into a canonical model, and support commissioning with as little manual engineering as possible.
+> [!CAUTION]
+> This is research software, not a certified safety or real-time control
+> system. Read access does not authorize writes. Every state change requires a
+> current, concrete human approval and valid plant-side safety measures.
 
-## Vision
+## Active research question
 
-Given:
+Can an LLM agent derive the correct industrial runtime interactions from a
+natural-language goal and four structured models without a predefined planner,
+workflow, runner, or component adapter?
 
-- access to an engineering environment,
-- a physical or simulated automation system,
-- a bill of materials and/or device documentation,
-- and optional existing engineering artifacts,
-
-the system should be able to:
-
-1. discover the automation environment,
-2. identify available engineering/runtime interfaces,
-3. generate or derive the required connector,
-4. discover hardware and I/O topology,
-5. normalize the result into a vendor-independent hardware model,
-6. match sensors and actuators to compatible I/O channels,
-7. represent ambiguity and confidence explicitly,
-8. ask the engineer only for information that cannot be inferred safely,
-9. generate engineering artifacts such as mappings, configuration, PLC
-   structures, documentation, and controller code;
-10. execute approved engineering and commissioning actions, observe the result,
-    and refine the model and reusable capabilities.
-
-## Project planning
-
-The long-term direction is documented in [docs/VISION.md](docs/VISION.md), and
-planned development stages are maintained in [docs/ROADMAP.md](docs/ROADMAP.md).
-
-The design and active proposal for the vendor-independent intermediate
-representation are documented in [docs/HARDWARE_MODEL.md](docs/HARDWARE_MODEL.md).
-
-## Current implementation layers
-
-The repository currently contains two deliberately separated implementation
-layers:
-
-1. An offline evidence, canonical-model, and matching pipeline derives and
-   reconciles structured hardware information from heterogeneous engineering
-   evidence.
-2. A remote capability layer provides a verified read-only path from a local
-   agent through a human-opened PowerShell bridge to a TwinCAT ADS environment.
-
-The capability layer remains isolated from the vendor-independent core. Its
-recipes, transport, local configuration, safety boundaries, and verification
-records are explicit repository artifacts.
-
-## Design principles
-
-- **Vendor-independent core**: no Beckhoff-, Phoenix-, Siemens-, WAGO-, Turck-, or other vendor-specific assumptions in the core data model or matching logic.
-- **Agent-generated integration**: vendor-specific access code should be discovered or generated dynamically where feasible.
-- **Explore, codify, reuse**: unfamiliar environments are explored within their
-  safety boundary; validated procedures are converted into deterministic,
-  reusable artifacts.
-- **Canonical intermediate representation**: all discovered systems are translated into one machine-readable hardware model.
-- **Human-on-the-loop**: the system should ask for confirmation when evidence is insufficient.
-- **Read-only first**: discovery must be safe by default.
-- **Explicit uncertainty**: inferred mappings must carry confidence, provenance, and status.
-- **Reproducibility**: generated connectors and mappings should be testable and auditable.
-- **Future interoperability**: the canonical model should be designed so that mappings to standards such as MHS, AAS, OPC UA, or related automation models can be added later.
-
-## Repository layout
+The active MVP is intentionally small:
 
 ```text
-agentic-industrial-commissioning/
-├── README.md
-├── AGENTS.md
-├── docs/                         # architecture and method documentation
-├── capabilities/                 # curated technical recipes and catalogs
-│   └── twincat/ads/
-├── examples/
-│   ├── runtime-bindings/          # synthetic binding contract example
-│   └── controlled-operations/     # synthetic operation contract example
-├── spec/
-│   ├── hardware-model.schema.v0.2-proposal.json
-│   ├── software-model.schema.json
-│   ├── implementation-link.schema.json
-│   ├── runtime-binding.schema.json
-│   └── controlled-operation.schema.json
-├── src/
-│   └── commissioning_core/       # deterministic core candidate
-├── scripts/
-│   ├── capabilities/             # human-facing capability selectors
-│   ├── remote/                   # generic remote execution transport
-│   ├── run-case.ps1              # generic model-fragment runner
-│   ├── validate-hardware-model.ps1
-│   ├── validate-software-model.ps1
-│   ├── validate-implementation-links.ps1
-│   ├── validate-runtime-bindings.ps1
-│   └── validate-controlled-operation.ps1
-├── generated/
-│   └── connectors/               # environment-specific adaptations
-├── tests/
-│   ├── capabilities/
-│   ├── core/
-│   └── schema/
-├── cases/
-│   └── hc10/
-│       ├── raw/                  # local, ignored source evidence
-│       ├── derived/              # agent-derived canonical fragments
-│       ├── results/              # deterministic pipeline results
-│       ├── validation/           # HC10-specific checks
-│       └── run.ps1
-└── creds/                         # ignored local configuration and secrets
+Hardware Model
+Software Model
+Implementation Links
+Runtime Bindings
+        +
+       LLM
+        +
+   READ / WRITE
 ```
 
-The boundary between method development and an operational case run is
-documented in [docs/DEVELOPMENT_AND_OPERATION.md](docs/DEVELOPMENT_AND_OPERATION.md).
-The separate mapping from canonical assets to concrete runtime representations
-is documented in [docs/RUNTIME_BINDINGS.md](docs/RUNTIME_BINDINGS.md).
-Bounded procedures over runtime-binding IDs are documented in
-[docs/CONTROLLED_OPERATIONS.md](docs/CONTROLLED_OPERATIONS.md).
-Static component-facing software knowledge and its hardware traceability are
-documented in [docs/SOFTWARE_MODEL.md](docs/SOFTWARE_MODEL.md) and
-[docs/IMPLEMENTATION_LINKS.md](docs/IMPLEMENTATION_LINKS.md).
-The frozen fresh-agent evaluation boundary and scoring rules are recorded in
-[docs/SOFTWARE_RECONSTRUCTION_ACCEPTANCE.md](docs/SOFTWARE_RECONSTRUCTION_ACCEPTANCE.md).
+A user says, for example:
 
-## Canonical offline pipeline
+```text
+"Open Y20."
+"What is the current flow?"
+"Set the flow to 400 l/h."
+"Find out why the valve does not respond."
+```
 
-The core candidate does not prescribe or read the contents of `raw/`. That
-local, repository-ignored directory may contain any available offline evidence
-in any organization or format. An agent or connector interprets that evidence
-and writes one or more canonical-shaped fragments to `derived/`. Concrete plant
-fragments belong under `derived/private/`; committed examples must be synthetic
-or explicitly sanitized. The generic runner merges all supplied fragments
-without assigning them fixed roles such as BOM, topology, or wiring.
+The user does not provide binding IDs, PLC symbols, datatypes, or a technical
+action sequence. The agent relates the four models, selects relevant bindings,
+decides what to read, requests approval before a write, observes the result,
+and revises its hypothesis when evidence contradicts it.
 
-For HC10, the current fragment names describe how that particular case was
-organized. They are examples, not a required input taxonomy for another case.
+## Architecture boundary
 
-After an operational run has created the local case evidence, fragments, and
-runner, execute the reproducible HC10 pipeline (including canonical-schema
-validation) with:
+```text
+NATURAL-LANGUAGE GOAL
+          |
+          v
+      LLM AGENT
+   reads four models
+   selects bindings
+   decides sequence
+          |
+          v
+      READ / WRITE
+          |
+          v
+deterministic TwinCAT runtime
+          |
+          v
+          PLC
+```
+
+Reasoning, semantic binding selection, and result evaluation belong to the LLM.
+The deterministic runtime resolves only the exact selected binding, enforces
+technical access and value constraints, performs ADS communication, and
+returns actual values or explicit technical errors. The PLC retains real-time
+control, interlocks, and safety functions.
+
+The runtime does not infer intent and does not choose among semantic bindings.
+The active architecture has no deterministic planner, generic runner,
+supervised-probe workflow, readiness state, commissioning-record contract, or
+generated component adapter.
+
+## The four models
+
+- The hardware model states what exists physically.
+- Software models state which controller elements and semantics exist.
+- Implementation links connect physical identities to software semantics.
+- Runtime bindings state how a software element can be reached technically,
+  including access, datatype, locator, and technical write limits.
+
+The hardware model is normally case- or system-scoped. The other three
+contracts are normally component-scoped and may occur repeatedly in a case.
+The models describe the world; they do not encode a workflow.
+
+See [Hardware Model](docs/HARDWARE_MODEL.md),
+[Software Model](docs/SOFTWARE_MODEL.md),
+[Implementation Links](docs/IMPLEMENTATION_LINKS.md), and
+[Runtime Bindings](docs/RUNTIME_BINDINGS.md).
+
+## READ and WRITE
+
+READ loads a runtime-binding document, resolves the binding ID chosen by the
+agent, verifies read access, performs the technical read, and returns the
+observed value with its timestamp and any technical error.
+
+WRITE resolves the chosen binding and enforces only hard technical constraints:
+write access, datatype conversion, limits, allowed values, technical validity
+of the explicitly selected level or pulse mode, and safe pulse reset. The LLM
+selects the mode and pulse duration. Optional binding metadata may inform that
+choice but is not a required runtime default. WRITE does not decide whether the
+action is meaningful or safe for the process. That decision and the concrete
+approval boundary remain between the human and the agent.
+
+Remote transport is private infrastructure. A human starts and authenticates
+the bridge; the agent sees only READ and WRITE and never receives the password.
+
+## Safety and evidence
+
+The default is read-only. A real state change requires explicit approval for
+the exact component, effect, bounds, context, observation, abort condition, and
+restoration path where applicable. Technical writability is never evidence of
+authorization or physical safety.
+
+Ambiguity, conflicting evidence, and rejected candidates remain explicit.
+Structured runtime results may be retained unchanged under
+`cases/<case-id>/raw/runtime/<timestamp>/`. They are technical evidence, not a
+new orchestration contract.
+
+Serialize each returned READ or WRITE object as one compact JSON line and append
+it with:
 
 ```powershell
-./cases/hc10/run.ps1
+$eventJson = $result | ConvertTo-Json -Depth 10 -Compress
+./scripts/append-runtime-evidence.ps1 `
+    -CaseId <case-id> `
+    -Timestamp <UTC-filesystem-timestamp> `
+    -EventJson $eventJson
 ```
 
-It creates `cases/hc10/results/canonical-hardware-model.v0.2.json` and
-`cases/hc10/results/matching-report.json`. Compatible declared or observed
-connections are retained with their original status and suppress free candidate
-generation when they identify one unopposed target. Only physical or functional
-validation changes a connection to `validated`.
+Reuse the same timestamp to append related observations to `events.jsonl`.
+The writer preserves each supplied JSON line and adds no manifest, preflight,
+execution record, completion record, validation state, or run-state machine.
 
-Run the offline schema and core checks:
+Real plant knowledge stays under `cases/<case-id>/derived/private/`, runtime
+observations under ignored `raw/` paths, and local connection profiles under
+ignored `creds/`. Public examples must be synthetic. See
+[Publication and private data](docs/PUBLICATION.md).
+
+## Reset status and planning
+
+The controlled reduction to this minimal architecture is complete. Phase 18
+closed the reset after the architecture, Runtime, privacy, agentic behavior,
+and reduced repository passed their applicable checks. The intentionally
+unperformed Phase-14 hardcoding variant remains an explicit evidence gap.
+
+- [Vision](docs/VISION.md) defines the research hypothesis and boundaries.
+- [Roadmap](docs/ROADMAP.md) identifies the active reset and its proof points.
+- [MVP milestones](docs/MVP.md) preserves completed historical results.
+- [Radical reset plan](docs/AIC_RADICAL_RESET_PLAN_0-18.md) is the detailed
+  migration plan.
+- Superseded commissioning documentation is retained under `docs/archive/`.
+
+Historical records and Git history preserve earlier pipelines; the active path
+does not maintain compatibility wrappers for them.
+
+## Offline verification
+
+The active offline checks mirror the minimal architecture:
 
 ```powershell
-./tests/test-offline-core.ps1
+./tests/models.tests.ps1
+./tests/twincat-runtime.tests.ps1
+./tests/privacy.tests.ps1
 ```
 
-This generic test entry point covers the hardware-model, runtime-binding, and
-controlled-operation schemas plus core behavior.
-Case-specific validation under `cases/<case-id>/validation/` is generated and
-run within the corresponding operational case.
+Run all three through `./tests/test-mvp.ps1`. The separate
+`./tests/test-runtime-evidence.ps1` check verifies unchanged JSONL evidence
+retention without adding a run-state contract.
 
-## TwinCAT ADS capability prototype
+## License
 
-The current technical capability set provides reusable TwinCAT ADS recipes for
-system-state reads, PLC-state reads, symbol discovery, primitive symbol reads,
-guarded symbol writes, request/acknowledgement handshakes, and guarded system
-state transitions. The catalog and verification status are
-documented in [capabilities/twincat/ads/README.md](capabilities/twincat/ads/README.md).
-
-Concrete endpoints, AMS NetIds, installation paths, RDP profiles, and
-credentials belong in the ignored `creds/` directory. Tracked example
-configuration files contain placeholders only.
-
-Start the human-controlled remote bridge in one terminal:
-
-```powershell
-.\creds\Start-AgentRemoteBridge.ps1
-```
-
-In another terminal, list the available read-only operations:
-
-```powershell
-.\scripts\capabilities\twincat\Invoke-AdsCapability.ps1 -List
-```
-
-Open the interactive selector:
-
-```powershell
-.\scripts\capabilities\twincat\Invoke-AdsCapability.ps1
-```
-
-Or invoke a read-only capability directly:
-
-```powershell
-.\scripts\capabilities\twincat\Invoke-AdsCapability.ps1 `
-    -Capability ReadSystemState
-```
-
-The normal selector excludes all state-changing entries. State changes remain
-available as guarded low-level recipes for an authorized agent workflow, but
-they require explicit human approval for the exact operation and independent
-verification of the safe plant state. `Run -> Config` remains experimental
-until a successful final readback has been preserved.
-
-Run the capability checks separately from the offline core suite:
-
-```powershell
-.\tests\test-capabilities.ps1
-```
-
-The remote architecture, session lifecycle, and safety boundary are documented
-in [docs/REMOTE_ENGINEERING.md](docs/REMOTE_ENGINEERING.md). Sanitized records
-of the real read-only integration check and the first supervised, bounded
-request/acknowledgement actuation are kept under
-`capabilities/twincat/ads/verification/`.
+Licensed under the [Apache License 2.0](LICENSE).

@@ -5,20 +5,12 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 $repositoryRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
-$validator = Join-Path $repositoryRoot 'scripts/validate-hardware-model.ps1'
-$powerShell = Join-Path $PSHOME 'pwsh.exe'
+$validator = Join-Path $repositoryRoot 'spec/validation/validate-hardware-model.ps1'
+$powerShell = (Get-Process -Id $PID).Path
 
 $cases = @(
     @{
-        Path = 'examples/hc10/hc10-mvp-example.v0.2.json'
-        ExpectedExitCode = 0
-    },
-    @{
-        Path = 'examples/hc10/hc10-mvp-unambiguous.v0.2.json'
-        ExpectedExitCode = 0
-    },
-    @{
-        Path = 'examples/hc10/hc10-mvp-incompatible.v0.2.json'
+        Path = 'examples/hardware-models/process-cell.synthetic.v0.2.json'
         ExpectedExitCode = 0
     },
     @{
